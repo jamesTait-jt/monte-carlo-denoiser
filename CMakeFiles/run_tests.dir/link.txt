@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/run_tests.dir/test/tests.cc.o  -o build/run_tests /usr/lib/libgtest.so /usr/lib/libSDL2-2.0.so.0.9.0 -lm -ldl -ldbus-1 -libus-1.0 -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lunwind -lunwind-generic -lrt -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now -Wl,--no-undefined -pthread 
