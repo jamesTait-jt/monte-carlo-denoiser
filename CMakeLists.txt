@@ -33,6 +33,10 @@ set(
     SOURCES 
     src/mcr.cc
     src/sdl_window_helper.cc 
+    src/shape.cc
+    src/triangle.cc
+    src/material.cc
+    src/ray.cc
 )
 
 add_executable(${PROJECT_NAME} 
@@ -42,6 +46,11 @@ add_executable(${PROJECT_NAME}
 set(
     SOURCES
     test/tests.cc
+    src/sdl_window_helper.cc 
+    src/shape.cc
+    src/triangle.cc
+    src/material.cc
+    src/ray.cc
 )
 
 add_executable(run_tests
