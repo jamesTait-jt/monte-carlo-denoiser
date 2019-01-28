@@ -5,6 +5,9 @@ lib/*
 # Ignore any executables
 bin/*
 
+# Ignore glm
+include/glm
+
 # Ignore Mac specific files
 .DS_Store
 
