@@ -26,7 +26,7 @@ class SdlWindowHelper {
     public:
         SdlWindowHelper(int width, int height);
         void putPixel(int x_pos, int y_pos, vec3 colour);
-        void renderUntilExit();
+        void render();
         void destroy();
 };
 

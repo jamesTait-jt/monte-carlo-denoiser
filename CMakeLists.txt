@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13.1)
 project (mcr)
 
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -g")
+
 # Set threads flag on
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
@@ -37,6 +39,7 @@ set(
     src/triangle.cc
     src/material.cc
     src/ray.cc
+    src/camera.cc
 )
 
 add_executable(${PROJECT_NAME} 
@@ -51,6 +54,7 @@ set(
     src/triangle.cc
     src/material.cc
     src/ray.cc
+    src/camera.cc
 )
 
 add_executable(run_tests

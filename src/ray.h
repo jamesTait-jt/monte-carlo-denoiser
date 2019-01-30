@@ -24,10 +24,12 @@ class Ray {
     public:
         Ray(vec4 start, vec4 direction);
         bool closestIntersection(std::vector<Shape *> shapes);
+        void rotateRay(float yaw);       
         
         vec4 get_start();
         vec4 get_direction();
-        vec4 get_closest_intersection();
+        Intersection get_closest_intersection();
+        void set_closest_intersection(Intersection intersection);
     
     private:
         vec4 start_;

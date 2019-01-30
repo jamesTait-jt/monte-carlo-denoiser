@@ -18,10 +18,10 @@ TEST(TriangleNormalTest, PositiveCoords) {
     Material mat;
     Triangle tri(v0, v1, v2, mat);
 
-    vec3 edge1 = vec3(tri.getV1() - tri.getV0());
-    vec3 edge2 = vec3(tri.getV1() - tri.getV2());
-    vec3 edge3 = vec3(tri.getV2() - tri.getV0());
-    vec3 normal = vec3(tri.getNormal());
+    vec3 edge1 = vec3(tri.get_v1() - tri.get_v0());
+    vec3 edge2 = vec3(tri.get_v1() - tri.get_v2());
+    vec3 edge3 = vec3(tri.get_v2() - tri.get_v0());
+    vec3 normal = vec3(tri.get_normal());
 
     ASSERT_TRUE(glm::dot(edge1, normal) < floating_point_err);
     ASSERT_TRUE(glm::dot(edge2, normal) < floating_point_err);
@@ -35,10 +35,10 @@ TEST(TriangleNormalTest, BigPositiveCoords) {
     Material mat;
     Triangle tri(v0, v1, v2, mat);
 
-    vec3 edge1 = vec3(tri.getV1() - tri.getV0());
-    vec3 edge2 = vec3(tri.getV1() - tri.getV2());
-    vec3 edge3 = vec3(tri.getV2() - tri.getV0());
-    vec3 normal = vec3(tri.getNormal());
+    vec3 edge1 = vec3(tri.get_v1() - tri.get_v0());
+    vec3 edge2 = vec3(tri.get_v1() - tri.get_v2());
+    vec3 edge3 = vec3(tri.get_v2() - tri.get_v0());
+    vec3 normal = vec3(tri.get_normal());
 
     ASSERT_TRUE(glm::dot(edge1, normal) < floating_point_err);
     ASSERT_TRUE(glm::dot(edge2, normal) < floating_point_err);
