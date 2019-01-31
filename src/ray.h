@@ -29,6 +29,8 @@ class Ray {
         vec4 get_start();
         vec4 get_direction();
         Intersection get_closest_intersection();
+
+        void set_start(vec4 start);
         void set_closest_intersection(Intersection intersection);
     
     private:

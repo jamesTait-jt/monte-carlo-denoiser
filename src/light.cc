@@ -44,5 +44,5 @@ vec3 Light::directLight(const Intersection & intersection, std::vector<Shape *> 
     
     vec3 amount = this->intensity_ * this->colour_;
     vec3 scaled_amount = amount * scalar;
-    return scaled_amount * shapes[intersection.index]->get_material().get_diffuse_light_component();
+    return scaled_amount;// * shapes[intersection.index]->get_material().get_diffuse_light_component();
 }

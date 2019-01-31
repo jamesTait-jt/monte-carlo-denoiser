@@ -28,20 +28,21 @@ int main (int argc, char* argv[]) {
     }
 
     Camera camera(vec4(0, 0, -3, 1));
+    Light light(10.0f, vec3(1), vec4(0, -0.4, -0.9, 1.0));
 
     SdlWindowHelper sdl_window(screen_width, screen_height);
     
     int i = 0;
     while(sdl_window.noQuitMessage() && i < 1000) {
         i++;
-        update(camera);
-        draw(camera, shapes, sdl_window);
+        update(camera, light);
+        draw(camera, light, shapes, sdl_window);
     }
 
     return 0;
 }
 
-void update(Camera & camera) {
+void update(Camera & camera, Light & light) {
     static int t = SDL_GetTicks();
     /* Compute frame time */
     int t2 = SDL_GetTicks();
@@ -86,7 +87,7 @@ void update(Camera & camera) {
     }*/
 }
 
-void draw(Camera & camera, std::vector<Shape *> shapes, SdlWindowHelper sdl_window) {
+void draw(Camera & camera, Light & light, std::vector<Shape *> shapes, SdlWindowHelper sdl_window) {
     std::vector<std::vector<vec3>> image(
         screen_height,
         std::vector<vec3>(screen_height)
@@ -102,17 +103,38 @@ void draw(Camera & camera, std::vector<Shape *> shapes, SdlWindowHelper sdl_wind
             ray.rotateRay(camera.get_yaw());
 
             if (ray.closestIntersection(shapes)) {
-                vec4 pos = camera.get_position();
                 Intersection closest_intersection = ray.get_closest_intersection();
-                vec3 incident_dir = vec3(closest_intersection.position - pos);
-                vec4 incident_dir_4d(normalize(incident_dir), 1);
-                vec3 colour = shapes[closest_intersection.index]->get_material().get_diffuse_light_component();
-                
-                image[x][y] = colour;
+                vec3 direct_light = light.directLight(closest_intersection, shapes);
+                vec3 base_colour = shapes[closest_intersection.index]->get_material().get_diffuse_light_component();
+                direct_light *= base_colour;
+                vec3 colour = monteCarlo(closest_intersection, shapes);
+                image[x][y] = direct_light + colour;
             }
         }
     }
     renderImageBuffer(image, sdl_window);
+}
+
+vec3 monteCarlo(Intersection closest_intersection, std::vector<Shape *> shapes) {
+    vec3 indirect_light_approximation = vec3(0);
+    int i = 0;
+    while(i < monte_carlo_samples) {
+        Ray random_ray = Ray(
+            closest_intersection.position, 
+            closest_intersection.normal
+        );
+        float rand_theta = drand48() * M_PI;
+        random_ray.rotateRay(rand_theta);
+        random_ray.set_start(random_ray.get_start() + 0.001f * random_ray.get_direction());
+
+        if (random_ray.closestIntersection(shapes)) {
+           Intersection indirect_light_intersection = random_ray.get_closest_intersection();
+           indirect_light_approximation = shapes[indirect_light_intersection.index]->get_material().get_diffuse_light_component();
+           i++;
+        }
+    }
+    indirect_light_approximation /= monte_carlo_samples;
+    return indirect_light_approximation;
 }
 
 void renderImageBuffer(std::vector<std::vector<vec3>> image, SdlWindowHelper sdl_window) {

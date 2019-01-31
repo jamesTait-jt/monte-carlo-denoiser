@@ -40,6 +40,7 @@ set(
     src/material.cc
     src/ray.cc
     src/camera.cc
+    src/light.cc
 )
 
 add_executable(${PROJECT_NAME} 
@@ -55,6 +56,7 @@ set(
     src/material.cc
     src/ray.cc
     src/camera.cc
+    src/light.cc
 )
 
 add_executable(run_tests

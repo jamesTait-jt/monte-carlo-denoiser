@@ -46,6 +46,10 @@ Intersection Ray::get_closest_intersection() {
     return this->closest_intersection_;
 }
 
+void  Ray::set_start(vec4 start) {
+    this->start_ = start;
+}
+
 void Ray::set_closest_intersection(Intersection intersection) {
     this->closest_intersection_ = intersection;
 }
