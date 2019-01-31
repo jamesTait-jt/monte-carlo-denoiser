@@ -33,11 +33,11 @@ void SdlWindowHelper::putPixel(int x_pos, int y_pos, vec3 colour) {
 // associated sdl objects.
 void SdlWindowHelper::render() {
     SDL_RenderPresent(this->renderer_);
-    while (1) {
-        if (SDL_PollEvent(&this->event_) && this->event_.type == SDL_QUIT)
-            break;
-    }
-    this->destroy();
+    //while (1) {
+    //    if (SDL_PollEvent(&this->event_) && this->event_.type == SDL_QUIT)
+    //        break;
+    //}
+    //this->destroy();
 }
 
 // Destroys SDL objects and cleans up with Quit()
@@ -46,3 +46,19 @@ void SdlWindowHelper::destroy() {
     SDL_DestroyWindow(this->window_);
     SDL_Quit();
 }
+
+bool SdlWindowHelper::noQuitMessage() {
+    SDL_Event e;
+    while(SDL_PollEvent(&e)) {
+        if(e.type == SDL_QUIT) {
+	    return false;
+    }
+        if(e.type == SDL_KEYDOWN) {
+	    if(e.key.keysym.sym == SDLK_ESCAPE) {
+	        return false;
+	    }
+	}
+    }
+    return true;
+}
+

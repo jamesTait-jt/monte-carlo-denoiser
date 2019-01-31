@@ -28,6 +28,7 @@ class SdlWindowHelper {
         void putPixel(int x_pos, int y_pos, vec3 colour);
         void render();
         void destroy();
+        bool noQuitMessage();
 };
 
 #endif

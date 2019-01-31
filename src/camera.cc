@@ -16,7 +16,7 @@ void Camera::rotateLeft(float yaw) {
 }
 
 void Camera::rotateRight(float yaw) {
-    this->yaw_ = (this->yaw_ - yaw);
+    this->yaw_ = (this->yaw_ + yaw);
     mat4 new_rotation_matrix = this->rotation_matrix_;
     new_rotation_matrix[0] = vec4(cos(yaw), 0, sin(yaw), 0);
     new_rotation_matrix[2] = vec4(-sin(yaw), 0, cos(yaw), 0);

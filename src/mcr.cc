@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include "glm/gtx/string_cast.hpp"
 #include <SDL2/SDL.h>
+#include <omp.h>
 
 #include <iostream>
 
@@ -13,30 +14,25 @@
 
 int main (int argc, char* argv[]) {
 
-
+    omp_set_num_threads(4);
+    
     std::vector<Triangle> triangles;
 
     loadShapes(triangles);
 
     std::vector<Shape *> shapes;
-    for (int i = 0 ; i < triangles.size(); i++) {
-        Shape * sptr (&triangles[i]);
-        shapes.push_back(sptr);
+    int num_tris = triangles.size();
+    for (int i = 0 ; i < num_tris ; i++) {
+        Shape * shape_pointer (&triangles[i]);
+        shapes.push_back(shape_pointer);
     }
 
     Camera camera(vec4(0, 0, -3, 1));
 
     SdlWindowHelper sdl_window(screen_width, screen_height);
-    //for (int x = 0 ; x < screen_height ; x++) {
-    //    for (int y = 0 ; y < screen_width ; y++) {
-    //        sdl_window.putPixel(x, y, vec3(100, 100, 100));
-    //    }
-    //}
-
-    //sdl_window.render();
     
     int i = 0;
-    while(i < 1000) {
+    while(sdl_window.noQuitMessage() && i < 1000) {
         i++;
         update(camera);
         draw(camera, shapes, sdl_window);
@@ -91,6 +87,11 @@ void update(Camera & camera) {
 }
 
 void draw(Camera & camera, std::vector<Shape *> shapes, SdlWindowHelper sdl_window) {
+    std::vector<std::vector<vec3>> image(
+        screen_height,
+        std::vector<vec3>(screen_height)
+    );
+    #pragma omp parallel for
     for (int x = 0 ; x < screen_height ; x++) {
         for (int y = 0 ; y < screen_width ; y++) {
             // Change the ray's direction to work for the current pixel (pixel space -> Camera space)
@@ -107,8 +108,17 @@ void draw(Camera & camera, std::vector<Shape *> shapes, SdlWindowHelper sdl_wind
                 vec4 incident_dir_4d(normalize(incident_dir), 1);
                 vec3 colour = shapes[closest_intersection.index]->get_material().get_diffuse_light_component();
                 
-                sdl_window.putPixel(x, y, colour);
+                image[x][y] = colour;
             }
+        }
+    }
+    renderImageBuffer(image, sdl_window);
+}
+
+void renderImageBuffer(std::vector<std::vector<vec3>> image, SdlWindowHelper sdl_window) {
+    for (int x = 0 ; x < screen_height ; x++) {
+        for (int y = 0 ; y < screen_width ; y++) {
+           sdl_window.putPixel(x, y, image[x][y]); 
         }
     }
     sdl_window.render();

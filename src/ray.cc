@@ -18,8 +18,8 @@ Ray::Ray(vec4 start, vec4 direction) {
 // "closest_intersection_".
 bool Ray::closestIntersection(std::vector<Shape *> shapes) {
     bool return_val = false;
-    //std::cout << shapes.size() << std::endl;
-    for (int i = 0 ; i < shapes.size() ; i++) {
+    int num_shapes = shapes.size();
+    for (int i = 0 ; i < num_shapes ; i++) {
         if (shapes[i]->intersects(this, i)) {
             return_val = true;
         }
