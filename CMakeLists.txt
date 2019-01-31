@@ -41,6 +41,7 @@ set(
     src/ray.cc
     src/camera.cc
     src/light.cc
+    src/lightSphere.cc
 )
 
 add_executable(${PROJECT_NAME} 
@@ -57,6 +58,7 @@ set(
     src/ray.cc
     src/camera.cc
     src/light.cc
+    src/lightSphere.cc
 )
 
 add_executable(run_tests

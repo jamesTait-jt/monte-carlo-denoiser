@@ -29,14 +29,15 @@ int main (int argc, char* argv[]) {
 
     Camera camera(vec4(0, 0, -3, 1));
     Light light(10.0f, vec3(1), vec4(0, -0.4, -0.9, 1.0));
-
+    LightSphere light_sphere(vec4(0, -0.4, -0.9, 1.0), 0.1f, 5, 10.0f, vec3(1));
+    
     SdlWindowHelper sdl_window(screen_width, screen_height);
     
     int i = 0;
     while(sdl_window.noQuitMessage() && i < 1000) {
         i++;
         update(camera, light);
-        draw(camera, light, shapes, sdl_window);
+        draw(camera, light, light_sphere, shapes, sdl_window);
     }
 
     return 0;
@@ -87,7 +88,7 @@ void update(Camera & camera, Light & light) {
     }*/
 }
 
-void draw(Camera & camera, Light & light, std::vector<Shape *> shapes, SdlWindowHelper sdl_window) {
+void draw(Camera & camera, Light & light, LightSphere & light_sphere, std::vector<Shape *> shapes, SdlWindowHelper sdl_window) {
     std::vector<std::vector<vec3>> image(
         screen_height,
         std::vector<vec3>(screen_height)
@@ -104,11 +105,12 @@ void draw(Camera & camera, Light & light, std::vector<Shape *> shapes, SdlWindow
 
             if (ray.closestIntersection(shapes)) {
                 Intersection closest_intersection = ray.get_closest_intersection();
-                vec3 direct_light = light.directLight(closest_intersection, shapes);
+                //vec3 direct_light = light.directLight(closest_intersection, shapes);
+                vec3 direct_light = light_sphere.directLight(closest_intersection, shapes);
                 vec3 base_colour = shapes[closest_intersection.index]->get_material().get_diffuse_light_component();
                 direct_light *= base_colour;
                 vec3 colour = monteCarlo(closest_intersection, shapes);
-                image[x][y] = direct_light + colour;
+                image[x][y] = direct_light * colour;
             }
         }
     }

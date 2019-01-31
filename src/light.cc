@@ -1,4 +1,9 @@
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/string_cast.hpp"
+
 #include "light.h"
+
+#include <iostream>
 
 Light::Light(float intensity, vec3 colour, vec4 position) {
     this->intensity_ = intensity;
@@ -44,5 +49,10 @@ vec3 Light::directLight(const Intersection & intersection, std::vector<Shape *> 
     
     vec3 amount = this->intensity_ * this->colour_;
     vec3 scaled_amount = amount * scalar;
+    
     return scaled_amount;// * shapes[intersection.index]->get_material().get_diffuse_light_component();
+}
+
+vec4 Light::get_position() {
+    return this->position_;
 }
