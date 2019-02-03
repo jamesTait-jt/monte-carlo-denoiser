@@ -109,8 +109,9 @@ void draw(Camera & camera, Light & light, LightSphere & light_sphere, std::vecto
                 vec3 direct_light = light_sphere.directLight(closest_intersection, shapes);
                 vec3 base_colour = shapes[closest_intersection.index]->get_material().get_diffuse_light_component();
                 direct_light *= base_colour;
-                vec3 colour = monteCarlo(closest_intersection, shapes);
-                image[x][y] = direct_light * colour;
+                //vec3 colour = monteCarlo(closest_intersection, shapes);
+                //image[x][y] = direct_light * colour;
+                image[x][y] = direct_light;
             }
         }
     }
