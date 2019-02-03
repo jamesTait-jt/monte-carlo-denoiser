@@ -1,6 +1,3 @@
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtx/string_cast.hpp"
-
 #include <iostream>
 
 #include "triangle.h"
@@ -8,13 +5,14 @@
 
 using glm::vec3;
 
-Triangle::Triangle(vec4 v0, vec4 v1, vec4 v2, Material material) : Shape(material) {
+Triangle::Triangle(vec4 v0, vec4 v1, vec4 v2, Material material) {
    v0_ = v0; 
    v1_ = v1; 
    v2_ = v2; 
    normal_ = computeNormal();
 }
 
+/*
 bool Triangle::intersects(Ray * ray, int triangle_index) {
     bool return_val = false;
     vec4 start = ray->get_start();
@@ -44,8 +42,9 @@ bool Triangle::intersects(Ray * ray, int triangle_index) {
             return_val = true;
         }
     }
-return return_val;
+    return return_val;
 }
+*/
 
 // Calculate the surface normal of the triangle. Calculate the cross product
 // between two edges, then renormalise, being careful about using homogeneous

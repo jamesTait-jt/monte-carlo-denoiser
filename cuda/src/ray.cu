@@ -1,7 +1,7 @@
 #include <iostream>
 
+#include "constants/screen.h"
 #include "ray.h"
-#include "shape.h"
 
 using glm::mat4;
 
@@ -13,18 +13,89 @@ Ray::Ray(vec4 start, vec4 direction) {
     closest_intersection_.distance = std::numeric_limits<float>::max();
 }
 
+__device__
+void cramer_(mat3 A, vec3 b, vec3 & solution, bool & det_not_zero) {
+    // Initialise the solution output
+    solution = vec3(0, 0, 0);
+    float detA = glm::determinant(A);
+    if (detA != 0) {
+        det_not_zero = true;
+        // Temp variable to hold the value of A
+        mat3 temp = A;
+
+        A[0] = b;
+        solution.x = determinant(A) / detA;
+        A = temp;
+
+        A[1] = b;
+        solution.y = determinant(A) / detA;
+        A = temp;
+
+        A[2] = b;
+        solution.z = determinant(A) / detA;
+        A = temp;
+    } 
+}
+
+__device__
+void intersects_(Triangle tri, Ray * ray, int triangle_index, bool & has_intersection) {
+    vec4 start = ray->start_;
+    vec4 dir = ray->direction_;
+
+    dir = vec4(vec3(dir) * (float)screen_height, 1);
+
+    vec4 v0 = tri.v0_;
+    vec4 v1 = tri.v1_;
+    vec4 v2 = tri.v2_;
+
+    vec3 v1_minus_v0 = vec3(v1 - v0);
+    vec3 v2_minus_v0 = vec3(v2 - v0);
+    vec3 start_minus_v0 = vec3(start - v0);
+
+    mat3 A(vec3(-dir), v1_minus_v0, v2_minus_v0);
+
+    vec3 solution;
+    bool * det_not_zero;
+    *det_not_zero = false;
+    cramer_(A, start_minus_v0, solution, *det_not_zero);
+
+    if (det_not_zero && solution.x >= 0.0f && solution.y >= 0.0f && solution.z >= 0.0f && solution.y + solution.z <= 1.0f) {
+        if (solution.x < ray->closest_intersection_.distance) {
+
+            Intersection intersection;
+            intersection.position = start + solution.x * dir;
+            intersection.distance = solution.x;
+            intersection.index = triangle_index;
+            intersection.normal = tri.normal_;
+
+            ray->closest_intersection_ = intersection;
+            has_intersection = true;
+        }
+    }
+}
+
 // Gets the closest intersection point of the ray in the scene. Returns false if
 // there is no intersection, otherwise sets the member variable
 // "closest_intersection_".
 __global__
-bool Ray::closestIntersection(std::vector<Shape *> shapes) {
-    bool return_val = false;
-    int num_shapes = shapes.size();
+void closestIntersection_(Triangle * triangles, int num_shapes, bool & has_intersection, Ray * ray) {
     for (int i = 0 ; i < num_shapes ; i++) {
-        if (shapes[i]->intersects(this, i)) {
-            return_val = true;
-        }
+        intersects_(triangles[i], ray, i, has_intersection);
     }
+}
+
+bool Ray::closestIntersection(Triangle * triangles, int num_shapes) {
+    bool * has_intersection;
+    cudaMallocManaged(&has_intersection, sizeof(bool));
+    *has_intersection = false;
+
+    closestIntersection_<<<1, 1>>>(triangles, num_shapes, *has_intersection, this);
+   
+    cudaDeviceSynchronize();
+
+    bool return_val = *has_intersection;
+    cudaFree(has_intersection);
+
     return return_val;
 }
 

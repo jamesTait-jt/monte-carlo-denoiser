@@ -3,12 +3,14 @@
 
 #include <glm/glm.hpp>
 
+#include "triangle.h"
+
 #include <vector>
 
 using glm::vec4;
 using glm::vec3;
 
-class Shape;
+class Triangle;
 
 struct Intersection {
     vec4 position;
@@ -22,9 +24,13 @@ struct Intersection {
 class Ray {
 
     public:
+        vec4 start_;
+        vec4 direction_;
+        Intersection closest_intersection_;
+
         Ray(vec4 start, vec4 direction);
-        bool closestIntersection(std::vector<Shape *> shapes);
-        void rotateRay(float yaw);       
+        bool closestIntersection(Triangle * triangles, int num_shapes);
+        void rotateRay(float yaw);
         
         vec4 get_start();
         vec4 get_direction();
@@ -33,10 +39,6 @@ class Ray {
         void set_start(vec4 start);
         void set_closest_intersection(Intersection intersection);
     
-    private:
-        vec4 start_;
-        vec4 direction_;
-        Intersection closest_intersection_;
 };
 
 #endif

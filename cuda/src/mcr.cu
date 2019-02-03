@@ -14,16 +14,28 @@ int main (int argc, char* argv[]) {
 
     //omp_set_num_threads(4);
     
-    std::vector<Triangle> triangles;
+    // 30 triangles at the moment
+    int num_tris = 30;
+
+    // Allocate unified memory for access from CPU or GPU
+    //std::vector<Triangle> triangles;
+    Triangle * triangles;
+    cudaMallocManaged(&triangles, num_tris * sizeof(Triangle));
 
     loadShapes(triangles);
 
-    std::vector<Shape *> shapes;
-    int num_tris = triangles.size();
-    for (int i = 0 ; i < num_tris ; i++) {
-        Shape * shape_pointer (&triangles[i]);
-        shapes.push_back(shape_pointer);
-    }
+    //Shape ** shapes;
+    //cudaMallocManaged(&shapes, num_tris * sizeof(Shape *));
+
+    //std::vector<Shape *> shapes;
+    //num_tris = triangles.size();
+
+    //for (int i = 0 ; i < num_tris ; i++) {
+    //    Shape * shape_pointer (&triangles[i]);
+        //shapes.push_back(shape_pointer);
+    //    shapes[i] = shape_pointer;
+    //}
+
 
     Camera camera(vec4(0, 0, -3, 1));
     Light light(10.0f, vec3(1), vec4(0, -0.4, -0.9, 1.0));
@@ -32,11 +44,14 @@ int main (int argc, char* argv[]) {
     SdlWindowHelper sdl_window(screen_width, screen_height);
     
     int i = 0;
-    while(sdl_window.noQuitMessage() && i < 1000) {
+    while(sdl_window.noQuitMessage() && i < 10) {
         i++;
         update(camera, light);
-        draw(camera, light, light_sphere, shapes, sdl_window);
+        draw(camera, light, light_sphere, triangles, num_tris, sdl_window);
     }
+
+    //cudaFree(shapes);
+    cudaFree(triangles);
 
     return 0;
 }
@@ -86,7 +101,7 @@ void update(Camera & camera, Light & light) {
     }*/
 }
 
-void draw(Camera & camera, Light & light, LightSphere & light_sphere, std::vector<Shape *> shapes, SdlWindowHelper sdl_window) {
+void draw(Camera & camera, Light & light, LightSphere & light_sphere, Triangle * triangles, int num_shapes, SdlWindowHelper sdl_window) {
     std::vector<std::vector<vec3>> image(
         screen_height,
         std::vector<vec3>(screen_height)
@@ -100,16 +115,19 @@ void draw(Camera & camera, Light & light, LightSphere & light_sphere, std::vecto
             // Create a ray that we will change the direction for below
             Ray ray(camera.get_position(), dir);
             ray.rotateRay(camera.get_yaw());
+            
 
-            if (ray.closestIntersection(shapes)) {
-                Intersection closest_intersection = ray.get_closest_intersection();
+            if (ray.closestIntersection(triangles, num_shapes)) {
+                //Intersection closest_intersection = ray.get_closest_intersection();
                 //vec3 direct_light = light.directLight(closest_intersection, shapes);
-                vec3 direct_light = light_sphere.directLight(closest_intersection, shapes);
-                vec3 base_colour = shapes[closest_intersection.index]->get_material().get_diffuse_light_component();
-                direct_light *= base_colour;
+                //vec3 direct_light = light_sphere.directLight(closest_intersection, shapes);
+                //vec3 base_colour = shapes[closest_intersection.index]->get_material().get_diffuse_light_component();
+                //direct_light *= base_colour;
                 //vec3 colour = monteCarlo(closest_intersection, shapes);
                 //image[x][y] = direct_light * colour;
-                image[x][y] = direct_light;
+                //image[x][y] = direct_light;
+
+                image[x][y] = vec3(0.75);
             }
         }
     }
@@ -128,11 +146,13 @@ vec3 monteCarlo(Intersection closest_intersection, std::vector<Shape *> shapes) 
         random_ray.rotateRay(rand_theta);
         random_ray.set_start(random_ray.get_start() + 0.001f * random_ray.get_direction());
 
+        /*
         if (random_ray.closestIntersection(shapes)) {
            Intersection indirect_light_intersection = random_ray.get_closest_intersection();
            indirect_light_approximation = shapes[indirect_light_intersection.index]->get_material().get_diffuse_light_component();
            i++;
         }
+        */
     }
     indirect_light_approximation /= monte_carlo_samples;
     return indirect_light_approximation;
@@ -147,7 +167,7 @@ void renderImageBuffer(std::vector<std::vector<vec3>> image, SdlWindowHelper sdl
     sdl_window.render();
 }
 
-void loadShapes(std::vector<Triangle> & triangles) {
+void loadShapes(Triangle * triangles) {
     float cornell_length = 555;			// Length of Cornell Box side.
 
     vec4 A(cornell_length, 0, 0             , 1);
@@ -160,41 +180,64 @@ void loadShapes(std::vector<Triangle> & triangles) {
     vec4 G(cornell_length, cornell_length, cornell_length, 1);
     vec4 H(0             , cornell_length, cornell_length, 1);
 
+    // Counter to track triangles
+    int curr_tris = 0;
+
     // Triangles now take a material as an argument rather than a colour
     // Floor:
     Triangle floor_triangle_1 = Triangle(C, B, A, default_cyan);
-    triangles.push_back(floor_triangle_1);
+    //triangles.push_back(floor_triangle_1);
+    triangles[curr_tris] = floor_triangle_1;
+    curr_tris++;
 
     Triangle floor_triangle_2 = Triangle(C, D, B, default_cyan);
-    triangles.push_back(floor_triangle_2);
+    //triangles.push_back(floor_triangle_2);
+    triangles[curr_tris] = floor_triangle_2;
+    curr_tris++;
 
     // Left wall
     Triangle left_wall_1 = Triangle(A, E, C, default_yellow);
-    triangles.push_back(left_wall_1);
+    //triangles.push_back(left_wall_1);
+    triangles[curr_tris] = left_wall_1;
+    curr_tris++;
 
     Triangle left_wall_2 = Triangle(C, E, G, default_yellow);
-    triangles.push_back(left_wall_2);
+    //triangles.push_back(left_wall_2);
+    triangles[curr_tris] = left_wall_2;
+    curr_tris++;
 
     // Right wall
     Triangle right_wall_1 = Triangle(F, B, D, default_green);
-    triangles.push_back(right_wall_1);
+    //triangles.push_back(right_wall_1);
+    triangles[curr_tris] = right_wall_1;
+    curr_tris++;
 
     Triangle right_wall_2 = Triangle(H, F, D, default_green);
-    triangles.push_back(right_wall_2);
+    //triangles.push_back(right_wall_2);
+    triangles[curr_tris] = right_wall_2;
+    curr_tris++;
 
     // Ceiling
     Triangle ceiling_1 = Triangle(E, F, G, default_purple);
-    triangles.push_back(ceiling_1);
+    //triangles.push_back(ceiling_1);
+    triangles[curr_tris] = ceiling_1;
+    curr_tris++;
 
     Triangle ceiling_2 = Triangle(F, H, G, default_purple);
-    triangles.push_back(ceiling_2);
+    //triangles.push_back(ceiling_2);
+    triangles[curr_tris] = ceiling_2;
+    curr_tris++;
 
     // Back wall
     Triangle back_wall_1 = Triangle(G, D, C, default_white);
-    triangles.push_back(back_wall_1);
+    //triangles.push_back(back_wall_1);
+    triangles[curr_tris] = back_wall_1;
+    curr_tris++;
 
     Triangle back_wall_2 = Triangle(G, H, D, default_white);
-    triangles.push_back(back_wall_2);
+    //triangles.push_back(back_wall_2);
+    triangles[curr_tris] = back_wall_2;
+    curr_tris++;
 
     // ---------------------------------------------------------------------------
     // Short block
@@ -210,24 +253,44 @@ void loadShapes(std::vector<Triangle> & triangles) {
     H = vec4( 32,165,345,1);
 
     // Front
-    triangles.push_back(Triangle(E, B, A, default_red));
-    triangles.push_back(Triangle(E, F, B, default_red));
+    //triangles.push_back(Triangle(E, B, A, default_red));
+    triangles[curr_tris] = Triangle(E, B, A, default_red);
+    curr_tris++;
+    //triangles.push_back(Triangle(E, F, B, default_red));
+    triangles[curr_tris] = Triangle(E, F, B, default_red);
+    curr_tris++;
 
     // Front
-    triangles.push_back(Triangle(F, D, B, default_red));
-    triangles.push_back(Triangle(F, H, D, default_red));
+    //triangles.push_back(Triangle(F, D, B, default_red));
+    triangles[curr_tris] = Triangle(F, D, B, default_red);
+    curr_tris++;
+    //triangles.push_back(Triangle(F, H, D, default_red));
+    triangles[curr_tris] = Triangle(F, H, D, default_red);
+    curr_tris++;
 
     // BACK
-    triangles.push_back(Triangle(H, C, D, default_red));
-    triangles.push_back(Triangle(H, G, C, default_red));
+    //triangles.push_back(Triangle(H, C, D, default_red));
+    triangles[curr_tris] = Triangle(H, C, D, default_red);
+    curr_tris++;
+    //triangles.push_back(Triangle(H, G, C, default_red));
+    triangles[curr_tris] = Triangle(H, G, C, default_red);
+    curr_tris++;
 
     // LEFT
-    triangles.push_back(Triangle(G, E, C, default_red));
-    triangles.push_back(Triangle(E, A, C, default_red));
+    //triangles.push_back(Triangle(G, E, C, default_red));
+    triangles[curr_tris] = Triangle(G, E, C, default_red);
+    curr_tris++;
+    //triangles.push_back(Triangle(E, A, C, default_red));
+    triangles[curr_tris] = Triangle(E, A, C, default_red);
+    curr_tris++;
 
     // TOP
-    triangles.push_back(Triangle(G, F, E, default_red));
-    triangles.push_back(Triangle(G, H, F, default_red));
+    //triangles.push_back(Triangle(G, F, E, default_red));
+    triangles[curr_tris] = Triangle(G, F, E, default_red);
+    curr_tris++;
+    //triangles.push_back(Triangle(G, H, F, default_red));
+    triangles[curr_tris] = Triangle(G, H, F, default_red);
+    curr_tris++;
 
     // ---------------------------------------------------------------------------
     // Tall block
@@ -244,29 +307,49 @@ void loadShapes(std::vector<Triangle> & triangles) {
 
     // Front
    
-    triangles.push_back(Triangle(E, B, A, default_blue));
-    triangles.push_back(Triangle(E, F, B, default_blue));
+    //triangles.push_back(Triangle(E, B, A, default_blue));
+    triangles[curr_tris] = Triangle(E, B, A, default_blue);
+    curr_tris++;
+    //triangles.push_back(Triangle(E, F, B, default_blue));
+    triangles[curr_tris] = Triangle(E, F, B, default_blue);
+    curr_tris++;
 
     // Front
-    triangles.push_back(Triangle(F, D, B, default_blue));
-    triangles.push_back(Triangle(F, H, D, default_blue));
+    //triangles.push_back(Triangle(F, D, B, default_blue));
+    triangles[curr_tris] = Triangle(F, D, B, default_blue);
+    curr_tris++;
+    //triangles.push_back(Triangle(F, H, D, default_blue));
+    triangles[curr_tris] = Triangle(F, H, D, default_blue);
+    curr_tris++;
 
     // BACK
-    triangles.push_back(Triangle(H, C, D, default_blue));
-    triangles.push_back(Triangle(H, G, C, default_blue));
+    //triangles.push_back(Triangle(H, C, D, default_blue));
+    triangles[curr_tris] = Triangle(H, C, D, default_blue);
+    curr_tris++;
+    //triangles.push_back(Triangle(H, G, C, default_blue));
+    triangles[curr_tris] = Triangle(H, G, C, default_blue);
+    curr_tris++;
 
     // LEFT
-    triangles.push_back(Triangle(G, E, C, default_blue));
-    triangles.push_back(Triangle(E, A, C, default_blue));
+    //triangles.push_back(Triangle(G, E, C, default_blue));
+    triangles[curr_tris] = Triangle(G, E, C, default_blue);
+    curr_tris++;
+    //triangles.push_back(Triangle(E, A, C, default_blue));
+    triangles[curr_tris] = Triangle(E, A, C, default_blue);
+    curr_tris++;
 
     // TOP
-    triangles.push_back(Triangle(G, F, E, default_blue));
-    triangles.push_back(Triangle(G, H, F, default_blue));
+    //triangles.push_back(Triangle(G, F, E, default_blue));
+    triangles[curr_tris] = Triangle(G, F, E, default_blue);
+    curr_tris++;
+    //triangles.push_back(Triangle(G, H, F, default_blue));
+    triangles[curr_tris] = Triangle(G, H, F, default_blue);
+    curr_tris++;
 
     // ----------------------------------------------
     // Scale to the volume [-1,1]^3
 
-    for (size_t i = 0 ; i < triangles.size() ; ++i) {
+    for (size_t i = 0 ; i < curr_tris ; ++i) {
         triangles[i].set_v0(triangles[i].get_v0() * (2 / cornell_length));
         triangles[i].set_v1(triangles[i].get_v1() * (2 / cornell_length));
         triangles[i].set_v2(triangles[i].get_v2() * (2 / cornell_length));

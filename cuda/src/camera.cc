@@ -1,5 +1,7 @@
 #include "camera.h"
 
+#include <iostream>
+
 Camera::Camera(vec4 position) {
     this->position_ = position;
     this->yaw_ = 0;
