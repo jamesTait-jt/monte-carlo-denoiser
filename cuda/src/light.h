@@ -16,7 +16,7 @@ class Light {
     
     public:
         Light(float intensity, vec3 colour, vec4 position);
-        vec3 directLight(const Intersection & intersection, std::vector<Shape *> shapes);
+        vec3 directLight(const Intersection & intersection, Triangle * triangles, int num_shapes);
 
         float get_intensity();
         vec3 get_colour();

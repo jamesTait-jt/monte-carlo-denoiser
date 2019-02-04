@@ -12,12 +12,12 @@ LightSphere::LightSphere(vec4 centre, float radius, int num_lights, float intens
     this->point_lights_ = sphereSample(num_lights);
 }
 
-vec3 LightSphere::directLight(Intersection intersection, std::vector<Shape *> shapes) {
+vec3 LightSphere::directLight(Intersection intersection, Triangle * triangles, int num_shapes) {
     vec3 colour(0,0,0);
     int size = point_lights_.size();
     for (int i = 0 ; i < point_lights_.size() ; i++) {
         Light point_light = point_lights_[i];
-        vec3 direct_light = point_light.directLight(intersection, shapes);
+        vec3 direct_light = point_light.directLight(intersection, triangles, num_shapes);
         colour = colour + direct_light;
     }
 

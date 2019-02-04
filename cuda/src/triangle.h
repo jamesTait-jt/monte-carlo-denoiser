@@ -18,6 +18,7 @@ class Triangle {
 	vec4 v1_;
 	vec4 v2_;
         vec4 normal_;
+        Material material_;
 
         Triangle(vec4 v0, vec4 v1, vec4 v2, Material material);
         

@@ -12,7 +12,7 @@ class LightSphere {
 
     public:
         LightSphere(vec4 centre, float radius, int num_lights, float intensity, vec3 colour);
-        vec3 directLight(Intersection intersection, std::vector<Shape *> shapes);
+        vec3 directLight(Intersection intersection, Triangle * triangles, int num_shapes);
 
         std::vector<Light> get_point_lights();
         vec4 get_centre();

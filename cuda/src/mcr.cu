@@ -108,6 +108,7 @@ void draw(Camera & camera, Light & light, LightSphere & light_sphere, Triangle *
     );
     //#pragma omp parallel for
     for (int x = 0 ; x < screen_height ; x++) {
+        std::cout << x << std::endl;
         for (int y = 0 ; y < screen_width ; y++) {
             // Change the ray's direction to work for the current pixel (pixel space -> Camera space)
             vec4 dir((x - screen_width / 2) , (y - screen_height / 2) , focal_length , 1);
@@ -116,22 +117,24 @@ void draw(Camera & camera, Light & light, LightSphere & light_sphere, Triangle *
             Ray ray(camera.get_position(), dir);
             ray.rotateRay(camera.get_yaw());
             
-
             if (ray.closestIntersection(triangles, num_shapes)) {
-                //Intersection closest_intersection = ray.get_closest_intersection();
+                Intersection closest_intersection = ray.closest_intersection_;
                 //vec3 direct_light = light.directLight(closest_intersection, shapes);
-                //vec3 direct_light = light_sphere.directLight(closest_intersection, shapes);
-                //vec3 base_colour = shapes[closest_intersection.index]->get_material().get_diffuse_light_component();
-                //direct_light *= base_colour;
+                vec3 direct_light = light_sphere.directLight(closest_intersection, triangles, num_shapes);
+                vec3 base_colour = triangles[closest_intersection.index].material_.get_diffuse_light_component();
                 //vec3 colour = monteCarlo(closest_intersection, shapes);
                 //image[x][y] = direct_light * colour;
-                //image[x][y] = direct_light;
+                image[x][y] = direct_light * base_colour;
 
-                image[x][y] = vec3(0.75);
+                //image[x][y] = vec3(0.75);
             }
         }
     }
     renderImageBuffer(image, sdl_window);
+}
+
+void printVec3(vec3 v) {
+    std::cout << v.x << "   " << v.y << "    " << v.z << std::endl;
 }
 
 vec3 monteCarlo(Intersection closest_intersection, std::vector<Shape *> shapes) {

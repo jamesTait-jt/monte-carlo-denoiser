@@ -11,7 +11,7 @@ Light::Light(float intensity, vec3 colour, vec4 position) {
     this->position_ = position;
 }
 
-vec3 Light::directLight(const Intersection & intersection, std::vector<Shape *> shapes) {
+vec3 Light::directLight(const Intersection & intersection, Triangle * triangles, int num_shapes) {
 
     // Distance from point to light source
     float dist_point_to_light = glm::distance(intersection.position, this->position_);
@@ -29,7 +29,7 @@ vec3 Light::directLight(const Intersection & intersection, std::vector<Shape *> 
         vec4(surface_to_light_dir, 1)
     );
 
-    /*if (surface_to_light_ray.closestIntersection(shapes)) {
+    if (surface_to_light_ray.closestIntersection(triangles, num_shapes)) {
         float dist_point_to_intersection = glm::distance(
             intersection.position, 
             surface_to_light_ray.get_closest_intersection().position
@@ -38,7 +38,7 @@ vec3 Light::directLight(const Intersection & intersection, std::vector<Shape *> 
         if (dist_point_to_intersection < dist_point_to_light) {
             return vec3(0);        
         }
-    }*/
+    }
 
     float scalar = (
         std::max(

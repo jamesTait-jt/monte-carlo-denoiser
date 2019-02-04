@@ -10,6 +10,7 @@ Triangle::Triangle(vec4 v0, vec4 v1, vec4 v2, Material material) {
    v1_ = v1; 
    v2_ = v2; 
    normal_ = computeNormal();
+   material_ = material;
 }
 
 /*
