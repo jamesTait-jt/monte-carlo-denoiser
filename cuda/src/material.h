@@ -10,6 +10,12 @@ using glm::vec3;
 // after being rendered.
 class Material {
     public:
+        // Materials are made up of three different types of light. Specular,
+        // diffuse, and emitted.
+        vec3 diffuse_light_component_;
+        vec3 specular_light_component_;
+        vec3 emitted_light_component_;
+
         Material();
         Material(
             vec3 diffuse_light_component,
@@ -17,20 +23,9 @@ class Material {
             vec3 emitted_light_component
         );
 
-        vec3 get_diffuse_light_component();
-        vec3 get_specular_light_component();
-        vec3 get_emitted_light_component();
-
         //void set_diffuse_light_component(vec3 diffuse_light_component);
         //void set_specular_light_component(vec3 specular_light_component);
         //void set_emitted_light_component(vec3 emitted_light_component);
-
-    private:
-        // Materials are made up of three different types of light. Specular,
-        // diffuse, and emitted.
-        vec3 diffuse_light_component_;
-        vec3 specular_light_component_;
-        vec3 emitted_light_component_;
 };
 
 #endif

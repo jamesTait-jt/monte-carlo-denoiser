@@ -24,35 +24,25 @@ int main (int argc, char* argv[]) {
 
     loadShapes(triangles);
 
-    //Shape ** shapes;
-    //cudaMallocManaged(&shapes, num_tris * sizeof(Shape *));
-
-    //std::vector<Shape *> shapes;
-    //num_tris = triangles.size();
-
-    //for (int i = 0 ; i < num_tris ; i++) {
-    //    Shape * shape_pointer (&triangles[i]);
-        //shapes.push_back(shape_pointer);
-    //    shapes[i] = shape_pointer;
-    //}
-
-
     Camera camera(vec4(0, 0, -3, 1));
     Light light(10.0f, vec3(1), vec4(0, -0.4, -0.9, 1.0));
-    LightSphere light_sphere(vec4(0, -0.4, -0.9, 1.0), 0.1f, 1, 10.0f, vec3(1));
+    LightSphere light_sphere(vec4(0, -0.4, -0.9, 1.0), 0.1f, 5, 10.0f, vec3(1));
     
     SdlWindowHelper sdl_window(screen_width, screen_height);
     
     int i = 0;
-    while(sdl_window.noQuitMessage() && i < 10) {
+    while(sdl_window.noQuitMessage() && i < 10000) {
         i++;
         update(camera, light);
         draw(camera, light, light_sphere, triangles, num_tris, sdl_window);
     }
 
+    sdl_window.destroy();
+
     //cudaFree(shapes);
     cudaFree(triangles);
 
+    std::cout << "boop" << std::endl;
     return 0;
 }
 
@@ -101,43 +91,56 @@ void update(Camera & camera, Light & light) {
     }*/
 }
 
-void draw(Camera & camera, Light & light, LightSphere & light_sphere, Triangle * triangles, int num_shapes, SdlWindowHelper sdl_window) {
-    std::vector<std::vector<vec3>> image(
-        screen_height,
-        std::vector<vec3>(screen_height)
-    );
-    //#pragma omp parallel for
-    for (int x = 0 ; x < screen_height ; x++) {
-        std::cout << x << std::endl;
-        for (int y = 0 ; y < screen_width ; y++) {
-            // Change the ray's direction to work for the current pixel (pixel space -> Camera space)
-            vec4 dir((x - screen_width / 2) , (y - screen_height / 2) , focal_length , 1);
-            
-            // Create a ray that we will change the direction for below
-            Ray ray(camera.get_position(), dir);
-            ray.rotateRay(camera.get_yaw());
-            
-            if (ray.closestIntersection(triangles, num_shapes)) {
-                Intersection closest_intersection = ray.closest_intersection_;
-                //vec3 direct_light = light.directLight(closest_intersection, shapes);
-                vec3 direct_light = light_sphere.directLight(closest_intersection, triangles, num_shapes);
-                vec3 base_colour = triangles[closest_intersection.index].material_.get_diffuse_light_component();
-                //vec3 colour = monteCarlo(closest_intersection, shapes);
-                //image[x][y] = direct_light * colour;
-                image[x][y] = direct_light * base_colour;
+__global__
+void draw_(Camera camera, Light & light, LightSphere light_sphere, Triangle * triangles, int num_shapes, vec3 * image, int screen_height, int screen_width, int focal_length) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    for (int i = index ; i < screen_height * screen_width ; i += stride) {
+        int x = i / screen_height;
+        int y = i % screen_height;
+//        for (int y = 0 ; y < screen_width ; y++) {
+        // Change the ray's direction to work for the current pixel (pixel space -> Camera space)
+        vec4 dir((x - screen_width / 2) , (y - screen_height / 2) , focal_length , 1);
 
-                //image[x][y] = vec3(0.75);
-            }
+        // Create a ray that we will change the direction for below
+        Ray ray(camera.position_, dir);
+        ray.rotateRay(camera.yaw_);
+
+        if (ray.closestIntersection(triangles, num_shapes)) {
+            Intersection closest_intersection = ray.closest_intersection_;
+            //vec3 direct_light = light.directLight(closest_intersection, shapes);
+            vec3 direct_light = light_sphere.directLight(closest_intersection, triangles, num_shapes);
+            vec3 base_colour = triangles[closest_intersection.index].material_.diffuse_light_component_;
+            vec3 colour = monteCarlo(closest_intersection, triangles, num_shapes);
+
+            //image[x * screen_width + y] = base_colour;
+            image[x * screen_width + y] = direct_light * base_colour;
         }
     }
+}
+//}
+
+void draw(Camera & camera, Light & light, LightSphere & light_sphere, Triangle * triangles, int num_shapes, SdlWindowHelper sdl_window) {
+    vec3 * image;
+    cudaMallocManaged(&image, screen_height * screen_width * sizeof(vec3));
+
+    int block_size = 256;
+    int num_blocks = (screen_width + block_size - 1) / block_size;
+    draw_<<<num_blocks, block_size>>>(camera, light, light_sphere, triangles, num_shapes, image, screen_height, screen_width, focal_length);
+
+    cudaDeviceSynchronize();
+
     renderImageBuffer(image, sdl_window);
+
+    cudaFree(image);
 }
 
 void printVec3(vec3 v) {
     std::cout << v.x << "   " << v.y << "    " << v.z << std::endl;
 }
 
-vec3 monteCarlo(Intersection closest_intersection, std::vector<Shape *> shapes) {
+__device__
+vec3 monteCarlo(Intersection closest_intersection, Triangle * triangles, int num_tris) {
     vec3 indirect_light_approximation = vec3(0);
     int i = 0;
     while(i < monte_carlo_samples) {
@@ -145,26 +148,27 @@ vec3 monteCarlo(Intersection closest_intersection, std::vector<Shape *> shapes) 
             closest_intersection.position, 
             closest_intersection.normal
         );
-        float rand_theta = drand48() * M_PI;
+        int idx = threadIdx.x+blockDim.x*blockIdx.x;
+        float rand_theta = curand_uniform( * M_PI;
         random_ray.rotateRay(rand_theta);
-        random_ray.set_start(random_ray.get_start() + 0.001f * random_ray.get_direction());
-
-        /*
-        if (random_ray.closestIntersection(shapes)) {
-           Intersection indirect_light_intersection = random_ray.get_closest_intersection();
-           indirect_light_approximation = shapes[indirect_light_intersection.index]->get_material().get_diffuse_light_component();
+        random_ray.start_ = (random_ray.start_ + 0.001f * random_ray.direction_);
+        
+        if (random_ray.closestIntersection(triangles, num_tris)) {
+           Intersection indirect_light_intersection = random_ray.closest_intersection_;
+           indirect_light_approximation =
+               triangles[indirect_light_intersection.index].material_.diffuse_light_component_;
            i++;
         }
-        */
+        
     }
     indirect_light_approximation /= monte_carlo_samples;
     return indirect_light_approximation;
 }
 
-void renderImageBuffer(std::vector<std::vector<vec3>> image, SdlWindowHelper sdl_window) {
+void renderImageBuffer(vec3 * image, SdlWindowHelper sdl_window) {
     for (int x = 0 ; x < screen_height ; x++) {
         for (int y = 0 ; y < screen_width ; y++) {
-           sdl_window.putPixel(x, y, image[x][y]); 
+           sdl_window.putPixel(x, y, image[x * screen_width + y]); 
         }
     }
     sdl_window.render();

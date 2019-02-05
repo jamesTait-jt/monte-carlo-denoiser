@@ -1,7 +1,14 @@
 #ifndef LIGHTSPHERE_H
 #define LIGHTSPHERE_H
 
+#ifdef __CUDACC__
+#define CUDA_DEV __device__
+#else
+#define CUDA_DEV
+#endif
+
 #include <glm/glm.hpp>
+
 #include <vector>
 
 #include "light.h"
@@ -11,23 +18,26 @@
 class LightSphere {
 
     public:
-        LightSphere(vec4 centre, float radius, int num_lights, float intensity, vec3 colour);
-        vec3 directLight(Intersection intersection, Triangle * triangles, int num_shapes);
+        Light * point_lights_;
+        vec4 centre_;
+        float radius_;
+        float intensity_;
+        vec3 colour_;
+        int num_point_lights_;
 
+        LightSphere(vec4 centre, float radius, int num_lights, float intensity, vec3 colour);
+        CUDA_DEV vec3 directLight(Intersection intersection, Triangle * triangles, int num_shapes);
+
+        /*
         std::vector<Light> get_point_lights();
         vec4 get_centre();
         float get_radius();
         float get_intensity();
         vec3 get_colour();
+        */
     
     private:
-        std::vector<Light> point_lights_;
-        vec4 centre_;
-        float radius_;
-        float intensity_;
-        vec3 colour_;
-
-        std::vector<Light> sphereSample(int numLights);
+        void sphereSample(int numLights, Light * samples);
         bool containedInSphere(vec4 p);
 
 };

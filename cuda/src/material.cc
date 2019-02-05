@@ -15,7 +15,7 @@ Material::Material(
     this->emitted_light_component_ = emitted_light_component; 
 }
 
-vec3 Material::get_diffuse_light_component() {
+/*vec3 Material::get_diffuse_light_component() {
     return this->diffuse_light_component_;
 }
 
@@ -25,4 +25,4 @@ vec3 Material::get_specular_light_component() {
 
 vec3 Material::get_emitted_light_component() {
     return this->emitted_light_component_;
-}
+}*/

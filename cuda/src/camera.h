@@ -1,6 +1,12 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#ifdef __CUDACC__
+#define CUDA_HOSTDEV __host__ __device__
+#else
+#define CUDA_HOSTDEV
+#endif
+
 #include <glm/glm.hpp>
 
 using glm::vec3;
@@ -12,7 +18,10 @@ using glm::mat4;
 class Camera {
 
     public:
-        Camera(vec4 position);
+        vec4 position_;
+        float yaw_;
+
+        CUDA_HOSTDEV Camera(vec4 position);
 
         void rotateLeft(float yaw);
         void rotateRight(float yaw);
@@ -24,9 +33,7 @@ class Camera {
         float get_yaw();
 
     private:
-        vec4 position_;
         mat4 rotation_matrix_;
-        float yaw_;
 
         mat4 lookAt(vec3 from, vec3 to);
 };

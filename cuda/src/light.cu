@@ -1,9 +1,15 @@
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtx/string_cast.hpp"
-
 #include "light.h"
 
 #include <iostream>
+
+#define max(a,b) \
+    ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+    _a > _b ? _a : _b; })
+
+Light::Light() {
+
+}
 
 Light::Light(float intensity, vec3 colour, vec4 position) {
     this->intensity_ = intensity;
@@ -11,7 +17,12 @@ Light::Light(float intensity, vec3 colour, vec4 position) {
     this->position_ = position;
 }
 
+__device__
 vec3 Light::directLight(const Intersection & intersection, Triangle * triangles, int num_shapes) {
+
+    //printf("%d %d %d\n", intersection.position.x, intersection.position.y, intersection.position.z);
+    //printf("%d %d %d\n", position_.x, position_.y, position_.z);
+
 
     // Distance from point to light source
     float dist_point_to_light = glm::distance(intersection.position, this->position_);
@@ -32,7 +43,7 @@ vec3 Light::directLight(const Intersection & intersection, Triangle * triangles,
     if (surface_to_light_ray.closestIntersection(triangles, num_shapes)) {
         float dist_point_to_intersection = glm::distance(
             intersection.position, 
-            surface_to_light_ray.get_closest_intersection().position
+            surface_to_light_ray.closest_intersection_.position
         ); 
         
         if (dist_point_to_intersection < dist_point_to_light) {
@@ -41,7 +52,7 @@ vec3 Light::directLight(const Intersection & intersection, Triangle * triangles,
     }
 
     float scalar = (
-        std::max(
+        max(
             dot(surface_to_light_dir, surface_normal), 
             0.0f
         ) / (4.0f * M_PI * std::pow(dist_point_to_light, 2))

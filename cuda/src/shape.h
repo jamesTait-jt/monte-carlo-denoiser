@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "material.h"
-#include "ray.h"
+#include "ray.cuh"
 
 // Creates a shape object. 
 class Shape {

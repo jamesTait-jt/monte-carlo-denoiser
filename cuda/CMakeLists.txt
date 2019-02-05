@@ -30,8 +30,8 @@ set(
     src/material.cc
     src/ray.cu
     src/camera.cc
-    src/light.cc
-    src/lightSphere.cc
+    src/light.cu
+    src/lightSphere.cu
 )
 
 add_executable(cuda_mcr 

@@ -107,11 +107,15 @@ void draw(Camera & camera, Light & light, LightSphere & light_sphere, std::vecto
                 Intersection closest_intersection = ray.get_closest_intersection();
                 //vec3 direct_light = light.directLight(closest_intersection, shapes);
                 vec3 direct_light = light_sphere.directLight(closest_intersection, shapes);
+                printf("direct + base: %f %f %f\n", direct_light.x, direct_light.y, direct_light.z);
                 vec3 base_colour = shapes[closest_intersection.index]->get_material().get_diffuse_light_component();
                 direct_light *= base_colour;
-                //vec3 colour = monteCarlo(closest_intersection, shapes);
-                //image[x][y] = direct_light * colour;
+                vec3 colour = monteCarlo(closest_intersection, shapes);
                 image[x][y] = direct_light;
+                //image[x][y] = direct_light;
+                
+                printf("monte carlo:   %f %f %f\n", colour.x, colour.y, colour.z);
+
             }
         }
     }

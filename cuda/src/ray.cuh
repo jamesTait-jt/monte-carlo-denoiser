@@ -1,6 +1,12 @@
 #ifndef RAY_H
 #define RAY_H
 
+#ifdef __CUDACC__
+#define CUDA_DEV __device__
+#else
+#define CUDA_DEV
+#endif
+
 #include <glm/glm.hpp>
 
 #include "triangle.h"
@@ -28,9 +34,9 @@ class Ray {
         vec4 direction_;
         Intersection closest_intersection_;
 
-        Ray(vec4 start, vec4 direction);
-        bool closestIntersection(Triangle * triangles, int num_shapes);
-        void rotateRay(float yaw);
+        CUDA_DEV Ray(vec4 start, vec4 direction);
+        CUDA_DEV bool closestIntersection(Triangle * triangles, int num_shapes);
+        CUDA_DEV void rotateRay(float yaw);
         
         vec4 get_start();
         vec4 get_direction();

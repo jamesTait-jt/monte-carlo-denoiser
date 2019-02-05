@@ -27,7 +27,7 @@ class LightSphere {
         float intensity_;
         vec3 colour_;
 
-        std::vector<Light> sphereSample(int numLights);
+        std::vector<Light> sphereSample(int numLights, vec3 colour);
         bool containedInSphere(vec4 p);
 
 };
