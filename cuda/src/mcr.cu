@@ -1,6 +1,8 @@
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
 #include <omp.h>
+#include <curand.h>
+#include <curand_kernel.h>
 
 #include <iostream>
 
@@ -24,9 +26,19 @@ int main (int argc, char* argv[]) {
 
     loadShapes(triangles);
 
+    int num_lights = 1;
+    float light_intensity = 10.0f;
+    vec3 light_colour = vec3(0.75);
+
     Camera camera(vec4(0, 0, -3, 1));
     Light light(10.0f, vec3(1), vec4(0, -0.4, -0.9, 1.0));
-    LightSphere light_sphere(vec4(0, -0.4, -0.9, 1.0), 0.1f, 5, 10.0f, vec3(1));
+    LightSphere light_sphere(
+        vec4(0, -0.4, -0.9, 1.0), 
+        0.1f, 
+        num_lights, 
+        light_intensity, 
+        light_colour
+    );
     
     SdlWindowHelper sdl_window(screen_width, screen_height);
     
@@ -92,11 +104,24 @@ void update(Camera & camera, Light & light) {
 }
 
 __global__
-void draw_(Camera camera, Light & light, LightSphere light_sphere, Triangle * triangles, int num_shapes, vec3 * image, int screen_height, int screen_width, int focal_length) {
+void draw_(
+    Camera camera, 
+    Light & light, 
+    LightSphere light_sphere, 
+    Triangle * triangles, 
+    int num_shapes, 
+    vec3 * image, 
+    int screen_height, 
+    int screen_width, 
+    int focal_length, 
+    int seed,
+    int monte_carlo_samples
+) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
     for (int i = index ; i < screen_height * screen_width ; i += stride) {
         int x = i / screen_height;
+        //printf("%d\n", x);
         int y = i % screen_height;
 //        for (int y = 0 ; y < screen_width ; y++) {
         // Change the ray's direction to work for the current pixel (pixel space -> Camera space)
@@ -110,11 +135,22 @@ void draw_(Camera camera, Light & light, LightSphere light_sphere, Triangle * tr
             Intersection closest_intersection = ray.closest_intersection_;
             //vec3 direct_light = light.directLight(closest_intersection, shapes);
             vec3 direct_light = light_sphere.directLight(closest_intersection, triangles, num_shapes);
+
             vec3 base_colour = triangles[closest_intersection.index].material_.diffuse_light_component_;
-            vec3 colour = monteCarlo(closest_intersection, triangles, num_shapes);
+
+            vec3 colour = monteCarlo(
+                closest_intersection, 
+                triangles,
+                num_shapes, 
+                seed,
+                monte_carlo_samples
+            );
+
+            //colour = colour * vec3(base_colour.x / M_PI, base_colour.y / M_PI, base_colour.z / M_PI);
 
             //image[x * screen_width + y] = base_colour;
-            image[x * screen_width + y] = direct_light * base_colour;
+            //image[x * screen_width + y] = direct_light * base_colour + colour;
+            image[x * screen_width + y] = colour;
         }
     }
 }
@@ -126,7 +162,21 @@ void draw(Camera & camera, Light & light, LightSphere & light_sphere, Triangle *
 
     int block_size = 256;
     int num_blocks = (screen_width + block_size - 1) / block_size;
-    draw_<<<num_blocks, block_size>>>(camera, light, light_sphere, triangles, num_shapes, image, screen_height, screen_width, focal_length);
+    int seed = time(NULL);
+    //draw_<<<num_blocks, block_size>>>(
+    draw_<<<1,1>>>(
+        camera, 
+        light, 
+        light_sphere, 
+        triangles,
+        num_shapes, 
+        image, 
+        screen_height, 
+        screen_width, 
+        focal_length, 
+        seed,
+        monte_carlo_samples
+    );
 
     cudaDeviceSynchronize();
 
@@ -140,29 +190,110 @@ void printVec3(vec3 v) {
 }
 
 __device__
-vec3 monteCarlo(Intersection closest_intersection, Triangle * triangles, int num_tris) {
+vec3 monteCarlo(
+    Intersection closest_intersection, 
+    Triangle * triangles, 
+    int num_tris, 
+    int seed,
+    int monte_carlo_samples
+) {
     vec3 indirect_light_approximation = vec3(0);
     int i = 0;
-    while(i < monte_carlo_samples) {
+    int ctr = 0;
+    while(i < monte_carlo_samples && ctr < monte_carlo_samples * 10) {
         Ray random_ray = Ray(
             closest_intersection.position, 
             closest_intersection.normal
         );
-        int idx = threadIdx.x+blockDim.x*blockIdx.x;
-        float rand_theta = curand_uniform( * M_PI;
-        random_ray.rotateRay(rand_theta);
+
+        vec3 random_point = randomPointInHemisphere(seed, closest_intersection.position, 1.0f);
+        
+        vec3 random_dir = random_point - vec3(random_ray.start_);
+        random_dir = vec4(random_dir, 1);
+ 
+        random_ray.direction_ = vec4(random_dir, 1);
         random_ray.start_ = (random_ray.start_ + 0.001f * random_ray.direction_);
         
         if (random_ray.closestIntersection(triangles, num_tris)) {
-           Intersection indirect_light_intersection = random_ray.closest_intersection_;
-           indirect_light_approximation =
-               triangles[indirect_light_intersection.index].material_.diffuse_light_component_;
-           i++;
+            Intersection indirect_light_intersection = random_ray.closest_intersection_;
+            indirect_light_approximation = triangles[indirect_light_intersection.index].material_.diffuse_light_component_;
+
+            ////////////////////
+            float dist_point_to_light = glm::distance(
+                closest_intersection.position, 
+                indirect_light_intersection.position
+            );
+            
+            vec3 surface_normal = vec3(closest_intersection.normal);
+            
+            vec3 surface_to_light_dir = vec3(
+                indirect_light_intersection.position -
+                closest_intersection.position
+            );
+            
+            surface_to_light_dir = glm::normalize(surface_to_light_dir);
+            Ray surface_to_light_ray(
+                closest_intersection.position + 0.001f * vec4(surface_to_light_dir, 1),
+                vec4(surface_to_light_dir, 1)
+            );
+            float scalar = (
+                max(
+                    dot(surface_to_light_dir, surface_normal), 
+                    0.0f
+                ) / (4.0f * M_PI * std::pow(dist_point_to_light, 2))
+            );
+            ///////////////////
+            //printf("%f\n", scalar);
+            indirect_light_approximation *= scalar;
+            i++;
         }
-        
+        ctr += 1;
     }
     indirect_light_approximation /= monte_carlo_samples;
+
+
     return indirect_light_approximation;
+}
+
+__device__
+vec3 randomPointInHemisphere(int seed, vec3 centre, float radius) {
+    curandState_t state;
+
+    int id =  blockIdx.x * blockDim.x + threadIdx.x;
+    int new_seed = id % 10 + seed;
+
+    curand_init(new_seed, id, 0, &state);
+
+    float max_val = radius;
+    float min_val = -radius;
+    //float min_val = 0;
+
+    bool contained = false;
+    while(!contained) {
+        float rand_x = curand_uniform(&state);
+        rand_x *= (max_val - min_val + 0.999999);
+        rand_x += min_val;
+
+        float rand_y = curand_uniform(&state);
+        rand_y *= (max_val - min_val + 0.999999);
+        rand_y += min_val;
+
+        min_val = 0;
+        float rand_z = curand_uniform(&state);
+        rand_z *= (max_val - min_val + 0.999999);
+        rand_z += min_val;
+        
+        vec3 random_point(
+            centre.x + rand_x,
+            centre.y + rand_y,
+            centre.z + rand_z
+        );
+        if (glm::distance(random_point, centre) <= radius) {
+            contained = true;
+            return random_point;
+        }
+    }
+    return vec3(0);
 }
 
 void renderImageBuffer(vec3 * image, SdlWindowHelper sdl_window) {

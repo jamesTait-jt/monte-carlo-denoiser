@@ -20,10 +20,6 @@ Light::Light(float intensity, vec3 colour, vec4 position) {
 __device__
 vec3 Light::directLight(const Intersection & intersection, Triangle * triangles, int num_shapes) {
 
-    //printf("%d %d %d\n", intersection.position.x, intersection.position.y, intersection.position.z);
-    //printf("%d %d %d\n", position_.x, position_.y, position_.z);
-
-
     // Distance from point to light source
     float dist_point_to_light = glm::distance(intersection.position, this->position_);
 

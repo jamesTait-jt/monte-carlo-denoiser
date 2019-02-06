@@ -8,10 +8,45 @@
 
 using glm::vec3;
 
-void loadShapes(Triangle * triangles);
-void update(Camera & camera, Light & light);
-void draw(Camera & camera, Light & light, LightSphere & light_sphere, Triangle * triangles, int num_shapes, SdlWindowHelper sdl_helper);
-__device__ vec3 monteCarlo(Intersection closest_intersection, Triangle * triangles, int num_tris);
-void renderImageBuffer(vec3 * image, SdlWindowHelper sdl_window);
+void loadShapes(
+    Triangle * triangles
+);
 
-void printVec3(vec3 v);
+void update(
+    Camera & camera, 
+    Light & light
+);
+
+void draw(
+    Camera & camera, 
+    Light & light, 
+    LightSphere & light_sphere, 
+    Triangle * triangles, 
+    int num_shapes, 
+    SdlWindowHelper sdl_helper
+);
+
+__device__ 
+vec3 monteCarlo(
+    Intersection closest_intersection, 
+    Triangle * triangles, 
+    int num_tris,
+    int seed,
+    int monte_carlo_samples
+);
+
+__device__
+vec3 randomPointInHemisphere(
+    int seed,
+    vec3 centre,
+    float radius
+);
+
+void renderImageBuffer(
+    vec3 * image,
+    SdlWindowHelper sdl_window
+);
+
+void printVec3(
+    vec3 v
+);
