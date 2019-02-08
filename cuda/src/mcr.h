@@ -26,6 +26,25 @@ void draw(
     SdlWindowHelper sdl_helper
 );
 
+__device__
+void createCoordinateSystem(
+    const vec3 & N, 
+    vec3 & N_t, 
+    vec3 & N_b
+);
+
+__device__ 
+vec3 monteCarlo2(
+    Intersection closest_intersection, 
+    Triangle * triangles, 
+    int num_tris, 
+    LightSphere light_sphere,
+    int seed,
+    int monte_carlo_samples,
+    int max_depth,
+    int depth
+);
+
 __device__ 
 vec3 monteCarlo(
     Intersection closest_intersection, 
@@ -33,6 +52,11 @@ vec3 monteCarlo(
     int num_tris,
     int seed,
     int monte_carlo_samples
+);
+
+__device__
+float uniform_rand(
+    int seed
 );
 
 __device__

@@ -109,7 +109,7 @@ void draw_(
     Light & light, 
     LightSphere light_sphere, 
     Triangle * triangles, 
-    int num_shapes, 
+    int num_tris, 
     vec3 * image, 
     int screen_height, 
     int screen_width, 
@@ -131,13 +131,25 @@ void draw_(
         Ray ray(camera.position_, dir);
         ray.rotateRay(camera.yaw_);
 
-        if (ray.closestIntersection(triangles, num_shapes)) {
+        if (ray.closestIntersection(triangles, num_tris)) {
             Intersection closest_intersection = ray.closest_intersection_;
             //vec3 direct_light = light.directLight(closest_intersection, shapes);
-            vec3 direct_light = light_sphere.directLight(closest_intersection, triangles, num_shapes);
-
+            //vec3 direct_light = light_sphere.directLight(closest_intersection, triangles, num_shapes);
             vec3 base_colour = triangles[closest_intersection.index].material_.diffuse_light_component_;
+            
+            int max_depth = 1;
+            vec3 colour_estimate = monteCarlo2(
+                closest_intersection, 
+                triangles, 
+                num_tris, 
+                light_sphere,
+                seed,
+                monte_carlo_samples,
+                max_depth,
+                0
+            );
 
+            /*
             vec3 colour = monteCarlo(
                 closest_intersection, 
                 triangles,
@@ -145,12 +157,14 @@ void draw_(
                 seed,
                 monte_carlo_samples
             );
+            */
 
             //colour = colour * vec3(base_colour.x / M_PI, base_colour.y / M_PI, base_colour.z / M_PI);
 
+            image[x * screen_width + y] = colour_estimate;
             //image[x * screen_width + y] = base_colour;
-            //image[x * screen_width + y] = direct_light * base_colour + colour;
-            image[x * screen_width + y] = colour;
+            //image[x * screen_width + y] = direct_light * base_colour;
+            //image[x * screen_width + y] = colour;
         }
     }
 }
@@ -163,8 +177,8 @@ void draw(Camera & camera, Light & light, LightSphere & light_sphere, Triangle *
     int block_size = 256;
     int num_blocks = (screen_width + block_size - 1) / block_size;
     int seed = time(NULL);
-    //draw_<<<num_blocks, block_size>>>(
-    draw_<<<1,1>>>(
+    draw_<<<num_blocks, block_size>>>(
+    //draw_<<<1,1>>>(
         camera, 
         light, 
         light_sphere, 
@@ -187,6 +201,76 @@ void draw(Camera & camera, Light & light, LightSphere & light_sphere, Triangle *
 
 void printVec3(vec3 v) {
     std::cout << v.x << "   " << v.y << "    " << v.z << std::endl;
+}
+
+__device__
+vec3 uniformSampleHemisphere(const float & r1, const float & r2) {
+    // cos(theta) = r1 = y
+    // cos^2(theta) + sin^2(theta) = 1 -> sin(theta) = srtf(1 - cos^2(theta))
+    float sin_theta = sqrtf(1 - r1 * r1);
+    float phi = 2 * M_PI * r2;
+    float x = sin_theta * cosf(phi);
+    float z = sin_theta * sinf(phi);
+    return vec3(x, r1, z);
+} 
+
+__device__
+void createCoordinateSystem(const vec3 & N, vec3 & N_t, vec3 & N_b) {
+    if (std::fabs(N.x) > std::fabs(N.y)) {
+        N_t = vec3(N.z, 0, -N.x) / sqrtf(N.x * N.x + N.z * N.z);
+    } else {
+        N_t = vec3(0, -N.z, N.y) / sqrtf(N.y * N.y + N.z * N.z);
+    }
+    N_b = glm::cross(N, N_t);
+} 
+
+__device__ 
+vec3 monteCarlo2(
+    Intersection closest_intersection, 
+    Triangle * triangles, 
+    int num_tris, 
+    LightSphere light_sphere,
+    int seed,
+    int monte_carlo_samples,
+    int max_depth,
+    int depth
+) {
+    if (depth > max_depth) {
+        return vec3(0);
+    }
+    
+    vec3 direct_light = light_sphere.directLight(
+        closest_intersection,
+        triangles, 
+        num_tris
+    );
+
+    vec3 intersection_normal_3 = vec3(closest_intersection.normal);
+
+    vec3 N_t, N_b;
+    createCoordinateSystem(intersection_normal_3, N_t, N_b);
+
+    vec3 indirect_estimate = vec3(0);
+    for (int i = 0 ; i < monte_carlo_samples ; i++) {
+        float r1 = uniform_rand(seed); // cos(theta) = N.Light Direction
+        float r2 = uniform_rand(seed);
+        vec3 sample = uniformSampleHemisphere(r1, r2);
+        vec3 sample_world(
+            sample.x * N_b.x + sample.y * intersection_normal_3.x + sample.z * N_t.x,
+            sample.x * N_b.y + sample.y * intersection_normal_3.y + sample.z * N_t.y,
+            sample.x * N_b.z + sample.y * intersection_normal_3.z + sample.z * N_t.z
+        );
+        indirect_estimate += r1 * monteCarlo2(
+            closest_intersection.position + sample_world * 0.001f, 
+            sample_world, 
+            objects, 
+            lights, 
+            depth + 1
+        ) / pdf;
+    } 
+
+
+    return indirect_estimate;
 }
 
 __device__
@@ -253,6 +337,18 @@ vec3 monteCarlo(
 
 
     return indirect_light_approximation;
+}
+
+__device__
+float uniform_rand(int seed) {
+    curandState_t state;
+
+    int id =  blockIdx.x * blockDim.x + threadIdx.x;
+    int new_seed = id % 10 + seed;
+
+    curand_init(new_seed, id, 0, &state);
+
+    return curand_uniform(&state);
 }
 
 __device__
