@@ -16,6 +16,9 @@ int main (int argc, char* argv[]) {
 
     omp_set_num_threads(4);
     
+    // Seed for random numbers
+    srand (time(NULL));
+
     std::vector<Triangle> triangles;
 
     loadShapes(triangles);
@@ -29,12 +32,12 @@ int main (int argc, char* argv[]) {
 
     Camera camera(vec4(0, 0, -3, 1));
     Light light(10.0f, vec3(1), vec4(0, -0.4, -0.9, 1.0));
-    LightSphere light_sphere(vec4(0, -0.4, -0.9, 1.0), 0.1f, 5, 10.0f, vec3(1));
+    LightSphere light_sphere(vec4(0, -0.4, -0.9, 1.0), 0.1f, 1, 10.0f, vec3(1));
     
     SdlWindowHelper sdl_window(screen_width, screen_height);
     
     int i = 0;
-    while(sdl_window.noQuitMessage() && i < 1000) {
+    while(sdl_window.noQuitMessage() && i < 2) {
         i++;
         update(camera, light);
         draw(camera, light, light_sphere, shapes, sdl_window);
@@ -100,49 +103,110 @@ void draw(Camera & camera, Light & light, LightSphere & light_sphere, std::vecto
             vec4 dir((x - screen_width / 2) , (y - screen_height / 2) , focal_length , 1);
             
             // Create a ray that we will change the direction for below
-            Ray ray(camera.get_position(), dir);
-            ray.rotateRay(camera.get_yaw());
+            Ray ray(camera.position_, dir);
+            ray.rotateRay(camera.yaw_);
 
             if (ray.closestIntersection(shapes)) {
-                Intersection closest_intersection = ray.get_closest_intersection();
-                //vec3 direct_light = light.directLight(closest_intersection, shapes);
-                vec3 direct_light = light_sphere.directLight(closest_intersection, shapes);
-                printf("direct + base: %f %f %f\n", direct_light.x, direct_light.y, direct_light.z);
-                vec3 base_colour = shapes[closest_intersection.index]->get_material().get_diffuse_light_component();
-                direct_light *= base_colour;
-                vec3 colour = monteCarlo(closest_intersection, shapes);
-                image[x][y] = direct_light;
-                //image[x][y] = direct_light;
-                
-                printf("monte carlo:   %f %f %f\n", colour.x, colour.y, colour.z);
-
+                Intersection closest_intersection = ray.closest_intersection_;
+                vec3 colour = monteCarlo(
+                    closest_intersection, 
+                    shapes,
+                    light_sphere,
+                    monte_carlo_depth,
+                    0
+                );
+                image[x][y] =  colour;
             }
         }
     }
     renderImageBuffer(image, sdl_window);
 }
 
-vec3 monteCarlo(Intersection closest_intersection, std::vector<Shape *> shapes) {
-    vec3 indirect_light_approximation = vec3(0);
-    int i = 0;
-    while(i < monte_carlo_samples) {
-        Ray random_ray = Ray(
-            closest_intersection.position, 
-            closest_intersection.normal
+// Calculates the indirect and direct light estimation for diffuse objects
+vec3 monteCarlo(
+    Intersection closest_intersection, 
+    std::vector<Shape *> shapes, 
+    LightSphere light_sphere,
+    int max_depth,
+    int depth
+) {
+    if (depth >= max_depth) {
+        vec3 direct_light = light_sphere.directLight(
+            closest_intersection,
+            shapes
         );
-        float rand_theta = drand48() * M_PI;
-        random_ray.rotateRay(rand_theta);
-        random_ray.set_start(random_ray.get_start() + 0.001f * random_ray.get_direction());
+        vec3 base_colour = shapes[closest_intersection.index]->material_.diffuse_light_component_;
+        return direct_light * base_colour;
+    }
+
+    vec3 intersection_normal_3 = vec3(closest_intersection.normal);
+    vec3 base_colour = shapes[closest_intersection.index]->material_.diffuse_light_component_;
+    vec3 direct_light = light_sphere.directLight(
+        closest_intersection,
+        shapes 
+    );
+
+    vec3 N_t, N_b;
+    createCoordinateSystem(intersection_normal_3, N_t, N_b);
+
+    vec3 indirect_estimate = vec3(0);
+    float pdf = 1 / (2 * M_PI);
+    for (int i = 0 ; i < monte_carlo_samples ; i++) {
+        float r1 = rand() / (float) RAND_MAX; // cos(theta) = N.Light Direction
+        float r2 = rand() / (float) RAND_MAX;
+        vec3 sample = uniformSampleHemisphere(r1, r2);
+
+        // Convert the sample from our coordinate space to world space
+        vec4 sample_world(
+            sample.x * N_b.x + sample.y * intersection_normal_3.x + sample.z * N_t.x,
+            sample.x * N_b.y + sample.y * intersection_normal_3.y + sample.z * N_t.y,
+            sample.x * N_b.z + sample.y * intersection_normal_3.z + sample.z * N_t.z,
+            0
+        );
+
+        Ray random_ray(
+            closest_intersection.position + sample_world * 0.0001f,
+            sample_world
+        );
 
         if (random_ray.closestIntersection(shapes)) {
-           Intersection indirect_light_intersection = random_ray.get_closest_intersection();
-           indirect_light_approximation = shapes[indirect_light_intersection.index]->get_material().get_diffuse_light_component();
-           i++;
+               indirect_estimate += r1 * monteCarlo(
+               random_ray.closest_intersection_,
+               shapes,
+               light_sphere,
+               max_depth,
+               depth + 1
+            );
+        } else {
+            //i--;
         }
-    }
-    indirect_light_approximation /= monte_carlo_samples;
-    return indirect_light_approximation;
+    } 
+    indirect_estimate /= (float) (monte_carlo_samples * pdf);
+    return (direct_light + indirect_estimate) * base_colour;
 }
+
+// Given two random numbers between 0 and 1, return a direction to a point on a
+// hemisphere
+vec3 uniformSampleHemisphere(const float & r1, const float & r2) {
+    // cos(theta) = r1 = y
+    // cos^2(theta) + sin^2(theta) = 1 -> sin(theta) = srtf(1 - cos^2(theta))
+    float sin_theta = sqrtf(1 - r1 * r1);
+    float phi = 2 * M_PI * r2;
+    float x = sin_theta * cosf(phi);
+    float z = sin_theta * sinf(phi);
+    return vec3(x, r1, z);
+} 
+
+// This function creates a new coordinate system in which the up vector is
+// oriented along the shaded point normal
+void createCoordinateSystem(const vec3 & N, vec3 & N_t, vec3 & N_b) {
+    if (std::fabs(N.x) > std::fabs(N.y)) {
+        N_t = vec3(N.z, 0, -N.x) / sqrtf(N.x * N.x + N.z * N.z);
+    } else {
+        N_t = vec3(0, -N.z, N.y) / sqrtf(N.y * N.y + N.z * N.z);
+    }
+    N_b = glm::cross(N, N_t);
+} 
 
 void renderImageBuffer(std::vector<std::vector<vec3>> image, SdlWindowHelper sdl_window) {
     for (int x = 0 ; x < screen_height ; x++) {
@@ -273,31 +337,31 @@ void loadShapes(std::vector<Triangle> & triangles) {
     // Scale to the volume [-1,1]^3
 
     for (size_t i = 0 ; i < triangles.size() ; ++i) {
-        triangles[i].set_v0(triangles[i].get_v0() * (2 / cornell_length));
-        triangles[i].set_v1(triangles[i].get_v1() * (2 / cornell_length));
-        triangles[i].set_v2(triangles[i].get_v2() * (2 / cornell_length));
+        triangles[i].v0_ = (triangles[i].v0_ * (2 / cornell_length));
+        triangles[i].v1_ = (triangles[i].v1_ * (2 / cornell_length));
+        triangles[i].v2_ = (triangles[i].v2_ * (2 / cornell_length));
 
-        triangles[i].set_v0(triangles[i].get_v0() - vec4(1, 1, 1, 1));
-        triangles[i].set_v1(triangles[i].get_v1() - vec4(1, 1, 1, 1));
-        triangles[i].set_v2(triangles[i].get_v2() - vec4(1, 1, 1, 1));
+        triangles[i].v0_ = (triangles[i].v0_ - vec4(1, 1, 1, 1));
+        triangles[i].v1_ = (triangles[i].v1_ - vec4(1, 1, 1, 1));
+        triangles[i].v2_ = (triangles[i].v2_ - vec4(1, 1, 1, 1));
 
-        vec4 new_v0 = triangles[i].get_v0();
+        vec4 new_v0 = triangles[i].v0_;
         new_v0.x *= -1;
         new_v0.y *= -1;
         new_v0.w = 1.0;
-        triangles[i].set_v0(new_v0);
+        triangles[i].v0_ = new_v0;
 
-        vec4 new_v1 = triangles[i].get_v1();
+        vec4 new_v1 = triangles[i].v1_;
         new_v1.x *= -1;
         new_v1.y *= -1;
         new_v1.w = 1.0;
-        triangles[i].set_v1(new_v1);
+        triangles[i].v1_ = new_v1;
 
-        vec4 new_v2 = triangles[i].get_v2();
+        vec4 new_v2 = triangles[i].v2_;
         new_v2.x *= -1;
         new_v2.y *= -1;
         new_v2.w = 1.0;
-        triangles[i].set_v2(new_v2);
+        triangles[i].v2_ = new_v2;
 
         triangles[i].computeAndSetNormal();
     }

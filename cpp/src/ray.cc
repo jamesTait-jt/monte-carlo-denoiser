@@ -33,23 +33,3 @@ void Ray::rotateRay(float yaw) {
     rotation_matrix[2] = vec4(-sin(yaw), 0, cos(yaw), 0);
     this->direction_ = rotation_matrix * this->direction_;
 }
-
-vec4 Ray::get_start() {
-    return this->start_;
-}
-
-vec4 Ray::get_direction() {
-    return this->direction_;
-}
-
-Intersection Ray::get_closest_intersection() {
-    return this->closest_intersection_;
-}
-
-void  Ray::set_start(vec4 start) {
-    this->start_ = start;
-}
-
-void Ray::set_closest_intersection(Intersection intersection) {
-    this->closest_intersection_ = intersection;
-}

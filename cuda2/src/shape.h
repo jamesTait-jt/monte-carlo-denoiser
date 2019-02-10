@@ -6,17 +6,22 @@
 #include <glm/glm.hpp>
 
 #include "material.h"
-#include "ray.h"
+#include "ray.cuh"
 
 // Creates a shape object. 
 class Shape {
 
     public:
-        Material material_;
-
         Shape(Material material);
         
         virtual bool intersects(Ray * ray, int shape_index)=0;
+        
+        Material get_material();
+        
+        //void set_material(Material material);
+
+    private:
+        Material material_ = Material();
 };
 
 #endif

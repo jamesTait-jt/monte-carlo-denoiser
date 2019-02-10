@@ -30,9 +30,9 @@ int main (int argc, char* argv[]) {
     float light_intensity = 10.0f;
     vec3 light_colour = vec3(0.75);
 
-    Camera camera(vec4(0, 0, -3, 1));
+    __constant__ Camera camera(vec4(0, 0, -3, 1));
     Light light(10.0f, vec3(1), vec4(0, -0.4, -0.9, 1.0));
-    LightSphere light_sphere(
+    __constant__ LightSphere light_sphere(
         vec4(0, -0.4, -0.9, 1.0), 
         0.1f, 
         num_lights, 
@@ -84,7 +84,6 @@ void update(Camera & camera, Light & light) {
         camera.rotateRight(0.1);
     }
     /*if (keystate[SDL_SCANCODE_A]) {
-        light.translateLeft(0.1);
     }
     if (keystate[SDL_SCANCODE_D]) {
         light.translateRight(0.1);
@@ -121,7 +120,6 @@ void draw_(
     int stride = blockDim.x * gridDim.x;
     for (int i = index ; i < screen_height * screen_width ; i += stride) {
         int x = i / screen_height;
-        //printf("%d\n", x);
         int y = i % screen_height;
 //        for (int y = 0 ; y < screen_width ; y++) {
         // Change the ray's direction to work for the current pixel (pixel space -> Camera space)
@@ -131,51 +129,29 @@ void draw_(
         Ray ray(camera.position_, dir);
         ray.rotateRay(camera.yaw_);
 
+
         if (ray.closestIntersection(triangles, num_tris)) {
             Intersection closest_intersection = ray.closest_intersection_;
-            //vec3 direct_light = light.directLight(closest_intersection, shapes);
-            //vec3 direct_light = light_sphere.directLight(closest_intersection, triangles, num_shapes);
+            vec3 direct_light = light_sphere.directLight(
+                closest_intersection,
+                triangles,
+                num_tris);
             vec3 base_colour = triangles[closest_intersection.index].material_.diffuse_light_component_;
             
-            int max_depth = 1;
-            vec3 colour_estimate = monteCarlo2(
-                closest_intersection, 
-                triangles, 
-                num_tris, 
-                light_sphere,
-                seed,
-                monte_carlo_samples,
-                max_depth,
-                0
-            );
-
-            /*
-            vec3 colour = monteCarlo(
-                closest_intersection, 
-                triangles,
-                num_shapes, 
-                seed,
-                monte_carlo_samples
-            );
-            */
-
-            //colour = colour * vec3(base_colour.x / M_PI, base_colour.y / M_PI, base_colour.z / M_PI);
-
-            image[x * screen_width + y] = colour_estimate;
-            //image[x * screen_width + y] = base_colour;
-            //image[x * screen_width + y] = direct_light * base_colour;
-            //image[x * screen_width + y] = colour;
+            image[x * screen_width + y] = base_colour;
         }
     }
 }
-//}
 
 void draw(Camera & camera, Light & light, LightSphere & light_sphere, Triangle * triangles, int num_shapes, SdlWindowHelper sdl_window) {
     vec3 * image;
     cudaMallocManaged(&image, screen_height * screen_width * sizeof(vec3));
 
-    int block_size = 256;
-    int num_blocks = (screen_width + block_size - 1) / block_size;
+    //int block_size = 256;
+    //int num_blocks = (screen_width + block_size - 1) / block_size;
+
+    int block_size = 32;
+    int num_blocks = 32;
     int seed = time(NULL);
     draw_<<<num_blocks, block_size>>>(
     //draw_<<<1,1>>>(
@@ -235,42 +211,73 @@ vec3 monteCarlo2(
     int max_depth,
     int depth
 ) {
-    if (depth > max_depth) {
-        return vec3(0);
-    }
-    
+    //printf("%d\n", depth);
+    //if (depth >= max_depth) {
+        //vec3 direct_light = light_sphere.directLight(
+        //    closest_intersection,
+        //    triangles, 
+        //    num_tris
+        //);
+        //return direct_light;
+        //return vec3(0);
+    //}
+
+    vec3 intersection_normal_3 = vec3(closest_intersection.normal);
+    vec3 base_colour = triangles[closest_intersection.index].material_.diffuse_light_component_;
     vec3 direct_light = light_sphere.directLight(
         closest_intersection,
         triangles, 
         num_tris
     );
 
-    vec3 intersection_normal_3 = vec3(closest_intersection.normal);
-
+    //printf("%d\n", depth);
     vec3 N_t, N_b;
     createCoordinateSystem(intersection_normal_3, N_t, N_b);
 
     vec3 indirect_estimate = vec3(0);
+    float pdf = 1 / (2 * M_PI);
     for (int i = 0 ; i < monte_carlo_samples ; i++) {
         float r1 = uniform_rand(seed); // cos(theta) = N.Light Direction
         float r2 = uniform_rand(seed);
         vec3 sample = uniformSampleHemisphere(r1, r2);
-        vec3 sample_world(
+
+        // Convert the sample from our coordinate space to world space
+        vec4 sample_world(
             sample.x * N_b.x + sample.y * intersection_normal_3.x + sample.z * N_t.x,
             sample.x * N_b.y + sample.y * intersection_normal_3.y + sample.z * N_t.y,
-            sample.x * N_b.z + sample.y * intersection_normal_3.z + sample.z * N_t.z
+            sample.x * N_b.z + sample.y * intersection_normal_3.z + sample.z * N_t.z,
+            0
         );
-        indirect_estimate += r1 * monteCarlo2(
-            closest_intersection.position + sample_world * 0.001f, 
-            sample_world, 
-            objects, 
-            lights, 
-            depth + 1
-        ) / pdf;
+
+        Ray random_ray(
+            closest_intersection.position + sample_world * 0.0001f,
+            sample_world
+        );
+
+        //printf("%d - boop before intersection\n", i);
+        if (random_ray.closestIntersection(triangles, num_tris)) {
+            //printf("%d - boop in intersection if\n", i);
+            //printf("%f %f %f\n", test_i.x, test_i.y, test_i.z);
+            /*
+               indirect_estimate += r1 * monteCarlo2(
+               random_ray.closest_intersection_,
+               triangles,
+               num_tris,
+               light_sphere,
+               seed,
+               monte_carlo_samples,
+               max_depth,
+               depth + 1
+            ) / pdf;
+            */
+            vec3 new_intersection_colour = triangles[random_ray.closest_intersection_.index].material_.diffuse_light_component_;
+            indirect_estimate += r1 * new_intersection_colour / pdf;
+        } else {
+            //i--;
+        }
     } 
-
-
-    return indirect_estimate;
+    indirect_estimate /= monte_carlo_samples;
+    return (direct_light + indirect_estimate) * base_colour;
 }
 
 __device__

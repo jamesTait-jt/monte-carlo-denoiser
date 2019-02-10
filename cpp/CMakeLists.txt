@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13.1)
 project (mcr)
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -g -fopenmp")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -g -fopenmp -funroll-loops")# -g -pg")
 
 # Set threads flag on
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -48,23 +48,23 @@ add_executable(${PROJECT_NAME}
     ${SOURCES}
 )
 
-set(
-    SOURCES
-    test/tests.cc
-    src/sdl_window_helper.cc 
-    src/shape.cc
-    src/triangle.cc
-    src/material.cc
-    src/ray.cc
-    src/camera.cc
-    src/light.cc
-    src/lightSphere.cc
-)
+#set(
+#    SOURCES
+#    test/tests.cc
+#    src/sdl_window_helper.cc 
+#    src/shape.cc
+#    src/triangle.cc
+#    src/material.cc
+#    src/ray.cc
+#    src/camera.cc
+#    src/light.cc
+#    src/lightSphere.cc
+#)
 
-add_executable(run_tests
-    ${SOURCES}
-)
+#add_executable(run_tests
+#    ${SOURCES}
+#)
 
 # Link threads
 target_link_libraries(${PROJECT_NAME} SDL2::SDL2 Threads::Threads)
-target_link_libraries(run_tests ${GTEST_LIBRARIES} SDL2::SDL2 Threads::Threads)
+#target_link_libraries(run_tests ${GTEST_LIBRARIES} SDL2::SDL2 Threads::Threads)

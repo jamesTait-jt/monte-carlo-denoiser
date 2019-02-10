@@ -1,0 +1,293 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+ 66.15     28.69    28.69 256053450     0.00     0.00  Triangle::intersects(Ray*, int)
+ 10.18     33.11     4.42 292814364     0.00     0.00  Ray::get_direction()
+  8.53     36.81     3.70 235676140     0.00     0.00  Ray::get_start()
+  5.29     39.10     2.30  9719706     0.00     0.00  Ray::closestIntersection(std::vector<Shape*, std::allocator<Shape*> >)
+  3.17     40.48     1.38                             monteCarlo(Intersection, std::vector<Shape*, std::allocator<Shape*> >, LightSphere, int, int)
+  2.05     41.37     0.89       30    29.68    29.68  Shape::Shape(Material)
+  1.96     42.22     0.85  3326810     0.00     0.01  Light::directLight(Intersection const&, std::vector<Shape*, std::allocator<Shape*> >)
+  0.83     42.58     0.36  5557411     0.00     0.00  LightSphere::directLight(Intersection, std::vector<Shape*, std::allocator<Shape*> >)
+  0.80     42.93     0.35  8964913     0.00     0.00  Ray::Ray(glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>)
+  0.65     43.21     0.28    42687     0.01     0.01  Ray::rotateRay(float)
+  0.15     43.27     0.07  7576524     0.00     0.00  Ray::get_closest_intersection()
+  0.15     43.34     0.07  7176464     0.00     0.00  Ray::set_closest_intersection(Intersection)
+  0.02     43.35     0.01                             Light::get_position()
+  0.01     43.35     0.01    25924     0.00     0.00  createCoordinateSystem(glm::vec<3, float, (glm::qualifier)0> const&, glm::vec<3, float, (glm::qualifier)0>&, glm::vec<3, float, (glm::qualifier)0>&)
+  0.01     43.36     0.01                             Ray::set_start(glm::vec<4, float, (glm::qualifier)0>)
+  0.00     43.36     0.00       30     0.00     0.00  Material::Material()
+  0.00     43.36     0.00       30     0.00     0.00  Triangle::computeAndSetNormal()
+  0.00     43.36     0.00       30     0.00    29.68  Triangle::Triangle(glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>, Material)
+  0.00     43.36     0.00        5     0.00     0.00  void std::vector<Triangle, std::allocator<Triangle> >::_M_realloc_insert<Triangle const&>(__gnu_cxx::__normal_iterator<Triangle*, std::vector<Triangle, std::allocator<Triangle> > >, Triangle const&)
+  0.00     43.36     0.00        1     0.00     0.00  _GLOBAL__sub_I__ZN11LightSphereC2EN3glm3vecILi4EfLNS0_9qualifierE0EEEfifNS1_ILi3EfLS2_0EEE
+  0.00     43.36     0.00        1     0.00     0.00  _GLOBAL__sub_I__ZN3RayC2EN3glm3vecILi4EfLNS0_9qualifierE0EEES3_
+  0.00     43.36     0.00        1     0.00     0.00  _GLOBAL__sub_I__ZN5LightC2EfN3glm3vecILi3EfLNS0_9qualifierE0EEENS1_ILi4EfLS2_0EEE
+  0.00     43.36     0.00        1     0.00     0.00  _GLOBAL__sub_I__ZN8TriangleC2EN3glm3vecILi4EfLNS0_9qualifierE0EEES3_S3_8Material
+  0.00     43.36     0.00        1     0.00     0.00  _GLOBAL__sub_I_main
+  0.00     43.36     0.00        1     0.00     0.00  LightSphere::sphereSample(int, glm::vec<3, float, (glm::qualifier)0>)
+  0.00     43.36     0.00        1     0.00     0.00  Light::Light(float, glm::vec<3, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>)
+  0.00     43.36     0.00        1     0.00     0.00  Material::Material(glm::vec<3, float, (glm::qualifier)0>, glm::vec<3, float, (glm::qualifier)0>, glm::vec<3, float, (glm::qualifier)0>)
+  0.00     43.36     0.00        1     0.00     0.00  void std::vector<Light, std::allocator<Light> >::_M_realloc_insert<Light const&>(__gnu_cxx::__normal_iterator<Light*, std::vector<Light, std::allocator<Light> > >, Light const&)
+  0.00     43.36     0.00        1     0.00     0.00  void std::vector<Triangle, std::allocator<Triangle> >::_M_realloc_insert<Triangle>(__gnu_cxx::__normal_iterator<Triangle*, std::vector<Triangle, std::allocator<Triangle> > >, Triangle&&)
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 0.02% of 43.36 seconds
+
+index % time    self  children    called     name
+                             2616273             monteCarlo(Intersection, std::vector<Shape*, std::allocator<Shape*> >, LightSphere, int, int) [1]
+[1]     97.9    1.38   41.07       0+2616273 monteCarlo(Intersection, std::vector<Shape*, std::allocator<Shape*> >, LightSphere, int, int) [1]
+                1.32   21.18 5576150/9719706     Ray::closestIntersection(std::vector<Shape*, std::allocator<Shape*> >) [2]
+                0.36   17.74 5557411/5557411     LightSphere::directLight(Intersection, std::vector<Shape*, std::allocator<Shape*> >) [4]
+                0.28    0.00   42687/42687       Ray::rotateRay(float) [12]
+                0.18    0.00 4789100/8964913     Ray::Ray(glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>) [11]
+                0.01    0.00   25924/25924       createCoordinateSystem(glm::vec<3, float, (glm::qualifier)0> const&, glm::vec<3, float, (glm::qualifier)0>&, glm::vec<3, float, (glm::qualifier)0>&) [16]
+                0.00    0.00   43801/7576524     Ray::get_closest_intersection() [13]
+                             2616273             monteCarlo(Intersection, std::vector<Shape*, std::allocator<Shape*> >, LightSphere, int, int) [1]
+-----------------------------------------------
+                0.98   15.74 4143556/9719706     Light::directLight(Intersection const&, std::vector<Shape*, std::allocator<Shape*> >) [5]
+                1.32   21.18 5576150/9719706     monteCarlo(Intersection, std::vector<Shape*, std::allocator<Shape*> >, LightSphere, int, int) [1]
+[2]     90.5    2.30   36.93 9719706         Ray::closestIntersection(std::vector<Shape*, std::allocator<Shape*> >) [2]
+               28.69    8.24 256053450/256053450     Triangle::intersects(Ray*, int) [3]
+-----------------------------------------------
+               28.69    8.24 256053450/256053450     Ray::closestIntersection(std::vector<Shape*, std::allocator<Shape*> >) [2]
+[3]     85.2   28.69    8.24 256053450         Triangle::intersects(Ray*, int) [3]
+                4.42    0.00 292814364/292814364     Ray::get_direction() [6]
+                3.70    0.00 235676140/235676140     Ray::get_start() [7]
+                0.07    0.00 7176464/7176464     Ray::set_closest_intersection(Intersection) [14]
+                0.05    0.00 6179902/7576524     Ray::get_closest_intersection() [13]
+-----------------------------------------------
+                0.36   17.74 5557411/5557411     monteCarlo(Intersection, std::vector<Shape*, std::allocator<Shape*> >, LightSphere, int, int) [1]
+[4]     41.8    0.36   17.74 5557411         LightSphere::directLight(Intersection, std::vector<Shape*, std::allocator<Shape*> >) [4]
+                0.85   16.89 3326810/3326810     Light::directLight(Intersection const&, std::vector<Shape*, std::allocator<Shape*> >) [5]
+-----------------------------------------------
+                0.85   16.89 3326810/3326810     LightSphere::directLight(Intersection, std::vector<Shape*, std::allocator<Shape*> >) [4]
+[5]     40.9    0.85   16.89 3326810         Light::directLight(Intersection const&, std::vector<Shape*, std::allocator<Shape*> >) [5]
+                0.98   15.74 4143556/9719706     Ray::closestIntersection(std::vector<Shape*, std::allocator<Shape*> >) [2]
+                0.16    0.00 4175813/8964913     Ray::Ray(glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>) [11]
+                0.01    0.00 1352821/7576524     Ray::get_closest_intersection() [13]
+-----------------------------------------------
+                4.42    0.00 292814364/292814364     Triangle::intersects(Ray*, int) [3]
+[6]     10.2    4.42    0.00 292814364         Ray::get_direction() [6]
+-----------------------------------------------
+                3.70    0.00 235676140/235676140     Triangle::intersects(Ray*, int) [3]
+[7]      8.5    3.70    0.00 235676140         Ray::get_start() [7]
+-----------------------------------------------
+                0.89    0.00      30/30          Triangle::Triangle(glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>, Material) [9]
+[8]      2.1    0.89    0.00      30         Shape::Shape(Material) [8]
+                0.00    0.00      30/30          Material::Material() [25]
+-----------------------------------------------
+                0.00    0.89      30/30          loadShapes(std::vector<Triangle, std::allocator<Triangle> >&) [10]
+[9]      2.1    0.00    0.89      30         Triangle::Triangle(glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>, Material) [9]
+                0.89    0.00      30/30          Shape::Shape(Material) [8]
+-----------------------------------------------
+                                                 <spontaneous>
+[10]     2.1    0.00    0.89                 loadShapes(std::vector<Triangle, std::allocator<Triangle> >&) [10]
+                0.00    0.89      30/30          Triangle::Triangle(glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>, Material) [9]
+                0.00    0.00      30/30          Triangle::computeAndSetNormal() [26]
+                0.00    0.00       5/5           void std::vector<Triangle, std::allocator<Triangle> >::_M_realloc_insert<Triangle const&>(__gnu_cxx::__normal_iterator<Triangle*, std::vector<Triangle, std::allocator<Triangle> > >, Triangle const&) [27]
+                0.00    0.00       1/1           void std::vector<Triangle, std::allocator<Triangle> >::_M_realloc_insert<Triangle>(__gnu_cxx::__normal_iterator<Triangle*, std::vector<Triangle, std::allocator<Triangle> > >, Triangle&&) [37]
+-----------------------------------------------
+                0.16    0.00 4175813/8964913     Light::directLight(Intersection const&, std::vector<Shape*, std::allocator<Shape*> >) [5]
+                0.18    0.00 4789100/8964913     monteCarlo(Intersection, std::vector<Shape*, std::allocator<Shape*> >, LightSphere, int, int) [1]
+[11]     0.8    0.35    0.00 8964913         Ray::Ray(glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>) [11]
+-----------------------------------------------
+                0.28    0.00   42687/42687       monteCarlo(Intersection, std::vector<Shape*, std::allocator<Shape*> >, LightSphere, int, int) [1]
+[12]     0.6    0.28    0.00   42687         Ray::rotateRay(float) [12]
+-----------------------------------------------
+                0.00    0.00   43801/7576524     monteCarlo(Intersection, std::vector<Shape*, std::allocator<Shape*> >, LightSphere, int, int) [1]
+                0.01    0.00 1352821/7576524     Light::directLight(Intersection const&, std::vector<Shape*, std::allocator<Shape*> >) [5]
+                0.05    0.00 6179902/7576524     Triangle::intersects(Ray*, int) [3]
+[13]     0.1    0.07    0.00 7576524         Ray::get_closest_intersection() [13]
+-----------------------------------------------
+                0.07    0.00 7176464/7176464     Triangle::intersects(Ray*, int) [3]
+[14]     0.1    0.07    0.00 7176464         Ray::set_closest_intersection(Intersection) [14]
+-----------------------------------------------
+                                                 <spontaneous>
+[15]     0.0    0.01    0.00                 Light::get_position() [15]
+-----------------------------------------------
+                0.01    0.00   25924/25924       monteCarlo(Intersection, std::vector<Shape*, std::allocator<Shape*> >, LightSphere, int, int) [1]
+[16]     0.0    0.01    0.00   25924         createCoordinateSystem(glm::vec<3, float, (glm::qualifier)0> const&, glm::vec<3, float, (glm::qualifier)0>&, glm::vec<3, float, (glm::qualifier)0>&) [16]
+-----------------------------------------------
+                                                 <spontaneous>
+[17]     0.0    0.01    0.00                 Ray::set_start(glm::vec<4, float, (glm::qualifier)0>) [17]
+-----------------------------------------------
+                0.00    0.00      30/30          Shape::Shape(Material) [8]
+[25]     0.0    0.00    0.00      30         Material::Material() [25]
+-----------------------------------------------
+                0.00    0.00      30/30          loadShapes(std::vector<Triangle, std::allocator<Triangle> >&) [10]
+[26]     0.0    0.00    0.00      30         Triangle::computeAndSetNormal() [26]
+-----------------------------------------------
+                0.00    0.00       5/5           loadShapes(std::vector<Triangle, std::allocator<Triangle> >&) [10]
+[27]     0.0    0.00    0.00       5         void std::vector<Triangle, std::allocator<Triangle> >::_M_realloc_insert<Triangle const&>(__gnu_cxx::__normal_iterator<Triangle*, std::vector<Triangle, std::allocator<Triangle> > >, Triangle const&) [27]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [71]
+[28]     0.0    0.00    0.00       1         _GLOBAL__sub_I__ZN11LightSphereC2EN3glm3vecILi4EfLNS0_9qualifierE0EEEfifNS1_ILi3EfLS2_0EEE [28]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [71]
+[29]     0.0    0.00    0.00       1         _GLOBAL__sub_I__ZN3RayC2EN3glm3vecILi4EfLNS0_9qualifierE0EEES3_ [29]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [71]
+[30]     0.0    0.00    0.00       1         _GLOBAL__sub_I__ZN5LightC2EfN3glm3vecILi3EfLNS0_9qualifierE0EEENS1_ILi4EfLS2_0EEE [30]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [71]
+[31]     0.0    0.00    0.00       1         _GLOBAL__sub_I__ZN8TriangleC2EN3glm3vecILi4EfLNS0_9qualifierE0EEES3_S3_8Material [31]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [71]
+[32]     0.0    0.00    0.00       1         _GLOBAL__sub_I_main [32]
+-----------------------------------------------
+                0.00    0.00       1/1           LightSphere::LightSphere(glm::vec<4, float, (glm::qualifier)0>, float, int, float, glm::vec<3, float, (glm::qualifier)0>) [48]
+[33]     0.0    0.00    0.00       1         LightSphere::sphereSample(int, glm::vec<3, float, (glm::qualifier)0>) [33]
+                0.00    0.00       1/1           Light::Light(float, glm::vec<3, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>) [34]
+                0.00    0.00       1/1           void std::vector<Light, std::allocator<Light> >::_M_realloc_insert<Light const&>(__gnu_cxx::__normal_iterator<Light*, std::vector<Light, std::allocator<Light> > >, Light const&) [36]
+-----------------------------------------------
+                0.00    0.00       1/1           LightSphere::sphereSample(int, glm::vec<3, float, (glm::qualifier)0>) [33]
+[34]     0.0    0.00    0.00       1         Light::Light(float, glm::vec<3, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>) [34]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [71]
+[35]     0.0    0.00    0.00       1         Material::Material(glm::vec<3, float, (glm::qualifier)0>, glm::vec<3, float, (glm::qualifier)0>, glm::vec<3, float, (glm::qualifier)0>) [35]
+-----------------------------------------------
+                0.00    0.00       1/1           LightSphere::sphereSample(int, glm::vec<3, float, (glm::qualifier)0>) [33]
+[36]     0.0    0.00    0.00       1         void std::vector<Light, std::allocator<Light> >::_M_realloc_insert<Light const&>(__gnu_cxx::__normal_iterator<Light*, std::vector<Light, std::allocator<Light> > >, Light const&) [36]
+-----------------------------------------------
+                0.00    0.00       1/1           loadShapes(std::vector<Triangle, std::allocator<Triangle> >&) [10]
+[37]     0.0    0.00    0.00       1         void std::vector<Triangle, std::allocator<Triangle> >::_M_realloc_insert<Triangle>(__gnu_cxx::__normal_iterator<Triangle*, std::vector<Triangle, std::allocator<Triangle> > >, Triangle&&) [37]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+  [28] _GLOBAL__sub_I__ZN11LightSphereC2EN3glm3vecILi4EfLNS0_9qualifierE0EEEfifNS1_ILi3EfLS2_0EEE (lightSphere.cc) [2] Ray::closestIntersection(std::vector<Shape*, std::allocator<Shape*> >) [8] Shape::Shape(Material)
+  [29] _GLOBAL__sub_I__ZN3RayC2EN3glm3vecILi4EfLNS0_9qualifierE0EEES3_ (ray.cc) [13] Ray::get_closest_intersection() [25] Material::Material()
+  [30] _GLOBAL__sub_I__ZN5LightC2EfN3glm3vecILi3EfLNS0_9qualifierE0EEENS1_ILi4EfLS2_0EEE (light.cc) [14] Ray::set_closest_intersection(Intersection) [35] Material::Material(glm::vec<3, float, (glm::qualifier)0>, glm::vec<3, float, (glm::qualifier)0>, glm::vec<3, float, (glm::qualifier)0>)
+  [31] _GLOBAL__sub_I__ZN8TriangleC2EN3glm3vecILi4EfLNS0_9qualifierE0EEES3_S3_8Material (triangle.cc) [7] Ray::get_start() [3] Triangle::intersects(Ray*, int)
+  [32] _GLOBAL__sub_I_main (mcr.cc) [12] Ray::rotateRay(float) [26] Triangle::computeAndSetNormal()
+   [1] monteCarlo(Intersection, std::vector<Shape*, std::allocator<Shape*> >, LightSphere, int, int) [17] Ray::set_start(glm::vec<4, float, (glm::qualifier)0>) [9] Triangle::Triangle(glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>, Material)
+  [16] createCoordinateSystem(glm::vec<3, float, (glm::qualifier)0> const&, glm::vec<3, float, (glm::qualifier)0>&, glm::vec<3, float, (glm::qualifier)0>&) [11] Ray::Ray(glm::vec<4, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>) [36] void std::vector<Light, std::allocator<Light> >::_M_realloc_insert<Light const&>(__gnu_cxx::__normal_iterator<Light*, std::vector<Light, std::allocator<Light> > >, Light const&)
+   [4] LightSphere::directLight(Intersection, std::vector<Shape*, std::allocator<Shape*> >) [5] Light::directLight(Intersection const&, std::vector<Shape*, std::allocator<Shape*> >) [27] void std::vector<Triangle, std::allocator<Triangle> >::_M_realloc_insert<Triangle const&>(__gnu_cxx::__normal_iterator<Triangle*, std::vector<Triangle, std::allocator<Triangle> > >, Triangle const&)
+  [33] LightSphere::sphereSample(int, glm::vec<3, float, (glm::qualifier)0>) [15] Light::get_position() [37] void std::vector<Triangle, std::allocator<Triangle> >::_M_realloc_insert<Triangle>(__gnu_cxx::__normal_iterator<Triangle*, std::vector<Triangle, std::allocator<Triangle> > >, Triangle&&)
+   [6] Ray::get_direction()   [34] Light::Light(float, glm::vec<3, float, (glm::qualifier)0>, glm::vec<4, float, (glm::qualifier)0>)

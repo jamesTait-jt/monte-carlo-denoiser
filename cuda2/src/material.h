@@ -22,6 +22,10 @@ class Material {
             vec3 specular_light_component,
             vec3 emitted_light_component
         );
+
+        //void set_diffuse_light_component(vec3 diffuse_light_component);
+        //void set_specular_light_component(vec3 specular_light_component);
+        //void set_emitted_light_component(vec3 emitted_light_component);
 };
 
 #endif

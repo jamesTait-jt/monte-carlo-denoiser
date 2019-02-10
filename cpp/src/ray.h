@@ -22,21 +22,13 @@ struct Intersection {
 class Ray {
 
     public:
-        Ray(vec4 start, vec4 direction);
-        bool closestIntersection(std::vector<Shape *> shapes);
-        void rotateRay(float yaw);       
-        
-        vec4 get_start();
-        vec4 get_direction();
-        Intersection get_closest_intersection();
-
-        void set_start(vec4 start);
-        void set_closest_intersection(Intersection intersection);
-    
-    private:
         vec4 start_;
         vec4 direction_;
         Intersection closest_intersection_;
+
+        Ray(vec4 start, vec4 direction);
+        bool closestIntersection(std::vector<Shape *> shapes);
+        void rotateRay(float yaw);       
 };
 
 #endif
