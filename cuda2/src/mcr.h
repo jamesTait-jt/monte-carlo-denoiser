@@ -56,7 +56,10 @@ int scaleTo255(
 );
 
 void save_image(
-    vec3 * image
+    vec3 * image,
+    int height,
+    int width,
+    const char * name
 );
 
 __global__
@@ -97,3 +100,10 @@ void createCoordinateSystem(
     vec3 & N_t, 
     vec3 & N_b
 );
+
+__global__
+void MSAA(
+    vec3 * supersampled_image, 
+    vec3 * aliased_output
+);
+
