@@ -26,23 +26,19 @@ void draw(
     SdlWindowHelper sdl_helper
 );
 
-__device__
-void createCoordinateSystem(
-    const vec3 & N, 
-    vec3 & N_t, 
-    vec3 & N_b
+__global__
+void render_init(
+    curandState * rand_state
 );
 
-__device__ 
-vec3 monteCarlo2(
-    Intersection closest_intersection, 
-    Triangle * triangles, 
-    int num_tris, 
+__global__
+void render_kernel(
+    vec3 * output,
+    Camera camera,
     LightSphere light_sphere,
-    int seed,
-    int monte_carlo_samples,
-    int max_depth,
-    int depth
+    Triangle * triangles,
+    int num_tris,
+    curandState * rand_state
 );
 
 __device__ 
@@ -50,27 +46,39 @@ vec3 monteCarlo(
     Intersection closest_intersection, 
     Triangle * triangles, 
     int num_tris,
-    int seed,
-    int monte_carlo_samples
+    LightSphere light_sphere,
+    curandState rand_state,
+    int max_depth,
+    int depth
 );
 
 __device__
-float uniform_rand(
-    int seed
+vec3 indirectLight(
+    Intersection closest_intersection, 
+    Triangle * triangles, 
+    int num_tris,
+    LightSphere light_sphere,
+    curandState rand_state,
+    int max_depth,
+    int depth
 );
 
 __device__
-vec3 randomPointInHemisphere(
-    int seed,
-    vec3 centre,
-    float radius
+vec3 uniformSampleHemisphere(
+    const float & r1, 
+    const float & r2
 );
 
-void renderImageBuffer(
-    vec3 * image,
-    SdlWindowHelper sdl_window
+__device__
+void createCoordinateSystem(
+    const vec3 & N, 
+    vec3 & N_t, 
+    vec3 & N_b
 );
 
-void printVec3(
-    vec3 v
+__global__
+void MSAA(
+    vec3 * supersampled_image, 
+    vec3 * aliased_output
 );
+

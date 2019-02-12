@@ -2,9 +2,10 @@
 
 #include <iostream>
 
-Camera::Camera(vec4 position) {
+Camera::Camera(vec4 position, float yaw, float focal_length) {
     this->position_ = position;
-    this->yaw_ = 0;
+    this->yaw_ = yaw;
+    this->focal_length_ = focal_length;
     this->rotation_matrix_ = mat4(1.0);
 }
 
@@ -60,16 +61,4 @@ mat4 Camera::lookAt(vec3 from, vec3 to) {
     mat4 cam_to_world(right4, up4, forward4, from4);
 
     return cam_to_world;
-}
-
-vec4 Camera::get_position() {
-    return this->position_;
-}
-
-mat4 Camera::get_rotation_matrix() {
-    return this->rotation_matrix_;
-}
-
-float Camera::get_yaw() {
-    return this->yaw_;
 }

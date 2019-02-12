@@ -82,7 +82,6 @@ bool intersects_(Triangle tri, Ray * ray, int triangle_index) {
 // "closest_intersection_".
 __device__
 bool Ray::closestIntersection(Triangle * triangles, int num_shapes) {
-    //printf("hi\n");
     bool has_intersection = false;
     for (int i = 0 ; i < num_shapes ; i++) {
         if (intersects_(triangles[i], this, i)) {

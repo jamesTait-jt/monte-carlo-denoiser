@@ -20,21 +20,17 @@ class Camera {
     public:
         vec4 position_;
         float yaw_;
+        float focal_length_;
 
-        CUDA_HOSTDEV Camera(vec4 position);
+        CUDA_HOSTDEV Camera(vec4 position, float yaw, float focal_length);
 
         void rotateLeft(float yaw);
         void rotateRight(float yaw);
         void moveForwards(float distance);
         void moveBackwards(float distance);
 
-        vec4 get_position();
-        mat4 get_rotation_matrix();
-        float get_yaw();
-
     private:
         mat4 rotation_matrix_;
-
         mat4 lookAt(vec3 from, vec3 to);
 };
 
