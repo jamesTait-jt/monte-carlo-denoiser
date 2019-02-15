@@ -8,6 +8,10 @@
 
 using glm::vec3;
 
+// File names
+const char * pre_alias_title = "pre_alias.ppm"; // Name of saved image before aliasing
+const char * aliased_title = "aliased.ppm"; // Name of the saved image after aliasing
+
 void loadShapes(
     Triangle * triangles
 );
@@ -28,12 +32,16 @@ void draw(
 
 __global__
 void render_init(
-    curandState * rand_state
+    curandState * rand_state,
+    int supersample_height,
+    int supersample_width
 );
 
 __global__
 void render_kernel(
     vec3 * output,
+    int supersample_height,
+    int supersample_width,
     Camera camera,
     LightSphere light_sphere,
     Triangle * triangles,
@@ -79,6 +87,8 @@ void createCoordinateSystem(
 __global__
 void MSAA(
     vec3 * supersampled_image, 
-    vec3 * aliased_output
+    vec3 * aliased_output,
+    int supersample_height,
+    int supersample_width
 );
 

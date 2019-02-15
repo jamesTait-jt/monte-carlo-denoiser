@@ -24,3 +24,7 @@ void save_image(vec3 * image, int height, int width, const char * name) {
     }
     printf("Saved image to '%s'\n", name);
 }
+
+float max(float a, float b) {
+    return a > b ? a : b;
+}

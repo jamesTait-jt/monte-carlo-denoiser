@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="cuda-mcr"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\usr\lib64\;CMake Files\..\..\..\..\..\..\usr\lib64\cmake\;CMake Files\..\..\..\..\..\..\usr\lib64\cmake\SDL2\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="cuda_mcr">
+				<Option output="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/build/cuda_mcr" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/include"/>
+					<Add directory="/usr/include/SDL2"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 cuda_mcr"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="cuda_mcr/fast">
+				<Option output="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/build/cuda_mcr" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/include"/>
+					<Add directory="/usr/include/SDL2"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 cuda_mcr/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/camera.cc">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/camera.h">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/light.cu">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/light.h">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/lightSphere.cu">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/lightSphere.h">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/material.cc">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/material.h">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/mcr.cu">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/mcr.h">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/ray.cu">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/sdl_window_helper.cc">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/sdl_window_helper.h">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/shape.cc">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/shape.h">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/triangle.cu">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/src/triangle.h">
+			<Option target="cuda_mcr"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/../../../../../../usr/lib64/cmake/SDL2/SDL2Config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib64\cmake\SDL2\"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/../../../../../../usr/lib64/cmake/SDL2/SDL2ConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib64\cmake\SDL2\"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/../../../../../../usr/lib64/cmake/SDL2/SDL2Targets-noconfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib64\cmake\SDL2\"/>
+		</Unit>
+		<Unit filename="/home/james/git-repos/old-mcr/monte-carlo-raytracer/cuda/../../../../../../usr/lib64/cmake/SDL2/SDL2Targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib64\cmake\SDL2\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

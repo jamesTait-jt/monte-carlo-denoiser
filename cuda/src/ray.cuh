@@ -9,8 +9,6 @@
 
 #include <glm/glm.hpp>
 
-#include "triangle.h"
-
 #include <vector>
 
 using glm::vec4;
@@ -37,14 +35,6 @@ class Ray {
         CUDA_DEV Ray(vec4 start, vec4 direction);
         CUDA_DEV bool closestIntersection(Triangle * triangles, int num_shapes);
         CUDA_DEV void rotateRay(float yaw);
-        
-        vec4 get_start();
-        vec4 get_direction();
-        Intersection get_closest_intersection();
-
-        void set_start(vec4 start);
-        void set_closest_intersection(Intersection intersection);
-    
 };
 
 #endif

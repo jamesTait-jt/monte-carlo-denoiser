@@ -5,6 +5,7 @@
 #include <curand_kernel.h>
 
 #include <iostream>
+#include <chrono>
 
 #include "constants/config.h"
 #include "constants/materials.h"
@@ -76,15 +77,19 @@ int main (int argc, char* argv[]) {
         light_colour
     );
 
-    time_t start = time(0);
+    auto start = std::chrono::high_resolution_clock::now();
 
     // Launch the CUDA kernel from the host and begin rendering 
     render_init<<<num_blocks, threads_per_block>>>(
-        device_rand_state
+        device_rand_state,
+        supersample_height,
+        supersample_width
     );
 
     render_kernel<<<num_blocks, threads_per_block>>>(
         device_output,
+        supersample_height,
+        supersample_width,
         camera,
         light_sphere,
         triangles,
@@ -100,9 +105,11 @@ int main (int argc, char* argv[]) {
         cudaMemcpyDeviceToHost
     ); 
 
-    time_t end = time(0);
-    double time = difftime(end, start);
-    printf("Finished rendering in %fs.\n", time);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = end - start;
+    int duration_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+
+    printf("Finished rendering in %dms.\n", duration_in_ms);
 
     save_image(
         host_output, 
@@ -122,7 +129,9 @@ int main (int argc, char* argv[]) {
     // Perform anti aliasing
     MSAA<<<num_blocks, threads_per_block>>>(
         device_output,
-        device_aliased_output
+        device_aliased_output,
+        supersample_height,
+        supersample_width
     );
 
     // Copy results of rendering back to the host
@@ -144,7 +153,7 @@ int main (int argc, char* argv[]) {
         host_aliased_output, 
         screen_height, 
         screen_width, 
-        aliased_name
+        aliased_title
     );
 
     // Clear memory for host
@@ -156,7 +165,11 @@ int main (int argc, char* argv[]) {
 
 // Initialises the random states for each thread with the same seed
 __global__ 
-void render_init(curandState * rand_state) {
+void render_init(
+    curandState * rand_state,
+    int supersample_width,
+    int supersample_height
+) {
     // Assign a thread to each pixel (x, y)
     unsigned int x = threadIdx.x + blockIdx.x * blockDim.x;
     unsigned int y = threadIdx.y + blockIdx.y * blockDim.y;
@@ -171,8 +184,10 @@ void render_init(curandState * rand_state) {
 // Bulk of the rendering is controlled here
 __global__
 void render_kernel(
-    vec3 * output, 
-    Camera camera, 
+    vec3 * output,
+    int supersample_width,
+    int supersample_height,
+    Camera camera,
     LightSphere light_sphere,
     Triangle * triangles,
     int num_tris,
@@ -195,7 +210,7 @@ void render_kernel(
     vec4 dir(
         (float)x - supersample_width / 2 , 
         (float)y - supersample_height / 2 , 
-        focal_length , 
+        camera.focal_length_,
         1
     ); 
 
@@ -253,7 +268,15 @@ vec3 monteCarlo(
             triangles,
             num_tris
         );
-        vec3 indirect_estimate = indirectLight();
+        vec3 indirect_estimate = indirectLight(
+            closest_intersection,
+            triangles,
+            num_tris,
+            light_sphere,
+            rand_state,
+            max_depth,
+            depth + 1
+        );
         return (direct_light + indirect_estimate) * base_colour;
     }
 }
@@ -274,8 +297,8 @@ vec3 indirectLight(
     createCoordinateSystem(intersection_normal_3, N_t, N_b);
 
     vec3 indirect_estimate = vec3(0);
-    float pdf = 1 / (2 * M_PI);
-    for (int i = 0 ; i < monte_carlo_samples ; i++) {
+    float pdf = 1 / (2 * (float)M_PI);
+    for (int i = 0 ; i < monte_carlo_num_samples ; i++) {
         float r1 = curand_uniform(&rand_state); // cos(theta) = N.Light Direction
         float r2 = curand_uniform(&rand_state);
         vec3 sample = uniformSampleHemisphere(r1, r2);
@@ -290,7 +313,7 @@ vec3 indirectLight(
 
         // Generate our ray from the random direction calculated previously
         Ray random_ray(
-            closest_intersection.position + sample_world * float_precision_error,
+            closest_intersection.position + sample_world * 0.0001f,
             sample_world
         );
 
@@ -306,7 +329,7 @@ vec3 indirectLight(
             );
         }
     } 
-    indirect_estimate /= (float) (monte_carlo_samples * pdf);
+    indirect_estimate /= monte_carlo_num_samples * pdf;
     return indirect_estimate;
 }
 
@@ -317,7 +340,7 @@ vec3 uniformSampleHemisphere(const float & r1, const float & r2) {
     // cos(theta) = r1 = y
     // cos^2(theta) + sin^2(theta) = 1 -> sin(theta) = srtf(1 - cos^2(theta))
     float sin_theta = sqrtf(1 - r1 * r1);
-    float phi = 2 * M_PI * r2;
+    float phi = 2 * (float)M_PI * r2;
     float x = sin_theta * cosf(phi);
     float z = sin_theta * sinf(phi);
     return vec3(x, r1, z);
@@ -336,7 +359,12 @@ void createCoordinateSystem(const vec3 & N, vec3 & N_t, vec3 & N_b) {
 } 
 
 __global__
-void MSAA(vec3 * supersampled_image, vec3 * aliased_output) {
+void MSAA(
+    vec3 * supersampled_image,
+    vec3 * aliased_output,
+    int supersample_height,
+    int supersample_width
+) {
     // Assign a cuda thread to each pixel (x,y)
     unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -344,19 +372,16 @@ void MSAA(vec3 * supersampled_image, vec3 * aliased_output) {
     // The index of the pixel we are working on when the 2x2 array is linearised
     unsigned int output_pixel_index = (screen_height - y - 1) * screen_width + x;
 
-    // Calculate how many times bigger the supersampled image is
-    int factor = supersample_width / screen_width;
-
     // Multiply x and y by the factor so that every pixel is included
-    y *= factor;
-    x *= factor;
+    y *= anti_aliasing_factor;
+    x *= anti_aliasing_factor;
 
     // Average the pixel values in a (factor^2 by factor^2) grid
     vec3 avg_pixel_value(0.0f);
-    for (int i = 0 ; i < factor ; i++) {
-        for (int j = 0 ; j < factor ; j++) {
+    for (int i = 0 ; i < anti_aliasing_factor ; i++) {
+        for (int j = 0 ; j < anti_aliasing_factor ; j++) {
             unsigned int input_pixel_index = (supersample_height - (y + i) - 1) * supersample_width + (x + j);
-            avg_pixel_value += supersampled_image[input_pixel_index] / (float)(factor * factor);
+            avg_pixel_value += supersampled_image[input_pixel_index] / (float)(anti_aliasing_factor * anti_aliasing_factor);
         }
     }
     aliased_output[output_pixel_index] = avg_pixel_value;
@@ -589,31 +614,31 @@ void loadShapes(Triangle * triangles) {
     // Scale to the volume [-1,1]^3
 
     for (size_t i = 0 ; i < curr_tris ; ++i) {
-        triangles[i].set_v0(triangles[i].get_v0() * (2 / cornell_length));
-        triangles[i].set_v1(triangles[i].get_v1() * (2 / cornell_length));
-        triangles[i].set_v2(triangles[i].get_v2() * (2 / cornell_length));
+        triangles[i].v0_ = (triangles[i].v0_ * (2 / cornell_length));
+        triangles[i].v1_ = (triangles[i].v1_ * (2 / cornell_length));
+        triangles[i].v2_ = (triangles[i].v2_ * (2 / cornell_length));
 
-        triangles[i].set_v0(triangles[i].get_v0() - vec4(1, 1, 1, 1));
-        triangles[i].set_v1(triangles[i].get_v1() - vec4(1, 1, 1, 1));
-        triangles[i].set_v2(triangles[i].get_v2() - vec4(1, 1, 1, 1));
+        triangles[i].v0_ = (triangles[i].v0_ - vec4(1, 1, 1, 1));
+        triangles[i].v1_ = (triangles[i].v1_ - vec4(1, 1, 1, 1));
+        triangles[i].v2_ = (triangles[i].v2_ - vec4(1, 1, 1, 1));
 
-        vec4 new_v0 = triangles[i].get_v0();
+        vec4 new_v0 = triangles[i].v0_;
         new_v0.x *= -1;
         new_v0.y *= -1;
         new_v0.w = 1.0;
-        triangles[i].set_v0(new_v0);
+        triangles[i].v0_ = (new_v0);
 
-        vec4 new_v1 = triangles[i].get_v1();
+        vec4 new_v1 = triangles[i].v1_;
         new_v1.x *= -1;
         new_v1.y *= -1;
         new_v1.w = 1.0;
-        triangles[i].set_v1(new_v1);
+        triangles[i].v1_ = (new_v1);
 
-        vec4 new_v2 = triangles[i].get_v2();
+        vec4 new_v2 = triangles[i].v2_;
         new_v2.x *= -1;
         new_v2.y *= -1;
         new_v2.w = 1.0;
-        triangles[i].set_v2(new_v2);
+        triangles[i].v2_ = (new_v2);
 
         triangles[i].computeAndSetNormal();
     }

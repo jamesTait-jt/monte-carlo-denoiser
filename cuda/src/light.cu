@@ -1,11 +1,8 @@
 #include "light.h"
+#include "util.h"
 
 #include <iostream>
 
-#define max(a,b) \
-    ({ __typeof__ (a) _a = (a); \
-       __typeof__ (b) _b = (b); \
-    _a > _b ? _a : _b; })
 
 Light::Light() {
 
@@ -32,8 +29,8 @@ vec3 Light::directLight(const Intersection & intersection, Triangle * triangles,
 
     // 0.001f is added to the position towards the light to avoid floating point errors
     Ray surface_to_light_ray(
-        intersection.position + 0.001f * vec4(surface_to_light_dir, 1),
-        vec4(surface_to_light_dir, 1)
+        intersection.position + 0.001f * vec4(surface_to_light_dir, 1.0f),
+        vec4(surface_to_light_dir, 1.0f)
     );
 
     if (surface_to_light_ray.closestIntersection(triangles, num_shapes)) {
@@ -43,23 +40,16 @@ vec3 Light::directLight(const Intersection & intersection, Triangle * triangles,
         ); 
         
         if (dist_point_to_intersection < dist_point_to_light) {
-            return vec3(0);        
+            return vec3(0.0f);
         }
     }
 
-    float scalar = (
-        max(
-            dot(surface_to_light_dir, surface_normal), 
-            0.0f
-        ) / (4.0f * M_PI * std::pow(dist_point_to_light, 2))
-    );
-    
+    float max_dot = max(glm::dot(surface_to_light_dir, surface_normal), 0.0f);
+    float divisor = 4.0f * (float)M_PI * std::pow(dist_point_to_light, 2.0f);
+    float scalar = max_dot / divisor;
+
     vec3 amount = this->intensity_ * this->colour_;
     vec3 scaled_amount = amount * scalar;
     
     return scaled_amount;// * shapes[intersection.index]->get_material().get_diffuse_light_component();
-}
-
-vec4 Light::get_position() {
-    return this->position_;
 }

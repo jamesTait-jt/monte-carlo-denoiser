@@ -25,15 +25,6 @@ class Triangle {
         void computeAndSetNormal();
         //bool intersects(Ray * ray, int triangle_index);
         bool cramer(mat3 A, vec3 b, vec3 & solution);
-        
-        vec4 get_v0();
-        vec4 get_v1();
-        vec4 get_v2();
-        vec4 get_normal();
-
-        void set_v0(vec4 v0);
-        void set_v1(vec4 v1);
-        void set_v2(vec4 v2);
 
     private:
         vec4 computeNormal();

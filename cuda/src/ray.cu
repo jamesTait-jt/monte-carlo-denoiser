@@ -1,7 +1,8 @@
 #include <iostream>
 
-#include "constants/screen.h"
+#include "constants/config.h"
 #include "ray.cuh"
+#include "triangle.h"
 
 using glm::mat4;
 
@@ -11,7 +12,7 @@ Ray::Ray(vec4 start, vec4 direction) {
     vec3 direction3(direction);
     vec3 normalised_direction3(glm::normalize(direction3));
     direction_ = vec4(normalised_direction3, 1);
-    closest_intersection_.distance = 999999;
+    closest_intersection_.distance = 999999.0f;
     //closest_intersection_.distance = std::numeric_limits<float>::max();
 }
 
@@ -27,15 +28,15 @@ bool cramer_(mat3 A, vec3 b, vec3 & solution) {
         mat3 temp = A;
 
         A[0] = b;
-        solution.x = determinant(A) / detA;
+        solution.x = glm::determinant(A) / detA;
         A = temp;
 
         A[1] = b;
-        solution.y = determinant(A) / detA;
+        solution.y = glm::determinant(A) / detA;
         A = temp;
 
         A[2] = b;
-        solution.z = determinant(A) / detA;
+        solution.z = glm::determinant(A) / detA;
         A = temp;
     } 
     return det_not_zero;
@@ -47,7 +48,7 @@ bool intersects_(Triangle tri, Ray * ray, int triangle_index) {
     vec4 start = ray->start_;
     vec4 dir = ray->direction_;
 
-    dir = vec4(vec3(dir) * (float)screen_height, 1);
+    dir = vec4(vec3(dir) * (float)screen_height, 1.0f);
 
     vec4 v0 = tri.v0_;
     vec4 v1 = tri.v1_;
@@ -94,27 +95,7 @@ bool Ray::closestIntersection(Triangle * triangles, int num_shapes) {
 __device__
 void Ray::rotateRay(float yaw) {
     mat4 rotation_matrix = mat4(1.0);
-    rotation_matrix[0] = vec4(cos(yaw), 0, sin(yaw), 0);
-    rotation_matrix[2] = vec4(-sin(yaw), 0, cos(yaw), 0);
+    rotation_matrix[0] = vec4(cosf(yaw), 0, sinf(yaw), 0);
+    rotation_matrix[2] = vec4(-sinf(yaw), 0, cosf(yaw), 0);
     this->direction_ = rotation_matrix * this->direction_;
-}
-
-vec4 Ray::get_start() {
-    return this->start_;
-}
-
-vec4 Ray::get_direction() {
-    return this->direction_;
-}
-
-Intersection Ray::get_closest_intersection() {
-    return this->closest_intersection_;
-}
-
-void  Ray::set_start(vec4 start) {
-    this->start_ = start;
-}
-
-void Ray::set_closest_intersection(Intersection intersection) {
-    this->closest_intersection_ = intersection;
 }

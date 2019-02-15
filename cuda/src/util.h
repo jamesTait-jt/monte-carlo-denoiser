@@ -20,4 +20,10 @@ void save_image(
     const char * name
 );
 
+float max(
+    float a,
+    float b
+);
+
+
 #endif
