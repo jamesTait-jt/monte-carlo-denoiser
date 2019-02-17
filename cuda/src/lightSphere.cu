@@ -1,25 +1,43 @@
 #include "lightSphere.h" 
 
+#include "triangle.h"
+#include "sphere.h"
+#include "light.h"
+#include "ray.cuh"
+
 #include <iostream>
 
-LightSphere::LightSphere(vec4 centre, float radius, int num_lights, float intensity, vec3 colour) { this->centre_ = centre; this->radius_ = radius;
-    this->centre_ = centre;
-    this->radius_ = radius;
-    this->intensity_ = intensity;
-    this->colour_ = colour;
+LightSphere::LightSphere(
+    vec4 centre,
+    float radius,
+    int num_lights,
+    float intensity,
+    vec3 colour
+) {
+    centre_ = centre;
+    radius_ = radius;
+    intensity_ = intensity;
+    colour_ = colour;
     Light * samples;
     cudaMallocManaged(&samples, num_lights * sizeof(Light));
+
     sphereSample(num_lights, samples);
-    this->point_lights_ = samples;
-    this->num_point_lights_ = num_lights;
+    point_lights_ = samples;
+    num_point_lights_ = num_lights;
 }
 
 __device__
-vec3 LightSphere::directLight(Intersection intersection, Triangle * triangles, int num_shapes) {
+vec3 LightSphere::directLight(
+    Intersection intersection,
+    Triangle * triangles,
+    int num_tris,
+    Sphere * spheres,
+    int num_spheres
+) {
     vec3 colour(0,0,0);
     for (int i = 0 ; i < num_point_lights_ ; i++) {
         Light point_light = point_lights_[i];
-        vec3 direct_light = point_light.directLight(intersection, triangles, num_shapes);
+        vec3 direct_light = point_light.directLight(intersection, triangles, num_tris, spheres, num_spheres);
         colour = colour + direct_light;
     }
 
@@ -49,25 +67,3 @@ void LightSphere::sphereSample(int num_lights, Light * samples) {
 bool LightSphere::containedInSphere(vec4 p) {
     return glm::distance(p, centre_) <= radius_;
 }
-
-/*
-std::vector<Light> LightSphere::get_point_lights() {
-    return this->point_lights_;
-}
-
-vec4 LightSphere::get_centre() {
-    return this->centre_;
-}
-
-float LightSphere::get_radius() {
-    return this->radius_;
-}
-
-float LightSphere::get_intensity() {
-    return this->intensity_;
-}
-
-vec3 LightSphere::get_colour() {
-    return this->colour_;
-}
-*/

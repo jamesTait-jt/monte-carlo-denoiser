@@ -11,7 +11,13 @@
 
 #include <vector>
 
-#include "light.h"
+class Triangle;
+class Sphere;
+class Light;
+struct Intersection;
+
+using glm::vec3;
+using glm::vec4;
 
 // This class is a sphere containing multiple point lights. Using this method
 // gives us nice soft shadows rather than sharply moving from light to dark
@@ -25,17 +31,22 @@ class LightSphere {
         vec3 colour_;
         int num_point_lights_;
 
-        LightSphere(vec4 centre, float radius, int num_lights, float intensity, vec3 colour);
-        CUDA_DEV vec3 directLight(Intersection intersection, Triangle * triangles, int num_shapes);
+        LightSphere(
+            vec4 centre,
+            float radius,
+            int num_lights,
+            float intensity,
+            vec3 colour
+        );
 
-        /*
-        std::vector<Light> get_point_lights();
-        vec4 get_centre();
-        float get_radius();
-        float get_intensity();
-        vec3 get_colour();
-        */
-    
+        CUDA_DEV vec3 directLight(
+            Intersection intersection,
+            Triangle * triangles,
+            int num_tris,
+            Sphere * spheres,
+            int num_spheres
+        );
+
     private:
         void sphereSample(int numLights, Light * samples);
         bool containedInSphere(vec4 p);

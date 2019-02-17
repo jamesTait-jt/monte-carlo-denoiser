@@ -10,8 +10,8 @@
 #include "constants/config.h"
 #include "constants/materials.h"
 #include "mcr.h"
-#include "shape.h"
 #include "triangle.h"
+#include "sphere.h"
 #include "util.h"
 
 int main (int argc, char* argv[]) {
@@ -55,11 +55,15 @@ int main (int argc, char* argv[]) {
     Triangle * triangles;
     cudaMallocManaged(&triangles, num_tris * sizeof(Triangle));
 
+    int num_spheres = 1;
+    Sphere * spheres;
+    cudaMallocManaged(&spheres, num_tris * sizeof(Sphere));
+
     printf("CUDA has been initialised. Begin rendering...\n");
     printf("=============================================\n\n");
 
     // Load the polygons into the triangles array
-    loadShapes(triangles);
+    loadShapes(triangles, spheres);
 
     // Initialise the camera object
     Camera camera(
@@ -94,6 +98,8 @@ int main (int argc, char* argv[]) {
         light_sphere,
         triangles,
         num_tris,
+        spheres,
+        num_spheres,
         device_rand_state
     ); 
 
@@ -191,6 +197,8 @@ void render_kernel(
     LightSphere light_sphere,
     Triangle * triangles,
     int num_tris,
+    Sphere * spheres,
+    int num_spheres,
     curandState * rand_state
 ) {
     // Assign a cuda thread to each pixel (x,y)
@@ -220,21 +228,108 @@ void render_kernel(
 
     // If the ray intersects with an object in the scene, perform monte carlo to
     // obtain a lighting estimate
-    if (ray.closestIntersection(triangles, num_tris)) {
+    if (ray.closestIntersection(triangles, num_tris, spheres, num_spheres)) {
+
+        vec3 colour = tracePath(
+            ray.closest_intersection_,
+            triangles,
+            num_tris,
+            spheres,
+            num_spheres,
+            local_rand_state,
+            monte_carlo_max_depth,
+            0
+        );
+
+        /*
         vec3 colour = monteCarlo(
             ray.closest_intersection_,
             triangles,
             num_tris,
+            spheres,
+            num_spheres,
             light_sphere,
             local_rand_state,
             monte_carlo_max_depth,
             0
         );
+        */
+
         output[pixel_index] = colour;
     } 
     // if there is no intersection, we set the colour to be black
     else {
         output[pixel_index] = vec3(0.0f);
+    }
+}
+
+__device__
+vec3 tracePath(
+    Intersection closest_intersection,
+    Triangle * triangles,
+    int num_tris,
+    Sphere * spheres,
+    int num_spheres,
+    curandState rand_state,
+    int max_depth,
+    int depth
+) {
+    if (depth >= max_depth) {
+        return vec3(0.0f);
+    } else {
+        vec3 base_colour;
+        // We have hit a triangle (not a light source)
+        if (closest_intersection.is_triangle) {
+            base_colour = triangles[closest_intersection.index].material_.diffuse_light_component_;
+
+            vec3 intersection_normal_3 = vec3(closest_intersection.normal);
+            vec3 N_t, N_b;
+            createCoordinateSystem(intersection_normal_3, N_t, N_b);
+
+            vec3 indirect_estimate = vec3(0);
+            float pdf = 1 / (2 * (float)M_PI);
+            for (int i = 0 ; i < monte_carlo_num_samples ; i++) {
+                float r1 = curand_uniform(&rand_state); // cos(theta) = N.Light Direction
+                float r2 = curand_uniform(&rand_state);
+                vec3 sample = uniformSampleHemisphere(r1, r2);
+
+                // Convert the sample from our coordinate space to world space
+                vec4 sample_world(
+                    sample.x * N_b.x + sample.y * intersection_normal_3.x + sample.z * N_t.x,
+                    sample.x * N_b.y + sample.y * intersection_normal_3.y + sample.z * N_t.y,
+                    sample.x * N_b.z + sample.y * intersection_normal_3.z + sample.z * N_t.z,
+                    0
+                );
+
+                // Generate our ray from the random direction calculated previously
+                Ray random_ray(
+                    closest_intersection.position + sample_world * 0.0001f,
+                    sample_world
+                );
+
+                if (random_ray.closestIntersection(triangles, num_tris, spheres, num_spheres)) {
+                    indirect_estimate += r1 * tracePath(
+                        random_ray.closest_intersection_,
+                        triangles,
+                        num_tris,
+                        spheres,
+                        num_spheres,
+                        rand_state,
+                        max_depth,
+                        depth + 1
+                    );
+                }
+            }
+            indirect_estimate /= monte_carlo_num_samples * pdf;
+            indirect_estimate *= base_colour;
+            return indirect_estimate;
+        }
+        // We have hit a light source
+        else {
+            return vec3(4.0f);
+            //base_colour = spheres[closest_intersection.index].material_.diffuse_light_component_;
+        }
+
     }
 }
 
@@ -244,6 +339,8 @@ vec3 monteCarlo(
     Intersection closest_intersection, 
     Triangle * triangles, 
     int num_tris,
+    Sphere * spheres,
+    int num_spheres,
     LightSphere light_sphere,
     curandState rand_state,
     int max_depth,
@@ -255,23 +352,40 @@ vec3 monteCarlo(
         vec3 direct_light = light_sphere.directLight(
             closest_intersection,
             triangles,
-            num_tris
+            num_tris,
+            spheres,
+            num_spheres
         );
-        vec3 base_colour = triangles[closest_intersection.index].material_.diffuse_light_component_;
+
+        vec3 base_colour;
+        if (closest_intersection.is_triangle) {
+            base_colour = triangles[closest_intersection.index].material_.diffuse_light_component_;
+        } else {
+            base_colour = spheres[closest_intersection.index].material_.diffuse_light_component_;
+        }
         return direct_light * base_colour;
     } 
     // Otherwise, we must obtain an indirect lighting estimate for this point
     else {
-        vec3 base_colour = triangles[closest_intersection.index].material_.diffuse_light_component_;
+        vec3 base_colour;
+        if (closest_intersection.is_triangle) {
+            base_colour = triangles[closest_intersection.index].material_.diffuse_light_component_;
+        } else {
+            base_colour = spheres[closest_intersection.index].material_.diffuse_light_component_;
+        }
         vec3 direct_light = light_sphere.directLight(
             closest_intersection,
             triangles,
-            num_tris
+            num_tris,
+            spheres,
+            num_spheres
         );
         vec3 indirect_estimate = indirectLight(
             closest_intersection,
             triangles,
             num_tris,
+            spheres,
+            num_spheres,
             light_sphere,
             rand_state,
             max_depth,
@@ -286,6 +400,8 @@ vec3 indirectLight(
     Intersection closest_intersection, 
     Triangle * triangles, 
     int num_tris,
+    Sphere * spheres,
+    int num_spheres,
     LightSphere light_sphere,
     curandState rand_state,
     int max_depth,
@@ -317,11 +433,13 @@ vec3 indirectLight(
             sample_world
         );
 
-        if (random_ray.closestIntersection(triangles, num_tris)) {
+        if (random_ray.closestIntersection(triangles, num_tris, spheres, num_spheres)) {
                indirect_estimate += r1 * monteCarlo(
                random_ray.closest_intersection_,
                triangles,
                num_tris,
+               spheres,
+               num_spheres,
                light_sphere,
                rand_state,
                max_depth,
@@ -431,7 +549,7 @@ void update(Camera & camera, Light & light) {
     }*/
 }
 
-void loadShapes(Triangle * triangles) {
+void loadShapes(Triangle * triangles, Sphere * spheres) {
     float cornell_length = 555;			// Length of Cornell Box side.
 
     vec4 A(cornell_length, 0, 0             , 1);
@@ -609,6 +727,12 @@ void loadShapes(Triangle * triangles) {
     //triangles.push_back(Triangle(G, H, F, m_sol_blue));
     triangles[curr_tris] = Triangle(G, H, F, m_sol_blue);
     curr_tris++;
+
+    // ---------------------------------------------------------------------------
+    // Sphere
+
+    //Sphere for the right wall
+    spheres[0] = Sphere(vec4(0, -1, -0.8, 1), 0.3, m_sol_green);
 
     // ----------------------------------------------
     // Scale to the volume [-1,1]^3

@@ -11,10 +11,12 @@
 
 #include <vector>
 
-#include "shape.h"
-#include "ray.cuh"
+class Triangle;
+class Sphere;
+struct Intersection;
 
 using glm::vec3;
+using glm::vec4;
 
 // This class is a simple point light implementation that can be moved around
 // the room.
@@ -26,12 +28,19 @@ class Light {
         vec4 position_;
 
         Light();
-        Light(float intensity, vec3 colour, vec4 position);
-        CUDA_DEV vec3 directLight(const Intersection & intersection, Triangle * triangles, int num_shapes);
+        Light(
+            float intensity,
+            vec3 colour,
+            vec4 position
+        );
 
-        float get_intensity();
-        vec3 get_colour();
-        vec4 get_position();
+        CUDA_DEV vec3 directLight(
+            const Intersection & intersection,
+            Triangle * triangles,
+            int num_shapes,
+            Sphere * spheres,
+            int num_spheres
+        );
 };
 
 #endif

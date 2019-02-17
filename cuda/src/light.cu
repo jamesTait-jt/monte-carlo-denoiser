@@ -1,5 +1,8 @@
 #include "light.h"
 #include "util.h"
+#include "triangle.h"
+#include "sphere.h"
+#include "ray.cuh"
 
 #include <iostream>
 
@@ -15,7 +18,13 @@ Light::Light(float intensity, vec3 colour, vec4 position) {
 }
 
 __device__
-vec3 Light::directLight(const Intersection & intersection, Triangle * triangles, int num_shapes) {
+vec3 Light::directLight(
+    const Intersection & intersection,
+    Triangle * triangles,
+    int num_tris,
+    Sphere * spheres,
+    int num_spheres
+) {
 
     // Distance from point to light source
     float dist_point_to_light = glm::distance(intersection.position, this->position_);
@@ -33,7 +42,7 @@ vec3 Light::directLight(const Intersection & intersection, Triangle * triangles,
         vec4(surface_to_light_dir, 1.0f)
     );
 
-    if (surface_to_light_ray.closestIntersection(triangles, num_shapes)) {
+    if (surface_to_light_ray.closestIntersection(triangles, num_tris, spheres, num_spheres)) {
         float dist_point_to_intersection = glm::distance(
             intersection.position, 
             surface_to_light_ray.closest_intersection_.position

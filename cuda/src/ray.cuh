@@ -15,12 +15,14 @@ using glm::vec4;
 using glm::vec3;
 
 class Triangle;
+class Sphere;
 
 struct Intersection {
     vec4 position;
     float distance;
     vec4 normal;
     int index;
+    bool is_triangle;
 };
 
 // This class represents a ray of light. It consists of a start point and a
@@ -32,9 +34,31 @@ class Ray {
         vec4 direction_;
         Intersection closest_intersection_;
 
-        CUDA_DEV Ray(vec4 start, vec4 direction);
-        CUDA_DEV bool closestIntersection(Triangle * triangles, int num_shapes);
-        CUDA_DEV void rotateRay(float yaw);
+        CUDA_DEV Ray(
+            vec4 start,
+            vec4 direction
+        );
+
+        CUDA_DEV bool closestIntersection(
+            Triangle * triangles,
+            int num_tris,
+            Sphere * spheres,
+            int num_spheres
+        );
+
+        CUDA_DEV bool intersects(
+            Triangle tri,
+            int triangle_index
+        );
+
+        CUDA_DEV bool intersects(
+            Sphere sphere,
+            int sphere_index
+        );
+
+        CUDA_DEV void rotateRay(
+            float yaw
+        );
 };
 
 #endif

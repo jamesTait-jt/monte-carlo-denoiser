@@ -25,6 +25,13 @@ void save_image(vec3 * image, int height, int width, const char * name) {
     printf("Saved image to '%s'\n", name);
 }
 
-float max(float a, float b) {
+float maxf(float a, float b) {
     return a > b ? a : b;
+}
+
+__host__ __device__
+void swap(float & a, float & b) {
+    float temp = a;
+    a = b;
+    b = temp;
 }

@@ -14,9 +14,9 @@ using glm::mat3;
 class Triangle {
 
     public:
-	vec4 v0_;
-	vec4 v1_;
-	vec4 v2_;
+		vec4 v0_;
+		vec4 v1_;
+		vec4 v2_;
         vec4 normal_;
         Material material_;
 

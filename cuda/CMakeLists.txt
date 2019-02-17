@@ -37,7 +37,8 @@ set(
     src/camera.cc
     src/light.cu
     src/lightSphere.cu
-    src/util.cc
+    src/util.cu
+    src/sphere.cu
 )
 
 add_executable(cuda_mcr 

@@ -1,6 +1,7 @@
 #include <vector>
 
 #include "triangle.h"
+#include "sphere.h"
 #include "camera.h"
 #include "light.h"
 #include "lightSphere.h"
@@ -13,7 +14,8 @@ const char * pre_alias_title = "pre_alias.ppm"; // Name of saved image before al
 const char * aliased_title = "aliased.ppm"; // Name of the saved image after aliasing
 
 void loadShapes(
-    Triangle * triangles
+    Triangle * triangles,
+    Sphere * spheres
 );
 
 void update(
@@ -46,14 +48,30 @@ void render_kernel(
     LightSphere light_sphere,
     Triangle * triangles,
     int num_tris,
+    Sphere * spheres,
+    int num_spheres,
     curandState * rand_state
 );
 
-__device__ 
+__device__
+    vec3 tracePath(
+    Intersection closest_intersection,
+    Triangle * triangles,
+    int num_tris,
+    Sphere * spheres,
+    int num_spheres,
+    curandState rand_state,
+    int max_depth,
+    int depth
+);
+
+__device__
 vec3 monteCarlo(
     Intersection closest_intersection, 
     Triangle * triangles, 
     int num_tris,
+    Sphere * spheres,
+    int num_spheres,
     LightSphere light_sphere,
     curandState rand_state,
     int max_depth,
@@ -65,6 +83,8 @@ vec3 indirectLight(
     Intersection closest_intersection, 
     Triangle * triangles, 
     int num_tris,
+    Sphere * spheres,
+    int num_spheres,
     LightSphere light_sphere,
     curandState rand_state,
     int max_depth,
