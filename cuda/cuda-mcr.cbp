@@ -117,7 +117,7 @@
 		<Unit filename="/home/james/git-repos/monte-carlo-raytracer/cuda/src/shape.h">
 			<Option target="cuda_mcr"/>
 		</Unit>
-		<Unit filename="/home/james/git-repos/monte-carlo-raytracer/cuda/src/sphere.cc">
+		<Unit filename="/home/james/git-repos/monte-carlo-raytracer/cuda/src/sphere.cu">
 			<Option target="cuda_mcr"/>
 		</Unit>
 		<Unit filename="/home/james/git-repos/monte-carlo-raytracer/cuda/src/sphere.h">
@@ -129,7 +129,7 @@
 		<Unit filename="/home/james/git-repos/monte-carlo-raytracer/cuda/src/triangle.h">
 			<Option target="cuda_mcr"/>
 		</Unit>
-		<Unit filename="/home/james/git-repos/monte-carlo-raytracer/cuda/src/util.cc">
+		<Unit filename="/home/james/git-repos/monte-carlo-raytracer/cuda/src/util.cu">
 			<Option target="cuda_mcr"/>
 		</Unit>
 		<Unit filename="/home/james/git-repos/monte-carlo-raytracer/cuda/src/util.h">

@@ -12,27 +12,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3953c3ed-5434-42ed-9ab0-f5eeb2396869" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cuda/src/sphere.cu" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cuda/src/sphere.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/aliased.ppm" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/aliased.ppm" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cuda/cuda-mcr.cbp" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/cuda-mcr.cbp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/pre_alias.ppm" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/pre_alias.ppm" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cuda/src/constants/config.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/constants/config.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/light.cu" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/light.cu" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/light.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/light.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/lightSphere.cu" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/lightSphere.cu" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/lightSphere.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/lightSphere.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cuda/src/mcr.cu" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/mcr.cu" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cuda/src/mcr.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/mcr.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/monteCarlo.cu" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/monteCarlo.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/ray.cu" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/ray.cu" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/ray.cuh" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/ray.cuh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/triangle.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/triangle.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/util.cc" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/util.cu" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cuda/src/util.cu" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/util.cu" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cuda/src/util.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/util.h" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cuda/cmake-build-debug/" />
@@ -48,105 +32,11 @@
     <splitter split-orientation="horizontal" split-proportion="0.5">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/util.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="525">
-                  <caret line="35" column="10" selection-start-line="35" selection-start-column="10" selection-end-line="35" selection-end-column="10" />
-                  <folding>
-                    <element signature="e#49#76#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/util.cu">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="480">
-                  <caret line="32" column="32" selection-start-line="32" selection-start-column="32" selection-end-line="32" selection-end-column="32" />
-                  <folding>
-                    <element signature="e#0#19#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/CMakeLists.txt">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="510">
-                  <caret line="39" selection-start-line="39" selection-end-line="39" />
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/cuda/src/mcr.cu">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="405">
-                  <caret line="328" column="24" selection-start-line="328" selection-start-column="24" selection-end-line="328" selection-end-column="24" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/light.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="300">
-                  <caret line="20" column="27" selection-start-line="20" selection-start-column="27" selection-end-line="20" selection-end-column="27" />
-                  <folding>
-                    <element signature="e#110#132#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/lightSphere.h">
-              <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="255">
-                  <caret line="23" column="18" selection-start-line="23" selection-start-column="18" selection-end-line="23" selection-end-column="18" />
-                  <folding>
-                    <element signature="e#122#144#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/ray.cu">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="225">
-                  <caret line="15" column="45" selection-start-line="15" selection-start-column="45" selection-end-line="15" selection-end-column="45" />
-                  <folding>
-                    <element signature="e#0#19#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/sphere.cu">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="285">
-                  <caret line="19" column="19" selection-start-line="19" selection-start-column="19" selection-end-line="19" selection-end-column="19" />
-                  <folding>
-                    <element signature="e#0#19#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/sphere.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="375">
-                  <caret line="25" column="16" selection-start-line="25" selection-start-column="16" selection-end-line="25" selection-end-column="16" />
-                  <folding>
-                    <element signature="e#53#80#0" expanded="true" />
-                    <element signature="e#35#57#0" expanded="true" />
-                  </folding>
+                  <caret line="84" selection-start-line="84" selection-end-line="84" />
                 </state>
               </provider>
             </entry>
@@ -155,11 +45,11 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/cuda/src/mcr.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="735">
-                  <caret line="96" column="19" selection-start-line="96" selection-start-column="19" selection-end-line="96" selection-end-column="19" />
+                <state relative-caret-position="795">
+                  <caret line="123" selection-start-line="123" selection-end-line="123" />
                   <folding>
                     <element signature="e#0#17#0" expanded="true" />
                   </folding>
@@ -168,80 +58,29 @@
             </entry>
           </file>
           <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/ray.cuh">
+            <entry file="file://$PROJECT_DIR$/cuda/src/util.cu">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="375">
-                  <caret line="25" column="1" selection-start-line="25" selection-start-column="1" selection-end-line="25" selection-end-column="1" />
-                  <folding>
-                    <element signature="e#106#128#0" expanded="true" />
-                  </folding>
+                <state relative-caret-position="15">
+                  <caret line="1" selection-start-line="1" selection-end-line="1" />
                 </state>
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/cuda/src/constants/config.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="420">
-                  <caret line="28" column="38" selection-start-line="28" selection-start-column="38" selection-end-line="28" selection-end-column="38" />
+                <state relative-caret-position="450">
+                  <caret line="30" column="7" selection-start-line="30" selection-start-column="7" selection-end-line="30" selection-end-column="7" />
                 </state>
               </provider>
             </entry>
           </file>
           <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/light.cu">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="240">
-                  <caret line="24" selection-start-line="24" selection-end-line="24" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/lightSphere.cu">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="285">
-                  <caret line="39" column="24" selection-start-line="39" selection-start-column="24" selection-end-line="39" selection-end-column="24" />
-                  <folding>
-                    <element signature="e#0#25#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/constants/materials.h">
-              <provider selected="true" editor-type-id="text-editor" />
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/mcr.cu">
+            <entry file="file://$PROJECT_DIR$/cuda/src/camera.cc">
               <provider selected="true" editor-type-id="text-editor">
                 <state>
-                  <caret line="253" selection-start-line="253" selection-end-line="253" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/triangle.cu">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="285">
-                  <caret line="19" column="39" selection-start-line="19" selection-start-column="39" selection-end-line="19" selection-end-column="39" />
                   <folding>
                     <element signature="e#0#19#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cuda/src/triangle.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="165">
-                  <caret line="11" column="53" selection-start-line="11" selection-start-column="53" selection-end-line="11" selection-end-column="53" />
-                  <folding>
-                    <element signature="e#39#61#0" expanded="true" />
                   </folding>
                 </state>
               </provider>
@@ -264,16 +103,16 @@
         <option value="$PROJECT_DIR$/cuda/src/lightSphere.h" />
         <option value="$PROJECT_DIR$/cuda/src/sphere.h" />
         <option value="$PROJECT_DIR$/cuda/src/sphere.cc" />
-        <option value="$PROJECT_DIR$/cuda/src/util.h" />
         <option value="$PROJECT_DIR$/cuda/src/lightSphere.cu" />
         <option value="$PROJECT_DIR$/cuda/src/sphere.cu" />
         <option value="$PROJECT_DIR$/cuda/src/util.cc" />
         <option value="$PROJECT_DIR$/cuda/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/cuda/src/util.cu" />
         <option value="$PROJECT_DIR$/cuda/src/ray.cuh" />
         <option value="$PROJECT_DIR$/cuda/src/ray.cu" />
-        <option value="$PROJECT_DIR$/cuda/src/mcr.h" />
+        <option value="$PROJECT_DIR$/cuda/src/util.h" />
+        <option value="$PROJECT_DIR$/cuda/src/util.cu" />
         <option value="$PROJECT_DIR$/cuda/src/constants/config.h" />
+        <option value="$PROJECT_DIR$/cuda/src/mcr.h" />
         <option value="$PROJECT_DIR$/cuda/src/mcr.cu" />
       </list>
     </option>
@@ -301,6 +140,12 @@
               <item name="cuda-mcr" type="b2602c69:ProjectViewProjectNode" />
               <item name="monte-carlo-raytracer" type="462c0819:PsiDirectoryNode" />
               <item name="cuda" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="cuda-mcr" type="b2602c69:ProjectViewProjectNode" />
+              <item name="monte-carlo-raytracer" type="462c0819:PsiDirectoryNode" />
+              <item name="cuda" type="462c0819:PsiDirectoryNode" />
+              <item name="out" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="cuda-mcr" type="b2602c69:ProjectViewProjectNode" />
@@ -357,17 +202,18 @@
       <option name="presentableId" value="Default" />
       <updated>1550239557082</updated>
       <workItem from="1550239558228" duration="5352000" />
+      <workItem from="1550525194835" duration="4977000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="15316000" />
+    <option name="totallyTimeSpent" value="20293000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="26" y="10" width="1868" height="999" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1650165" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.13971397" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -393,30 +239,13 @@
     <option name="version" value="1" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/cuda/src/triangle.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="11" column="53" selection-start-line="11" selection-start-column="53" selection-end-line="11" selection-end-column="53" />
-          <folding>
-            <element signature="e#39#61#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/cuda/aliased.ppm">
+      <provider selected="true" editor-type-id="images" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/triangle.cu">
+    <entry file="file://$PROJECT_DIR$/cuda/CMakeLists.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="19" column="39" selection-start-line="19" selection-start-column="39" selection-end-line="19" selection-end-column="39" />
-          <folding>
-            <element signature="e#0#19#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/light.cu">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="24" selection-start-line="24" selection-end-line="24" />
+        <state relative-caret-position="585">
+          <caret line="39" selection-start-line="39" selection-end-line="39" />
         </state>
       </provider>
     </entry>
@@ -432,10 +261,30 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/cuda/src/lightSphere.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
+        <state relative-caret-position="345">
           <caret line="23" column="18" selection-start-line="23" selection-start-column="18" selection-end-line="23" selection-end-column="18" />
           <folding>
             <element signature="e#122#144#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/src/ray.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="15" column="45" selection-start-line="15" selection-start-column="45" selection-end-line="15" selection-end-column="45" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/src/sphere.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="19" column="19" selection-start-line="19" selection-start-column="19" selection-end-line="19" selection-end-column="19" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -451,59 +300,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/util.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="35" column="10" selection-start-line="35" selection-start-column="10" selection-end-line="35" selection-end-column="10" />
-          <folding>
-            <element signature="e#49#76#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="510">
-          <caret line="39" selection-start-line="39" selection-end-line="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/aliased.ppm">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/util.cu">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="480">
-          <caret line="32" column="32" selection-start-line="32" selection-start-column="32" selection-end-line="32" selection-end-column="32" />
-          <folding>
-            <element signature="e#0#19#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/lightSphere.cu">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="39" column="24" selection-start-line="39" selection-start-column="24" selection-end-line="39" selection-end-column="24" />
-          <folding>
-            <element signature="e#0#25#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/constants/materials.h">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/sphere.cu">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="19" column="19" selection-start-line="19" selection-start-column="19" selection-end-line="19" selection-end-column="19" />
-          <folding>
-            <element signature="e#0#19#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/cuda/src/ray.cuh">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="375">
@@ -514,20 +310,69 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/mcr.h">
+    <entry file="file://$PROJECT_DIR$/cuda/src/light.cu">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="735">
-          <caret line="96" column="19" selection-start-line="96" selection-start-column="19" selection-end-line="96" selection-end-column="19" />
+        <state relative-caret-position="360">
+          <caret line="24" selection-start-line="24" selection-end-line="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/src/lightSphere.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="585">
+          <caret line="39" column="24" selection-start-line="39" selection-start-column="24" selection-end-line="39" selection-end-column="24" />
           <folding>
-            <element signature="e#0#17#0" expanded="true" />
+            <element signature="e#0#25#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/ray.cu">
+    <entry file="file://$PROJECT_DIR$/cuda/src/constants/materials.h">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/src/triangle.cu">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="15" column="45" selection-start-line="15" selection-start-column="45" selection-end-line="15" selection-end-column="45" />
+        <state relative-caret-position="285">
+          <caret line="19" column="39" selection-start-line="19" selection-start-column="39" selection-end-line="19" selection-end-column="39" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/src/triangle.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="11" column="53" selection-start-line="11" selection-start-column="53" selection-end-line="11" selection-end-column="53" />
+          <folding>
+            <element signature="e#39#61#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/src/util.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="26" column="13" selection-start-line="26" selection-start-column="13" selection-end-line="26" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/out/aliased.ppm-0">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/out/pre_alias.ppm-0">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/src/util.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" selection-start-line="1" selection-end-line="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/src/camera.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
           <folding>
             <element signature="e#0#19#0" expanded="true" />
           </folding>
@@ -536,15 +381,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/cuda/src/constants/config.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="28" column="38" selection-start-line="28" selection-start-column="38" selection-end-line="28" selection-end-column="38" />
+        <state relative-caret-position="450">
+          <caret line="30" column="7" selection-start-line="30" selection-start-column="7" selection-end-line="30" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/src/mcr.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="795">
+          <caret line="123" selection-start-line="123" selection-end-line="123" />
+          <folding>
+            <element signature="e#0#17#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/cuda/src/mcr.cu">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="328" column="24" selection-start-line="328" selection-start-column="24" selection-end-line="328" selection-end-column="24" />
+        <state relative-caret-position="255">
+          <caret line="84" selection-start-line="84" selection-end-line="84" />
         </state>
       </provider>
     </entry>

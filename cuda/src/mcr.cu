@@ -51,7 +51,7 @@ int main (int argc, char* argv[]) {
     );
 
     // Load in the shapes
-    int num_tris = 30;
+    int num_tris = 32;
     Triangle * triangles;
     cudaMallocManaged(&triangles, num_tris * sizeof(Triangle));
 
@@ -65,12 +65,6 @@ int main (int argc, char* argv[]) {
     // Load the polygons into the triangles array
     loadShapes(triangles, spheres);
 
-    // Initialise the camera object
-    Camera camera(
-        cam_start_position,
-        cam_start_yaw,
-        cam_focal_length
-    );
 
     // Define our area light
     LightSphere light_sphere(
@@ -81,92 +75,159 @@ int main (int argc, char* argv[]) {
         light_colour
     );
 
-    auto start = std::chrono::high_resolution_clock::now();
+    vec4 * camera_start_positions = new vec4[num_iterations];
+    float * camera_start_yaws = new float[num_iterations];
 
-    // Launch the CUDA kernel from the host and begin rendering 
-    render_init<<<num_blocks, threads_per_block>>>(
-        device_rand_state,
-        supersample_height,
-        supersample_width
-    );
+    srand(time(NULL));
+    generateCameraStartPositions(camera_start_positions, camera_start_yaws);
 
-    render_kernel<<<num_blocks, threads_per_block>>>(
-        device_output,
-        supersample_height,
-        supersample_width,
-        camera,
-        light_sphere,
-        triangles,
-        num_tris,
-        spheres,
-        num_spheres,
-        device_rand_state
-    ); 
+    SdlWindowHelper sdl_window(screen_width, screen_height);
 
-    // Copy results of rendering back to the host
-    cudaMemcpy(
-        host_output, 
-        device_output, 
-        supersample_width * supersample_height * sizeof(vec3), 
-        cudaMemcpyDeviceToHost
-    ); 
+    for(int i = 0 ; i < num_iterations ; i++) {
 
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = end - start;
-    int duration_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+        if (num_iterations == 1) {
+            camera_start_positions[0] = cam_start_position;
+            camera_start_yaws[0] = cam_start_yaw;
+        }
 
-    printf("Finished rendering in %dms.\n", duration_in_ms);
+        // Initialise the camera object
+        Camera camera(
+            camera_start_positions[i],
+            camera_start_yaws[i],
+            cam_focal_length
+        );
 
-    save_image(
-        host_output, 
-        supersample_height, 
-        supersample_width, 
-        pre_alias_title
-    );
+        auto start = std::chrono::high_resolution_clock::now();
 
-    // Specify different scheduling, this time we assign a thread to each pixel
-    // of the output image
-    threads_per_block = dim3(8, 8);
-    num_blocks = dim3(
-        screen_width / threads_per_block.x,
-        screen_height / threads_per_block.y
-    );
+        // Launch the CUDA kernel from the host and begin rendering
+        render_init <<<num_blocks, threads_per_block>>>(
+            device_rand_state,
+            supersample_height,
+            supersample_width
+        );
 
-    // Perform anti aliasing
-    MSAA<<<num_blocks, threads_per_block>>>(
-        device_output,
-        device_aliased_output,
-        supersample_height,
-        supersample_width
-    );
+        render_kernel <<<num_blocks, threads_per_block>>>(
+            device_output,
+            supersample_height,
+            supersample_width,
+            camera,
+            light_sphere,
+            triangles,
+            num_tris,
+            spheres,
+            num_spheres,
+            device_rand_state
+        );
 
-    // Copy results of rendering back to the host
-    cudaMemcpy(
-        host_aliased_output, 
-        device_aliased_output, 
-        screen_width * screen_height * sizeof(vec3), 
-        cudaMemcpyDeviceToHost
-    ); 
+        // Copy results of rendering back to the host
+        cudaMemcpy(
+            host_output,
+            device_output,
+            supersample_width * supersample_height * sizeof(vec3),
+            cudaMemcpyDeviceToHost
+        );
+
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = end - start;
+        int duration_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+
+        printf("Finished rendering in %dms.\n", duration_in_ms);
+
+        save_image(
+            host_output,
+            supersample_height,
+            supersample_width,
+            pre_alias_title + "-" + std::to_string(i)
+        );
+
+        // Specify different scheduling, this time we assign a thread to each pixel
+        // of the output image
+        threads_per_block = dim3(8, 8);
+        num_blocks = dim3(
+            screen_width / threads_per_block.x,
+            screen_height / threads_per_block.y
+        );
+
+        // Perform anti aliasing
+        MSAA<<<num_blocks, threads_per_block>>>(
+            device_output,
+            device_aliased_output,
+            supersample_height,
+            supersample_width
+        );
+
+        // Copy results of rendering back to the host
+        cudaMemcpy(
+            host_aliased_output,
+            device_aliased_output,
+            screen_width * screen_height * sizeof(vec3),
+            cudaMemcpyDeviceToHost
+        );
+
+        printf("Finished aliasing!\n");
+
+        // Save the aliased image
+        save_image(
+                host_aliased_output,
+                screen_height,
+                screen_width,
+                aliased_title + "-" + std::to_string(i)
+        );
+
+        view_live(
+            host_aliased_output,
+            sdl_window
+        );
+
+    }
 
     // Free CUDA memory
-    cudaFree(device_output); 
-    cudaFree(device_aliased_output); 
-    
-    printf("Finished aliasing!\n");
-
-    // Save the aliased image
-    save_image(
-        host_aliased_output, 
-        screen_height, 
-        screen_width, 
-        aliased_title
-    );
+    cudaFree(device_output);
+    cudaFree(device_aliased_output);
+    cudaFree(device_rand_state);
+    cudaFree(triangles);
+    cudaFree(spheres);
 
     // Clear memory for host
     delete[] host_output;
     delete[] host_aliased_output;
 
     return 0;
+}
+
+void view_live(
+    vec3 * image,
+    SdlWindowHelper sdl_helper
+) {
+    for (int i = 0 ; i < screen_width * screen_height ; i++) {
+        int x = i % screen_width;
+        int y = i / screen_width;
+        sdl_helper.putPixel(x, y, image[i]);
+    }
+    sdl_helper.render();
+}
+
+// Generates a list of starting positions for the camera and fills the array
+void generateCameraStartPositions(
+    vec4 * camera_start_positions,
+    float * camera_start_yaws
+) {
+    for (int i = 0 ; i < num_iterations ; i++) {
+        int min = -1;
+        int max = 1;
+
+        float randx = min + ((float) rand() / (float) RAND_MAX) * (max - min);
+        float randy = min + ((float) rand() / (float) RAND_MAX) * (max - min);
+        float randz = min + ((float) rand() / (float) RAND_MAX) * (max - min);
+
+        min = 0;
+        max = 2 * (float) M_PI;
+
+        float rand_yaw = min + ((float) rand() / (float) RAND_MAX) * (max - min);
+
+        camera_start_positions[i] = vec4(randx, randy, randz, 1.0f);
+        camera_start_yaws[i] = rand_yaw;
+    }
 }
 
 // Initialises the random states for each thread with the same seed
@@ -326,7 +387,7 @@ vec3 tracePath(
         }
         // We have hit a light source
         else {
-            return vec3(4.0f);
+            return vec3(1.0f) * light_intensity;
             //base_colour = spheres[closest_intersection.index].material_.diffuse_light_component_;
         }
 
@@ -620,6 +681,18 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
     //triangles.push_back(back_wall_2);
     triangles[curr_tris] = back_wall_2;
     curr_tris++;
+
+    if (num_iterations != 1) {
+        // Front Wall
+        Triangle front_wall_1 = Triangle(A, E, F, m_sol_orange);
+        triangles[curr_tris] = front_wall_1;
+        curr_tris++;
+
+        Triangle front_wall_2 = Triangle(A, F, B, m_sol_orange);
+        triangles[curr_tris] = front_wall_2;
+        curr_tris++;
+    }
+
 
     // ---------------------------------------------------------------------------
     // Short block

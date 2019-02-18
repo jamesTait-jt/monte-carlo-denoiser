@@ -1,3 +1,5 @@
+#include <string>
+
 #ifndef UTIL_H
 #define UTIL_H
 
@@ -23,7 +25,7 @@ void save_image(
     vec3 * image,
     int height,
     int width,
-    const char * name
+    std::string name
 );
 
 float max(

@@ -13,8 +13,10 @@ int scaleTo255(float x) {
 }
 
 // Saves the image as a simple .ppm file (open with program such as 'feh'
-void save_image(vec3 * image, int height, int width, const char * name) {
-    FILE * file = fopen(name, "w");
+void save_image(vec3 * image, int height, int width, std::string name) {
+    std::string filename = "out/";
+    filename += name;
+    FILE * file = fopen(filename.c_str(), "w");
     fprintf(file, "P3\n%d %d\n%d\n", width, height, 255);
     for(int i = 0 ; i < width * height; i++) {
         fprintf(file, "%d %d %d ", scaleTo255(image[i].x), 
@@ -22,7 +24,7 @@ void save_image(vec3 * image, int height, int width, const char * name) {
                                    scaleTo255(image[i].z)
         );
     }
-    printf("Saved image to '%s'\n", name);
+    printf("Saved image to '%s'\n", filename.c_str());
 }
 
 float maxf(float a, float b) {

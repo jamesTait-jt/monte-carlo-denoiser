@@ -1,4 +1,5 @@
 #include <vector>
+#include <string>
 
 #include "triangle.h"
 #include "sphere.h"
@@ -10,8 +11,8 @@
 using glm::vec3;
 
 // File names
-const char * pre_alias_title = "pre_alias.ppm"; // Name of saved image before aliasing
-const char * aliased_title = "aliased.ppm"; // Name of the saved image after aliasing
+std::string pre_alias_title = "pre_alias.ppm"; // Name of saved image before aliasing
+std::string aliased_title = "aliased.ppm"; // Name of the saved image after aliasing
 
 void loadShapes(
     Triangle * triangles,
@@ -112,3 +113,12 @@ void MSAA(
     int supersample_width
 );
 
+void generateCameraStartPositions(
+    vec4 * camera_start_posiions,
+    float * camera_start_yaws
+);
+
+void view_live(
+    vec3 * image,
+    SdlWindowHelper sdl_helper
+);
