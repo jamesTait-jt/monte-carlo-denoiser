@@ -28,6 +28,11 @@ void save_image(
     std::string name
 );
 
+void save_patches(
+    vec3 * image,
+    int patch_size
+);
+
 float max(
     float a,
     float b

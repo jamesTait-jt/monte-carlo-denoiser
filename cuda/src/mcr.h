@@ -11,8 +11,8 @@
 using glm::vec3;
 
 // File names
-std::string pre_alias_title = "pre_alias.ppm"; // Name of saved image before aliasing
-std::string aliased_title = "aliased.ppm"; // Name of the saved image after aliasing
+std::string pre_alias_title = "pre_alias"; // Name of saved image before aliasing
+std::string aliased_title = "aliased"; // Name of the saved image after aliasing
 
 void loadShapes(
     Triangle * triangles,

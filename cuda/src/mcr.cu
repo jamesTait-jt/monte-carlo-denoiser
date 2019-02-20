@@ -81,7 +81,7 @@ int main (int argc, char* argv[]) {
     srand(time(NULL));
     generateCameraStartPositions(camera_start_positions, camera_start_yaws);
 
-    SdlWindowHelper sdl_window(screen_width, screen_height);
+    //SdlWindowHelper sdl_window(screen_width, screen_height);
 
     for(int i = 0 ; i < num_iterations ; i++) {
 
@@ -174,10 +174,17 @@ int main (int argc, char* argv[]) {
                 aliased_title + "-" + std::to_string(i)
         );
 
+        save_patches(
+            host_aliased_output,
+            patch_size
+        );
+
+        /*
         view_live(
             host_aliased_output,
             sdl_window
         );
+        */
 
     }
 
@@ -302,20 +309,6 @@ void render_kernel(
             0
         );
 
-        /*
-        vec3 colour = monteCarlo(
-            ray.closest_intersection_,
-            triangles,
-            num_tris,
-            spheres,
-            num_spheres,
-            light_sphere,
-            local_rand_state,
-            monte_carlo_max_depth,
-            0
-        );
-        */
-
         output[pixel_index] = colour;
     } 
     // if there is no intersection, we set the colour to be black
@@ -387,7 +380,7 @@ vec3 tracePath(
         }
         // We have hit a light source
         else {
-            return vec3(1.0f) * light_intensity;
+            return vec3(0.75f, 0.75f, 0.75f) * light_intensity;
             //base_colour = spheres[closest_intersection.index].material_.diffuse_light_component_;
         }
 
@@ -805,7 +798,7 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
     // Sphere
 
     //Sphere for the right wall
-    spheres[0] = Sphere(vec4(0, -1, -0.8, 1), 0.3, m_sol_green);
+    spheres[0] = Sphere(vec4(0, -1.7, 0, 1), 1, m_sol_green);
 
     // ----------------------------------------------
     // Scale to the volume [-1,1]^3
