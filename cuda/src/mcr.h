@@ -43,6 +43,9 @@ void render_init(
 __global__
 void render_kernel(
     vec3 * output,
+    vec3 * surface_normals,
+    vec3 * albedos,
+    float * depths,
     int supersample_height,
     int supersample_width,
     Camera camera,
