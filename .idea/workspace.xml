@@ -12,32 +12,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3953c3ed-5434-42ed-9ab0-f5eeb2396869" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/aliased.ppm-0" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/aliased.ppm-1" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/aliased.ppm-2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/aliased.ppm-3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/aliased.ppm-4" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/aliased.ppm-5" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/aliased.ppm-6" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/aliased.ppm-7" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/aliased.ppm-8" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/aliased.ppm-9" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/pre_alias.ppm-0" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/pre_alias.ppm-1" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/pre_alias.ppm-2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/pre_alias.ppm-3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/pre_alias.ppm-4" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/pre_alias.ppm-5" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/pre_alias.ppm-6" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/pre_alias.ppm-7" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/pre_alias.ppm-8" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/pre_alias.ppm-9" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/constants/config.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/constants/config.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cuda/src/mcr.cu" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/mcr.cu" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/mcr.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/mcr.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/util.cu" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/util.cu" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/util.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/util.h" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cuda/cmake-build-debug/" />
     <ignored path="$PROJECT_DIR$/cuda/CMakeFiles/" />
@@ -50,9 +25,18 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/cuda/saved_images/256_BY_256_2XALIAS_256PP_2DEPTH.ppm">
           <provider selected="true" editor-type-id="images" />
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/cuda/src/mcr.cu">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="810">
+              <caret line="205" selection-start-line="205" selection-end-line="205" />
+            </state>
+          </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
@@ -84,8 +68,8 @@
         <option value="$PROJECT_DIR$/cuda/src/mcr.h" />
         <option value="$PROJECT_DIR$/cuda/src/util.h" />
         <option value="$PROJECT_DIR$/cuda/src/util.cu" />
-        <option value="$PROJECT_DIR$/cuda/src/mcr.cu" />
         <option value="$PROJECT_DIR$/cuda/src/constants/config.h" />
+        <option value="$PROJECT_DIR$/cuda/src/mcr.cu" />
       </list>
     </option>
   </component>
@@ -100,7 +84,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -112,25 +95,6 @@
               <item name="cuda-mcr" type="b2602c69:ProjectViewProjectNode" />
               <item name="monte-carlo-raytracer" type="462c0819:PsiDirectoryNode" />
               <item name="cuda" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="cuda-mcr" type="b2602c69:ProjectViewProjectNode" />
-              <item name="monte-carlo-raytracer" type="462c0819:PsiDirectoryNode" />
-              <item name="cuda" type="462c0819:PsiDirectoryNode" />
-              <item name="out" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="cuda-mcr" type="b2602c69:ProjectViewProjectNode" />
-              <item name="monte-carlo-raytracer" type="462c0819:PsiDirectoryNode" />
-              <item name="cuda" type="462c0819:PsiDirectoryNode" />
-              <item name="out" type="462c0819:PsiDirectoryNode" />
-              <item name="patches" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="cuda-mcr" type="b2602c69:ProjectViewProjectNode" />
-              <item name="monte-carlo-raytracer" type="462c0819:PsiDirectoryNode" />
-              <item name="cuda" type="462c0819:PsiDirectoryNode" />
-              <item name="saved_images" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="cuda-mcr" type="b2602c69:ProjectViewProjectNode" />
@@ -149,6 +113,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -191,16 +156,18 @@
       <workItem from="1550665152126" duration="5380000" />
       <workItem from="1550674776887" duration="2350000" />
       <workItem from="1550677142428" duration="117000" />
+      <workItem from="1550763370097" duration="268000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="28140000" />
+    <option name="totallyTimeSpent" value="28408000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="26" y="10" width="1868" height="999" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14521453" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14686468" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -307,13 +274,6 @@
     <entry file="file://$PROJECT_DIR$/cuda/out/patches/2_0.ppm" />
     <entry file="file://$PROJECT_DIR$/cuda/out/patches/2_1.ppm" />
     <entry file="file://$PROJECT_DIR$/cuda/out/patches/5_5.ppm" />
-    <entry file="file://$PROJECT_DIR$/cuda/src/mcr.cu">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2670">
-          <caret line="178" column="21" selection-start-line="178" selection-start-column="21" selection-end-line="178" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/cuda/src/util.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="210">
@@ -341,35 +301,26 @@
     <entry file="file://$PROJECT_DIR$/cuda/out/pre_alias-0.ppm">
       <provider selected="true" editor-type-id="images" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/out/aliased-0.ppm">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/out/patches/1.ppm" />
+    <entry file="file://$PROJECT_DIR$/cuda/out/patches/2.ppm" />
+    <entry file="file://$PROJECT_DIR$/cuda/out/patches/3.ppm" />
+    <entry file="file://$PROJECT_DIR$/cuda/out/patches/4.ppm" />
+    <entry file="file://$PROJECT_DIR$/cuda/out/patches/5.ppm" />
+    <entry file="file://$PROJECT_DIR$/cuda/out/patches/6.ppm" />
+    <entry file="file://$PROJECT_DIR$/cuda/out/patches/8.ppm" />
+    <entry file="file://$PROJECT_DIR$/cuda/out/patches/7.ppm" />
     <entry file="file://$PROJECT_DIR$/cuda/saved_images/256_BY_256_2XALIAS_256PP_2DEPTH.ppm">
       <provider selected="true" editor-type-id="images" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/out/patches/1.ppm">
+    <entry file="file://$PROJECT_DIR$/cuda/out/aliased-0.ppm">
       <provider selected="true" editor-type-id="images" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/out/patches/2.ppm">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/out/patches/3.ppm">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/out/patches/4.ppm">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/out/patches/5.ppm">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/out/patches/6.ppm">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/out/patches/8.ppm">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/out/patches/7.ppm">
-      <provider selected="true" editor-type-id="images" />
+    <entry file="file://$PROJECT_DIR$/cuda/src/mcr.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="810">
+          <caret line="205" selection-start-line="205" selection-end-line="205" />
+        </state>
+      </provider>
     </entry>
   </component>
 </project>

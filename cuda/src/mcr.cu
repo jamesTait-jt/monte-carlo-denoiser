@@ -174,10 +174,12 @@ int main (int argc, char* argv[]) {
                 aliased_title + "-" + std::to_string(i)
         );
 
+        /*
         save_patches(
             host_aliased_output,
             patch_size
         );
+        */
 
         /*
         view_live(
