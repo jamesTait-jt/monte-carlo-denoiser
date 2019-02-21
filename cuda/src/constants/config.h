@@ -7,8 +7,8 @@ using glm::vec3;
 using glm::vec4;
 
 // Screen configuration
-const int screen_width = 256; // The width of the final image
-const int screen_height = 256; // The height of the final image
+const int screen_width = 10; // The width of the final image
+const int screen_height = 10; // The height of the final image
 const int anti_aliasing_factor = 1; // Factor by which we multiply the image dimensions to get the size of the supersampled image
 const int patch_size = 150; // SIze of the patches for NN
 
@@ -26,8 +26,9 @@ const float light_intensity = 2.0f; // The intensity of the area light as a whol
 const vec3 light_colour(0.75f, 0.75f, 0.75f); // The colour of the area light
 
 // Monte carlo configuration
-const int monte_carlo_max_depth = 3; // Number of bounces in the monte carlo estimation
+const int monte_carlo_max_depth = 5; // Number of bounces in the monte carlo estimation
 const int monte_carlo_num_samples = 32; // Number of samples per pixel in monte carlo estimation
+const int samples_per_pixel = 2; // NUmber of samples fired for ewach pixel
 
 // Misc.
 const float float_precision_error = 0.0001f;

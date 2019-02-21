@@ -7,6 +7,9 @@
 #define CUDA_DEV
 #endif
 
+#include <curand.h>
+#include <curand_kernel.h>
+
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -54,6 +57,16 @@ class Ray {
         CUDA_DEV bool intersects(
             Sphere sphere,
             int sphere_index
+        );
+
+        CUDA_DEV vec3 tracePath(
+            Triangle * triangles,
+            int num_tris,
+            Sphere * spheres,
+            int num_spheres,
+            curandState & local_rand_state,
+            int monte_carlo_max_depth,
+            int curr_depth
         );
 
         CUDA_DEV void rotateRay(

@@ -111,12 +111,6 @@
 		<Unit filename="/home/james/git-repos/monte-carlo-raytracer/cuda/src/sdl_window_helper.h">
 			<Option target="cuda_mcr"/>
 		</Unit>
-		<Unit filename="/home/james/git-repos/monte-carlo-raytracer/cuda/src/shape.cc">
-			<Option target="cuda_mcr"/>
-		</Unit>
-		<Unit filename="/home/james/git-repos/monte-carlo-raytracer/cuda/src/shape.h">
-			<Option target="cuda_mcr"/>
-		</Unit>
 		<Unit filename="/home/james/git-repos/monte-carlo-raytracer/cuda/src/sphere.cu">
 			<Option target="cuda_mcr"/>
 		</Unit>

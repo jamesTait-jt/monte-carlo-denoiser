@@ -43,4 +43,17 @@ CUDA_HOSTDEV void swap(
     float & b
 );
 
+__device__
+void createCoordinateSystem(
+        const vec3 & N,
+        vec3 & N_t,
+        vec3 & N_b
+);
+
+__device__
+        vec3 uniformSampleHemisphere(
+        const float & r1,
+        const float & r2
+);
+
 #endif

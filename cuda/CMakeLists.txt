@@ -30,7 +30,6 @@ set(
     SOURCES
     src/mcr.cu
     src/sdl_window_helper.cc
-    src/shape.cc
     src/triangle.cu
     src/material.cc
     src/ray.cu

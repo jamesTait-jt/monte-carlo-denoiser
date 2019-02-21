@@ -96,7 +96,7 @@ int main (int argc, char* argv[]) {
     curandState * d_rand_states;
     cudaMalloc(
         (void **)&d_rand_states,
-        supersample_width * supersample_height * sizeof(curandState)
+        supersample_width * supersample_height * samples_per_pixel * sizeof(curandState)
     );
 
     // Load in the shapes
@@ -327,16 +327,13 @@ void render_init(
     unsigned int pixel_index = (supersample_height - y - 1) * supersample_width + x;
 
     //Each thread gets same seed, a different sequence number, no offset
-    curand_init(1984, pixel_index, 0, &rand_state[pixel_index]);
+    curand_init(1927, pixel_index, 0, &rand_state[pixel_index]);
 }
 
 // Bulk of the rendering is controlled here
 __global__
 void render_kernel(
     vec3 * output,
-    vec3 * surface_normals,
-    vec3 * albedos,
-    float * depths,
     int supersample_width,
     int supersample_height,
     Camera camera,
@@ -354,9 +351,7 @@ void render_kernel(
     // The index of the pixel we are working on when the 2x2 array is linearised
     unsigned int pixel_index = (supersample_height - y - 1) * supersample_width + x;
 
-    // Get the rand state for this thread
-    curandState local_rand_state = rand_state[pixel_index];
-    
+
     // Flip the y coordinate
     y = supersample_height - y;
 
@@ -368,16 +363,14 @@ void render_kernel(
         1
     ); 
 
-    // Create a ray for the given pixel
-    Ray ray(camera.position_, dir);
-    ray.rotateRay(camera.yaw_);
-
-    // If the ray intersects with an object in the scene, perform monte carlo to
-    // obtain a lighting estimate
-    if (ray.closestIntersection(triangles, num_tris, spheres, num_spheres)) {
-
-        vec3 colour = tracePath(
-            ray.closest_intersection_,
+    vec3 final_estimate = vec3(0.0f);
+    for (int i = 0 ; i < samples_per_pixel ; i++) {
+        // Get the rand state for this thread
+        curandState local_rand_state = rand_state[pixel_index];
+        // Create a ray for the given pixel
+        Ray ray(camera.position_, dir);
+        ray.rotateRay(camera.yaw_);
+        vec3 estimate = ray.tracePath(
             triangles,
             num_tris,
             spheres,
@@ -386,92 +379,33 @@ void render_kernel(
             monte_carlo_max_depth,
             0
         );
-
-        vec3 surface_normal = ray.closest_intersection_.normal;
-        if (ray.closest_intersection_.is_triangle) {
-            vec3 albedo = triangles[ray.closest_intersection_.index].material_.diffuse_light_component_;
-        } else {
-            vec3 albedo = spheres[ray.closest_intersection_.index].material_.diffuse_light_component_;
-        }
-
-        float depth = glm::distance(camera.position_, ray.closest_intersection_.position);
-
-        output[pixel_index] = colour;
-    } 
-    // if there is no intersection, we set the colour to be black
-    else {
-        output[pixel_index] = vec3(0.0f);
+        printf("%d %d %f %f %f\n", pixel_index, i, estimate.x, estimate.y, estimate.z);
+        final_estimate += estimate;
     }
-}
+    output[pixel_index] = final_estimate / (float) samples_per_pixel;
 
-__device__
-vec3 tracePath(
-    Intersection closest_intersection,
-    Triangle * triangles,
-    int num_tris,
-    Sphere * spheres,
-    int num_spheres,
-    curandState rand_state,
-    int max_depth,
-    int depth
-) {
-    if (depth >= max_depth) {
-        return vec3(0.0f);
-    } else {
-        vec3 base_colour;
-        // We have hit a triangle (not a light source)
-        if (closest_intersection.is_triangle) {
-            base_colour = triangles[closest_intersection.index].material_.diffuse_light_component_;
+        // If the ray intersects with an object in the scene, perform monte carlo to
+        // obtain a lighting estimate
+        /*
+        if (ray.closestIntersection(triangles, num_tris, spheres, num_spheres)) {
 
-            vec3 intersection_normal_3 = vec3(closest_intersection.normal);
-            vec3 N_t, N_b;
-            createCoordinateSystem(intersection_normal_3, N_t, N_b);
-
-            vec3 indirect_estimate = vec3(0);
-            float pdf = 1 / (2 * (float)M_PI);
-            for (int i = 0 ; i < monte_carlo_num_samples ; i++) {
-                float r1 = curand_uniform(&rand_state); // cos(theta) = N.Light Direction
-                float r2 = curand_uniform(&rand_state);
-                vec3 sample = uniformSampleHemisphere(r1, r2);
-
-                // Convert the sample from our coordinate space to world space
-                vec4 sample_world(
-                    sample.x * N_b.x + sample.y * intersection_normal_3.x + sample.z * N_t.x,
-                    sample.x * N_b.y + sample.y * intersection_normal_3.y + sample.z * N_t.y,
-                    sample.x * N_b.z + sample.y * intersection_normal_3.z + sample.z * N_t.z,
+            vec3 colour = tracePath(
+                    ray.closest_intersection_,
+                    triangles,
+                    num_tris,
+                    spheres,
+                    num_spheres,
+                    local_rand_state,
+                    monte_carlo_max_depth,
                     0
-                );
-
-                // Generate our ray from the random direction calculated previously
-                Ray random_ray(
-                    closest_intersection.position + sample_world * 0.0001f,
-                    sample_world
-                );
-
-                if (random_ray.closestIntersection(triangles, num_tris, spheres, num_spheres)) {
-                    indirect_estimate += r1 * tracePath(
-                        random_ray.closest_intersection_,
-                        triangles,
-                        num_tris,
-                        spheres,
-                        num_spheres,
-                        rand_state,
-                        max_depth,
-                        depth + 1
-                    );
-                }
-            }
-            indirect_estimate /= monte_carlo_num_samples * pdf;
-            indirect_estimate *= base_colour;
-            return indirect_estimate;
+            );
+            output[pixel_index] += colour;
         }
-        // We have hit a light source
+        // if there is no intersection, we set the colour to be black
         else {
-            return vec3(0.75f, 0.75f, 0.75f) * light_intensity;
-            //base_colour = spheres[closest_intersection.index].material_.diffuse_light_component_;
+            output[pixel_index] = vec3(0.0f);
         }
-
-    }
+        */
 }
 
 // Calculates the indirect and direct light estimation for diffuse objects
@@ -592,30 +526,7 @@ vec3 indirectLight(
     return indirect_estimate;
 }
 
-// Given two random numbers between 0 and 1, return a direction to a point on a
-// hemisphere
-__device__
-vec3 uniformSampleHemisphere(const float & r1, const float & r2) {
-    // cos(theta) = r1 = y
-    // cos^2(theta) + sin^2(theta) = 1 -> sin(theta) = srtf(1 - cos^2(theta))
-    float sin_theta = sqrtf(1 - r1 * r1);
-    float phi = 2 * (float)M_PI * r2;
-    float x = sin_theta * cosf(phi);
-    float z = sin_theta * sinf(phi);
-    return vec3(x, r1, z);
-} 
 
-// This function creates a new coordinate system in which the up vector is
-// oriented along the shaded point normal
-__device__
-void createCoordinateSystem(const vec3 & N, vec3 & N_t, vec3 & N_b) {
-    if (std::fabs(N.x) > std::fabs(N.y)) {
-        N_t = vec3(N.z, 0, -N.x) / sqrtf(N.x * N.x + N.z * N.z);
-    } else {
-        N_t = vec3(0, -N.z, N.y) / sqrtf(N.y * N.y + N.z * N.z);
-    }
-    N_b = glm::cross(N, N_t);
-} 
 
 __global__
 void MSAA(
@@ -884,8 +795,8 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
     // ---------------------------------------------------------------------------
     // Sphere
 
-    //Sphere for the right wall
-    spheres[0] = Sphere(vec4(0, -1.7, 0, 1), 1, m_sol_green);
+    //Sphere for the light
+    spheres[0] = Sphere(vec4(0, -1.7, 0, 1), 1, m_light);
 
     // ----------------------------------------------
     // Scale to the volume [-1,1]^3

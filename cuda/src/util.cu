@@ -74,3 +74,28 @@ void swap(float & a, float & b) {
     a = b;
     b = temp;
 }
+
+// This function creates a new coordinate system in which the up vector is
+// oriented along the shaded point normal
+__device__
+void createCoordinateSystem(const vec3 & N, vec3 & N_t, vec3 & N_b) {
+    if (std::fabs(N.x) > std::fabs(N.y)) {
+        N_t = vec3(N.z, 0, -N.x) / sqrtf(N.x * N.x + N.z * N.z);
+    } else {
+        N_t = vec3(0, -N.z, N.y) / sqrtf(N.y * N.y + N.z * N.z);
+    }
+    N_b = glm::cross(N, N_t);
+}
+
+// Given two random numbers between 0 and 1, return a direction to a point on a
+// hemisphere
+__device__
+        vec3 uniformSampleHemisphere(const float & r1, const float & r2) {
+    // cos(theta) = r1 = y
+    // cos^2(theta) + sin^2(theta) = 1 -> sin(theta) = srtf(1 - cos^2(theta))
+    float sin_theta = sqrtf(1 - r1 * r1);
+    float phi = 2 * (float)M_PI * r2;
+    float x = sin_theta * cosf(phi);
+    float z = sin_theta * sinf(phi);
+    return vec3(x, r1, z);
+}

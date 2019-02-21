@@ -43,9 +43,6 @@ void render_init(
 __global__
 void render_kernel(
     vec3 * output,
-    vec3 * surface_normals,
-    vec3 * albedos,
-    float * depths,
     int supersample_height,
     int supersample_width,
     Camera camera,
@@ -95,18 +92,7 @@ vec3 indirectLight(
     int depth
 );
 
-__device__
-vec3 uniformSampleHemisphere(
-    const float & r1, 
-    const float & r2
-);
 
-__device__
-void createCoordinateSystem(
-    const vec3 & N, 
-    vec3 & N_t, 
-    vec3 & N_b
-);
 
 __global__
 void MSAA(
