@@ -21,8 +21,8 @@ FLAGS = tf.app.flags
 tf.app.flags.DEFINE_integer ("patchSize", 65,
                             "The size of the input patches")
 
-tf.app.flags.DEFINE_integer ("reconstructionKernelSize", 21,
-                            "The size of the reconstruction kernel")
+#tf.app.flags.DEFINE_integer ("reconstructionKernelSize", 21,
+#                            "The size of the reconstruction kernel")
 
 tf.app.flags.DEFINE_integer ("inputChannels", 27,
                             "The number of channels in an input patch")
@@ -88,6 +88,11 @@ my_model = tf.keras.models.Sequential([
     # Conv layer 8
     finalConvLayer()
 ])
+
+my_model.compile(
+    optimizer="adam",
+    loss="
+)
 
 model = tf.keras.models.Sequential([
     tf.keras.layers.Flatten(input_shape=(28, 28)),

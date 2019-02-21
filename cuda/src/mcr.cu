@@ -20,21 +20,70 @@ int main (int argc, char* argv[]) {
     const int supersample_width = screen_width * anti_aliasing_factor;
     const int supersample_height = screen_height * anti_aliasing_factor;
 
-    // Pointer to the image on the host (CPU)
-    vec3 * host_output = new vec3[supersample_width * supersample_height];
 
+    // ----- IMAGE ----- //
+
+    // Pointer to the image on the host (CPU)
+    vec3 * h_output = new vec3[supersample_width * supersample_height];
     // Pointer to the image on the device (GPU)
-    vec3 * device_output;
+    vec3 * d_output;
 
     // Pointer to the aliased image on the host (CPU)
-    vec3 * host_aliased_output = new vec3[screen_width * screen_height];
-
+    vec3 * h_aliased_output = new vec3[screen_width * screen_height];
     // Pointer to the aliased image on the device (GPU)
-    vec3 * device_aliased_output;
+    vec3 * d_aliased_output;
+
+    // ----- FEATURE BUFFERS ----- //
+
+    // Pointer to the surface normals on host
+    vec3 * h_surface_normals = new vec3[supersample_width * supersample_height];
+    // Pointer to the surface normals on device
+    vec3 * d_surface_normals;
+
+    // Pointer to the albedo buffer on host
+    vec3 * h_albedos = new vec3[supersample_width * supersample_height];
+    // Pointer to the albedo buffer on the device
+    vec3 * d_albedos;
+
+    // Pointer to the depth buffer on host
+    float * h_depths = new float[supersample_width * supersample_height];
+    // Pointer to the depth buffer on device
+    float * d_depths;
+
+    // ----- VARIANCES ----- //
+
+    // Pointer to the colour variances on host 
+    float * h_colour_variances = new float[supersample_width * supersample_height];
+    // Pointer to the colour variances on device 
+    float * d_colour_variances;
+
+    // Pointer to the surface normals on host
+    float * h_surface_normal_variances = new float[supersample_width * supersample_height];
+    // Pointer to the surface normals on device
+    float * d_surface_normal_variances;
+
+    // Pointer to the albedo buffer on host
+    float * h_albedo_variances = new float[supersample_width * supersample_height];
+    // Pointer to the albedo buffer on the device
+    float * d_albedo_variances;
+
+    // Pointer to the depth buffer on host
+    float * h_depth_variances = new float[supersample_width * supersample_height];
+    // Pointer to the depth buffer on device
+    float * d_depth_variances;
 
     // Allocate memory on CUDA device
-    cudaMalloc(&device_output, supersample_width * supersample_height * sizeof(vec3));
-    cudaMalloc(&device_aliased_output, screen_width * screen_height * sizeof(vec3));
+    cudaMalloc(&d_output, supersample_width * supersample_height * sizeof(vec3));
+    cudaMalloc(&d_aliased_output, screen_width * screen_height * sizeof(vec3));
+
+    cudaMalloc(&d_surface_normals, supersample_width * supersample_height * sizeof(vec3));
+    cudaMalloc(&d_albedos, supersample_width * supersample_height * sizeof(vec3));
+    cudaMalloc(&d_depths, supersample_width * supersample_height * sizeof(float));
+
+    cudaMalloc(&d_colour_variances, supersample_width * supersample_height * sizeof(float));
+    cudaMalloc(&d_surface_normal_variances, supersample_width * supersample_height * sizeof(float));
+    cudaMalloc(&d_albedo_variances, supersample_width * supersample_height * sizeof(float));
+    cudaMalloc(&d_depth_variances, supersample_width * supersample_height * sizeof(float));
 
     // Specify the block and grid dimensions to schedule CUDA threads
     dim3 threads_per_block(8, 8);
@@ -44,9 +93,9 @@ int main (int argc, char* argv[]) {
     );
 
     // Create a vector of random states for use on the device
-    curandState * device_rand_state;
+    curandState * d_rand_states;
     cudaMalloc(
-        (void **)&device_rand_state,
+        (void **)&d_rand_states,
         supersample_width * supersample_height * sizeof(curandState)
     );
 
@@ -64,7 +113,6 @@ int main (int argc, char* argv[]) {
 
     // Load the polygons into the triangles array
     loadShapes(triangles, spheres);
-
 
     // Define our area light
     LightSphere light_sphere(
@@ -101,13 +149,13 @@ int main (int argc, char* argv[]) {
 
         // Launch the CUDA kernel from the host and begin rendering
         render_init <<<num_blocks, threads_per_block>>>(
-            device_rand_state,
+            d_rand_states,
             supersample_height,
             supersample_width
         );
 
         render_kernel <<<num_blocks, threads_per_block>>>(
-            device_output,
+            d_output,
             supersample_height,
             supersample_width,
             camera,
@@ -116,13 +164,13 @@ int main (int argc, char* argv[]) {
             num_tris,
             spheres,
             num_spheres,
-            device_rand_state
+            d_rand_states
         );
 
         // Copy results of rendering back to the host
         cudaMemcpy(
-            host_output,
-            device_output,
+            h_output,
+            d_output,
             supersample_width * supersample_height * sizeof(vec3),
             cudaMemcpyDeviceToHost
         );
@@ -134,7 +182,7 @@ int main (int argc, char* argv[]) {
         printf("Finished rendering in %dms.\n", duration_in_ms);
 
         save_image(
-            host_output,
+            h_output,
             supersample_height,
             supersample_width,
             pre_alias_title + "-" + std::to_string(i)
@@ -150,16 +198,16 @@ int main (int argc, char* argv[]) {
 
         // Perform anti aliasing
         MSAA<<<num_blocks, threads_per_block>>>(
-            device_output,
-            device_aliased_output,
+            d_output,
+            d_aliased_output,
             supersample_height,
             supersample_width
         );
 
         // Copy results of rendering back to the host
         cudaMemcpy(
-            host_aliased_output,
-            device_aliased_output,
+            h_aliased_output,
+            d_aliased_output,
             screen_width * screen_height * sizeof(vec3),
             cudaMemcpyDeviceToHost
         );
@@ -168,20 +216,20 @@ int main (int argc, char* argv[]) {
 
         // Save the aliased image
         save_image(
-                host_aliased_output,
+                h_aliased_output,
                 screen_height,
                 screen_width,
                 aliased_title + "-" + std::to_string(i)
         );
 
         save_patches(
-            host_aliased_output,
+            h_aliased_output,
             patch_size
         );
 
         /*
         view_live(
-            host_aliased_output,
+            h_aliased_output,
             sdl_window
         );
         */
@@ -189,15 +237,40 @@ int main (int argc, char* argv[]) {
     }
 
     // Free CUDA memory
-    cudaFree(device_output);
-    cudaFree(device_aliased_output);
-    cudaFree(device_rand_state);
+    cudaFree(d_output);
+    cudaFree(d_aliased_output);
+    cudaFree(d_rand_states);
+
+    cudaFree(d_output);
+    cudaFree(d_aliased_output);
+
+    cudaFree(d_surface_normals);
+    cudaFree(d_albedos);
+    cudaFree(d_depths);
+
+    cudaFree(d_colour_variances);
+    cudaFree(d_surface_normal_variances);
+    cudaFree(d_albedo_variances);
+    cudaFree(d_depth_variances);
+
     cudaFree(triangles);
     cudaFree(spheres);
 
     // Clear memory for host
-    delete[] host_output;
-    delete[] host_aliased_output;
+    delete[] h_output;
+    delete[] h_aliased_output;
+
+    delete[] h_output;
+    delete[] h_aliased_output;
+
+    delete[] h_surface_normals;
+    delete[] h_albedos;
+    delete[] h_depths;
+
+    delete[] h_colour_variances;
+    delete[] h_surface_normal_variances;
+    delete[] h_albedo_variances;
+    delete[] h_depth_variances;
 
     return 0;
 }
@@ -259,6 +332,9 @@ void render_init(
 __global__
 void render_kernel(
     vec3 * output,
+    vec3 * surface_normals,
+    vec3 * albedos,
+    float * depths,
     int supersample_width,
     int supersample_height,
     Camera camera,
@@ -308,6 +384,15 @@ void render_kernel(
             monte_carlo_max_depth,
             0
         );
+
+        vec3 surface_normal = ray.closest_intersection_.normal;
+        if (ray.closest_intersection_.is_triangle) {
+            vec3 albedo = triangles[ray.closest_intersection_.index].material_.diffuse_light_component_;
+        } else {
+            vec3 albedo = spheres[ray.closest_intersection_.index].material_.diffuse_light_component_;
+        }
+
+        float depth = glm::distance(camera.position_, ray.closest_intersection_.position);
 
         output[pixel_index] = colour;
     } 
