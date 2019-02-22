@@ -66,7 +66,8 @@ class Ray {
             int num_spheres,
             curandState & local_rand_state,
             int monte_carlo_max_depth,
-            int curr_depth
+            int curr_depth,
+            vec3 & albedo
         );
 
         CUDA_DEV void rotateRay(

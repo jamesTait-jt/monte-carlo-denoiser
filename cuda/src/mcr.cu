@@ -14,105 +14,114 @@
 #include "sphere.h"
 #include "util.h"
 
+// ----- DEVICE CONSTANTS ----- //
+__constant__ int d_samples_per_pixel = 512;
+
 int main (int argc, char* argv[]) {
     
-    // Calculate the dimensions of the supersampled image
-    const int supersample_width = screen_width * anti_aliasing_factor;
-    const int supersample_height = screen_height * anti_aliasing_factor;
-
-
     // ----- IMAGE ----- //
 
     // Pointer to the image on the host (CPU)
-    vec3 * h_output = new vec3[supersample_width * supersample_height];
+    vec3 * h_colours = new vec3[screen_width * screen_height];
     // Pointer to the image on the device (GPU)
-    vec3 * d_output;
-
-    // Pointer to the aliased image on the host (CPU)
-    vec3 * h_aliased_output = new vec3[screen_width * screen_height];
-    // Pointer to the aliased image on the device (GPU)
-    vec3 * d_aliased_output;
+    vec3 * d_colours;
 
     // ----- FEATURE BUFFERS ----- //
 
     // Pointer to the surface normals on host
-    vec3 * h_surface_normals = new vec3[supersample_width * supersample_height];
+    vec3 * h_surface_normals = new vec3[screen_width * screen_height];
     // Pointer to the surface normals on device
     vec3 * d_surface_normals;
 
     // Pointer to the albedo buffer on host
-    vec3 * h_albedos = new vec3[supersample_width * supersample_height];
+    vec3 * h_albedos = new vec3[screen_width * screen_height];
     // Pointer to the albedo buffer on the device
     vec3 * d_albedos;
 
     // Pointer to the depth buffer on host
-    float * h_depths = new float[supersample_width * supersample_height];
+    float * h_depths = new float[screen_width * screen_height];
     // Pointer to the depth buffer on device
     float * d_depths;
 
     // ----- VARIANCES ----- //
 
     // Pointer to the colour variances on host 
-    float * h_colour_variances = new float[supersample_width * supersample_height];
+    float * h_colour_variances = new float[screen_width * screen_height];
     // Pointer to the colour variances on device 
     float * d_colour_variances;
 
     // Pointer to the surface normals on host
-    float * h_surface_normal_variances = new float[supersample_width * supersample_height];
+    float * h_surface_normal_variances = new float[screen_width * screen_height];
     // Pointer to the surface normals on device
     float * d_surface_normal_variances;
 
     // Pointer to the albedo buffer on host
-    float * h_albedo_variances = new float[supersample_width * supersample_height];
+    float * h_albedo_variances = new float[screen_width * screen_height];
     // Pointer to the albedo buffer on the device
     float * d_albedo_variances;
 
     // Pointer to the depth buffer on host
-    float * h_depth_variances = new float[supersample_width * supersample_height];
+    float * h_depth_variances = new float[screen_width * screen_height];
     // Pointer to the depth buffer on device
     float * d_depth_variances;
 
     // Allocate memory on CUDA device
-    cudaMalloc(&d_output, supersample_width * supersample_height * sizeof(vec3));
-    cudaMalloc(&d_aliased_output, screen_width * screen_height * sizeof(vec3));
+    cudaMalloc(&d_colours, screen_width * screen_height * sizeof(vec3));
+    cudaMalloc(&d_surface_normals, screen_width * screen_height * sizeof(vec3));
+    cudaMalloc(&d_albedos, screen_width * screen_height * sizeof(vec3));
+    cudaMalloc(&d_depths, screen_width * screen_height * sizeof(float));
 
-    cudaMalloc(&d_surface_normals, supersample_width * supersample_height * sizeof(vec3));
-    cudaMalloc(&d_albedos, supersample_width * supersample_height * sizeof(vec3));
-    cudaMalloc(&d_depths, supersample_width * supersample_height * sizeof(float));
-
-    cudaMalloc(&d_colour_variances, supersample_width * supersample_height * sizeof(float));
-    cudaMalloc(&d_surface_normal_variances, supersample_width * supersample_height * sizeof(float));
-    cudaMalloc(&d_albedo_variances, supersample_width * supersample_height * sizeof(float));
-    cudaMalloc(&d_depth_variances, supersample_width * supersample_height * sizeof(float));
+    cudaMalloc(&d_colour_variances, screen_width * screen_height * sizeof(float));
+    cudaMalloc(&d_surface_normal_variances, screen_width * screen_height * sizeof(float));
+    cudaMalloc(&d_albedo_variances, screen_width * screen_height * sizeof(float));
+    cudaMalloc(&d_depth_variances, screen_width * screen_height * sizeof(float));
 
     // Specify the block and grid dimensions to schedule CUDA threads
     dim3 threads_per_block(8, 8);
     dim3 num_blocks(
-        supersample_width / threads_per_block.x,
-        supersample_height / threads_per_block.y
+        screen_width / threads_per_block.x,
+        screen_height / threads_per_block.y
     );
 
     // Create a vector of random states for use on the device
     curandState * d_rand_states;
     cudaMalloc(
         (void **)&d_rand_states,
-        supersample_width * supersample_height * samples_per_pixel * sizeof(curandState)
+        screen_width * screen_height * sizeof(curandState)
     );
 
     // Load in the shapes
     int num_tris = 32;
-    Triangle * triangles;
-    cudaMallocManaged(&triangles, num_tris * sizeof(Triangle));
+    Triangle * triangles = new Triangle[num_tris];
 
-    int num_spheres = 1;
-    Sphere * spheres;
-    cudaMallocManaged(&spheres, num_tris * sizeof(Sphere));
+    int num_spheres = 2;
+    Sphere * spheres = new Sphere[num_spheres];
 
-    printf("CUDA has been initialised. Begin rendering...\n");
-    printf("=============================================\n\n");
+    Triangle * d_triangles;
+    Sphere * d_spheres;
+
+    cudaMalloc(&d_triangles, num_tris * sizeof(Triangle));
+    cudaMalloc(&d_spheres, num_spheres * sizeof(Sphere));
 
     // Load the polygons into the triangles array
     loadShapes(triangles, spheres);
+
+    cudaMemcpy(
+        d_triangles,
+        triangles,
+        num_tris * sizeof(Triangle),
+        cudaMemcpyHostToDevice
+    );
+
+    cudaMemcpy(
+        d_spheres,
+        spheres,
+        num_spheres * sizeof(Sphere),
+        cudaMemcpyHostToDevice
+    );
+
+    printf("CUDA has been initialised. Begin rendering...\n");
+    printf("=============================================\n\n");
 
     // Define our area light
     LightSphere light_sphere(
@@ -149,29 +158,32 @@ int main (int argc, char* argv[]) {
 
         // Launch the CUDA kernel from the host and begin rendering
         render_init <<<num_blocks, threads_per_block>>>(
-            d_rand_states,
-            supersample_height,
-            supersample_width
+            d_rand_states
         );
 
         render_kernel <<<num_blocks, threads_per_block>>>(
-            d_output,
-            supersample_height,
-            supersample_width,
+            d_colours,
+            d_surface_normals,
+            d_albedos,
+            d_depths,
+            d_colour_variances,
+            d_surface_normal_variances,
+            d_albedo_variances,
+            d_depth_variances,
             camera,
             light_sphere,
-            triangles,
+            d_triangles,
             num_tris,
-            spheres,
+            d_spheres,
             num_spheres,
             d_rand_states
         );
 
         // Copy results of rendering back to the host
         cudaMemcpy(
-            h_output,
-            d_output,
-            supersample_width * supersample_height * sizeof(vec3),
+            h_colours,
+            d_colours,
+            screen_width * screen_height * sizeof(vec3),
             cudaMemcpyDeviceToHost
         );
 
@@ -182,56 +194,22 @@ int main (int argc, char* argv[]) {
         printf("Finished rendering in %dms.\n", duration_in_ms);
 
         save_image(
-            h_output,
-            supersample_height,
-            supersample_width,
-            pre_alias_title + "-" + std::to_string(i)
+            h_colours,
+            screen_height,
+            screen_width,
+            aliased_title + "-" + std::to_string(i)
         );
 
-        // Specify different scheduling, this time we assign a thread to each pixel
-        // of the output image
-        threads_per_block = dim3(8, 8);
-        num_blocks = dim3(
-            screen_width / threads_per_block.x,
-            screen_height / threads_per_block.y
-        );
-
-        // Perform anti aliasing
-        MSAA<<<num_blocks, threads_per_block>>>(
-            d_output,
-            d_aliased_output,
-            supersample_height,
-            supersample_width
-        );
-
-        // Copy results of rendering back to the host
-        cudaMemcpy(
-            h_aliased_output,
-            d_aliased_output,
-            screen_width * screen_height * sizeof(vec3),
-            cudaMemcpyDeviceToHost
-        );
-
-        printf("Finished aliasing!\n");
-
-        // Save the aliased image
-        save_image(
-                h_aliased_output,
-                screen_height,
-                screen_width,
-                aliased_title + "-" + std::to_string(i)
-        );
-
-        /*
-        save_patches(
-            h_aliased_output,
-            patch_size
-        );
-        */
+        if (patch_size > 0) {
+            save_patches(
+                h_colours,
+                patch_size
+            );
+        }
 
         /*
         view_live(
-            h_aliased_output,
+            h_aliased_colours,
             sdl_window
         );
         */
@@ -239,12 +217,8 @@ int main (int argc, char* argv[]) {
     }
 
     // Free CUDA memory
-    cudaFree(d_output);
-    cudaFree(d_aliased_output);
+    cudaFree(d_colours);
     cudaFree(d_rand_states);
-
-    cudaFree(d_output);
-    cudaFree(d_aliased_output);
 
     cudaFree(d_surface_normals);
     cudaFree(d_albedos);
@@ -259,11 +233,7 @@ int main (int argc, char* argv[]) {
     cudaFree(spheres);
 
     // Clear memory for host
-    delete[] h_output;
-    delete[] h_aliased_output;
-
-    delete[] h_output;
-    delete[] h_aliased_output;
+    delete[] h_colours;
 
     delete[] h_surface_normals;
     delete[] h_albedos;
@@ -315,16 +285,14 @@ void generateCameraStartPositions(
 // Initialises the random states for each thread with the same seed
 __global__ 
 void render_init(
-    curandState * rand_state,
-    int supersample_width,
-    int supersample_height
+    curandState * rand_state
 ) {
     // Assign a thread to each pixel (x, y)
     unsigned int x = threadIdx.x + blockIdx.x * blockDim.x;
     unsigned int y = threadIdx.y + blockIdx.y * blockDim.y;
 
     // Calculate the pixel index in the linearised array
-    unsigned int pixel_index = (supersample_height - y - 1) * supersample_width + x;
+    unsigned int pixel_index = (screen_height - y - 1) * screen_width + x;
 
     //Each thread gets same seed, a different sequence number, no offset
     curand_init(1927, pixel_index, 0, &rand_state[pixel_index]);
@@ -333,9 +301,14 @@ void render_init(
 // Bulk of the rendering is controlled here
 __global__
 void render_kernel(
-    vec3 * output,
-    int supersample_width,
-    int supersample_height,
+    vec3 * colours,
+    vec3 * surface_normals,
+    vec3 * albedos,
+    float * depths,
+    float * colour_variances,
+    float * surface_normal_variances,
+    float * albedo_variances,
+    float * depth_variances,
     Camera camera,
     LightSphere light_sphere,
     Triangle * triangles,
@@ -349,63 +322,87 @@ void render_kernel(
     unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
 
     // The index of the pixel we are working on when the 2x2 array is linearised
-    unsigned int pixel_index = (supersample_height - y - 1) * supersample_width + x;
-
+    unsigned int pixel_index = (screen_height - y - 1) * screen_width + x;
 
     // Flip the y coordinate
-    y = supersample_height - y;
+    y = screen_height - y;
 
-    // Change the ray's direction to work for the current pixel (pixel space -> Camera space)
-    vec4 dir(
-        (float)x - supersample_width / 2 , 
-        (float)y - supersample_height / 2 , 
-        camera.focal_length_,
-        1
-    ); 
+    vec3 colour_accum = vec3(0.0f);
+    vec3 surface_normal_accum = vec3(0.0f);
+    vec3 albedo_accum = vec3(0.0f);
+    float depth_accum = 0.0f;
 
-    vec3 final_estimate = vec3(0.0f);
-    for (int i = 0 ; i < samples_per_pixel ; i++) {
-        // Get the rand state for this thread
-        curandState local_rand_state = rand_state[pixel_index];
+    vec3 colour_square_accum = vec3(0.0f);
+    vec3 surface_normal_square_accum = vec3(0.0f);
+    vec3 albedo_square_accum = vec3(0.0f);
+    float depth_square_accum = 0.0f;
+
+    for (int i = 0 ; i < d_samples_per_pixel ; i++) {
+
+        // Give the sample a random direction to give an aliasing effect
+        float rand_x = curand_uniform(&rand_state[pixel_index]) - 0.5f;
+        float rand_y = curand_uniform(&rand_state[pixel_index]) - 0.5f;
+
+        // Change the ray's direction to work for the current pixel (pixel space -> Camera space)
+        vec4 dir(
+            (float)(x + rand_x) - screen_width / 2.0f ,
+            (float)(y + rand_y) - screen_height / 2.0f ,
+            camera.focal_length_,
+            1
+        );
+
+        assert(rand_x <= 0.5f);
+        assert(rand_y <= 0.5f);
+        assert(rand_x >= -0.5f);
+        assert(rand_y >= -0.5f);
+
         // Create a ray for the given pixel
         Ray ray(camera.position_, dir);
         ray.rotateRay(camera.yaw_);
-        vec3 estimate = ray.tracePath(
+
+        vec3 albedo;
+        vec3 colour = ray.tracePath(
             triangles,
             num_tris,
             spheres,
             num_spheres,
-            local_rand_state,
+            rand_state[pixel_index],
             monte_carlo_max_depth,
-            0
+            0,
+            albedo
         );
-        printf("%d %d %f %f %f\n", pixel_index, i, estimate.x, estimate.y, estimate.z);
-        final_estimate += estimate;
+
+        // Calculate the features from this ray
+        Intersection intersection = ray.closest_intersection_;
+        vec3 surface_normal = intersection.normal;
+        float depth = intersection.distance;
+
+        colour_accum += colour;
+        surface_normal_accum += surface_normal;
+        albedo_accum += albedo;
+        depth_accum += depth;
+
+        colour_square_accum += colour * colour;
+        surface_normal_square_accum += surface_normal * surface_normal;
+        albedo_square_accum += albedo * albedo;
+        depth_square_accum += depth * depth;
+
     }
-    output[pixel_index] = final_estimate / (float) samples_per_pixel;
+    colours[pixel_index] = colour_accum / (float) d_samples_per_pixel;
+    surface_normals[pixel_index] = surface_normal_accum / (float) d_samples_per_pixel;
+    albedos[pixel_index] = albedo_accum / (float) d_samples_per_pixel;
+    depths[pixel_index] = depth_accum / (float) d_samples_per_pixel;
 
-        // If the ray intersects with an object in the scene, perform monte carlo to
-        // obtain a lighting estimate
-        /*
-        if (ray.closestIntersection(triangles, num_tris, spheres, num_spheres)) {
+    vec3 colour_var = colour_square_accum / (float) d_samples_per_pixel - colours[pixel_index] * colours[pixel_index];
+    vec3 surface_normal_var = surface_normal_square_accum / (float) d_samples_per_pixel - surface_normals[pixel_index] * surface_normals[pixel_index];
+    vec3 albedo_var = albedo_square_accum / (float) d_samples_per_pixel - albedos[pixel_index] * albedos[pixel_index];
+    float depth_var = depth_square_accum / (float) d_samples_per_pixel - depths[pixel_index] * depths[pixel_index];
 
-            vec3 colour = tracePath(
-                    ray.closest_intersection_,
-                    triangles,
-                    num_tris,
-                    spheres,
-                    num_spheres,
-                    local_rand_state,
-                    monte_carlo_max_depth,
-                    0
-            );
-            output[pixel_index] += colour;
-        }
-        // if there is no intersection, we set the colour to be black
-        else {
-            output[pixel_index] = vec3(0.0f);
-        }
-        */
+    colour_variances[pixel_index] = mySum(colour_var);
+    surface_normal_variances[pixel_index] = mySum(surface_normal_var);
+    albedo_variances[pixel_index] = mySum(albedo_var);
+    depth_variances[pixel_index] = depth_var;
+
 }
 
 // Calculates the indirect and direct light estimation for diffuse objects
@@ -616,6 +613,7 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
 
     // Counter to track triangles
     int curr_tris = 0;
+    int curr_spheres = 0;
 
     // Triangles now take a material as an argument rather than a colour
     // Floor:
@@ -796,7 +794,10 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
     // Sphere
 
     //Sphere for the light
-    spheres[0] = Sphere(vec4(0, -1.7, 0, 1), 1, m_light);
+    spheres[curr_spheres] = Sphere(vec4(0, -1.7, 0, 1), 1, m_light);
+    curr_spheres++;
+    spheres[curr_spheres] = Sphere(vec4(-0.4, 0.8, -0.5, 1), 0.2, m_sol_green);
+    curr_spheres++;
 
     // ----------------------------------------------
     // Scale to the volume [-1,1]^3

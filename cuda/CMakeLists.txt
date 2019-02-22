@@ -3,7 +3,8 @@ project (cuda-mcr LANGUAGES CXX CUDA)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-set(CMAKE_CXX_FLAGS "-pipe -O3 -Wall -Wno-switch -g")
+#set(CMAKE_CXX_FLAGS "-pipe -O3 -Wall -Wextra -Wno-switch -g")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xptxas -use_fast_math" )
 #message(${CMAKE_CXX_FLAGS})
 
 # Set output directory for executables

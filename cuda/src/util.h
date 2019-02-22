@@ -51,9 +51,26 @@ void createCoordinateSystem(
 );
 
 __device__
-        vec3 uniformSampleHemisphere(
+vec3 uniformSampleHemisphere(
         const float & r1,
         const float & r2
+);
+
+__device__
+vec3 mean(
+    vec3 * data,
+    int data_size
+);
+
+__device__
+float mean(
+    float * data,
+    int data_size
+);
+
+__device__
+float mySum(
+    vec3 v
 );
 
 #endif

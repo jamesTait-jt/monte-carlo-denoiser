@@ -29,6 +29,10 @@ const Material m_sol_blue    (sol_blue    , sol_blue    , black ); //, black, 0,
 const Material m_sol_cyan    (sol_cyan    , sol_cyan    , black ); //, black, 0, 0.3f, 0, 0, false, 0.0f, 1.0f, false);
 const Material m_sol_green   (sol_green   , sol_green   , black ); //, black, 0, 0.3f, 0, 0, false, 0.0f, 1.0f, false);
 
-const Material m_light (black, black, vec3(4.0f, 4.0f, 4.0f));
+const vec3 halogen_light_colour(255.0f/255.0f, 241.0f/255.0f, 224.0f/255.0f);
+const float halogen_light_intensity = 8.0f;
+const vec3 halogen_light_emittance = halogen_light_intensity * halogen_light_colour;
+const Material m_light (black, black, halogen_light_emittance);
+
 
 #endif

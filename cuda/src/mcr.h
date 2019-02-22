@@ -35,16 +35,19 @@ void draw(
 
 __global__
 void render_init(
-    curandState * rand_state,
-    int supersample_height,
-    int supersample_width
+    curandState * rand_state
 );
 
 __global__
 void render_kernel(
-    vec3 * output,
-    int supersample_height,
-    int supersample_width,
+    vec3 * colours,
+    vec3 * surface_normals,
+    vec3 * albedos,
+    float * depths,
+    float * colour_variances,
+    float * surface_normal_variances,
+    float * albedo_variances,
+    float * depth_variances,
     Camera camera,
     LightSphere light_sphere,
     Triangle * triangles,
@@ -92,12 +95,10 @@ vec3 indirectLight(
     int depth
 );
 
-
-
 __global__
 void MSAA(
     vec3 * supersampled_image, 
-    vec3 * aliased_output,
+    vec3 * aliased_colours,
     int supersample_height,
     int supersample_width
 );

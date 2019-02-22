@@ -4,6 +4,8 @@
 
 using glm::vec3;
 
+Triangle::Triangle(){}
+
 Triangle::Triangle(vec4 v0, vec4 v1, vec4 v2, Material material) {
    v0_ = v0; 
    v1_ = v1; 

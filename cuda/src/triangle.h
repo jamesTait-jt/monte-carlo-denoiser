@@ -20,6 +20,7 @@ class Triangle {
         vec4 normal_;
         Material material_;
 
+        Triangle();
         Triangle(vec4 v0, vec4 v1, vec4 v2, Material material);
         
         void computeAndSetNormal();

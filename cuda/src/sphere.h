@@ -20,6 +20,7 @@ class Sphere {
         float radius_;
         Material material_;
 
+        Sphere();
         Sphere(vec4 centre, float radius, Material material);
 
 

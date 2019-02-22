@@ -1,6 +1,8 @@
 #include "sphere.h"
 #include "util.h"
 
+Sphere::Sphere(){}
+
 Sphere::Sphere(vec4 centre, float radius, Material material) {
     centre_ = centre;
     radius_ = radius;

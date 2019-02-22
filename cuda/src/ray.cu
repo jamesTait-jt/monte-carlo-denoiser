@@ -148,7 +148,8 @@ vec3 Ray::tracePath(
     int num_spheres,
     curandState & rand_state,
     int monte_carlo_max_depth,
-    int curr_depth
+    int curr_depth,
+    vec3 & albedo
 ) {
     // We have bounced enough times
     if (curr_depth >= monte_carlo_max_depth) {
@@ -172,45 +173,45 @@ vec3 Ray::tracePath(
     float r1 = curand_uniform(&rand_state); // cos(theta) = N.Light Direction
     float r2 = curand_uniform(&rand_state);
 
-    //printf("%f %f %d\n", r1, r2, curr_depth);
-
     vec3 sample = uniformSampleHemisphere(r1, r2);
 
     // Convert the sample from our coordinate space to world space
     vec4 sample_world(
-            sample.x * N_b.x + sample.y * intersection_normal_3.x + sample.z * N_t.x,
-            sample.x * N_b.y + sample.y * intersection_normal_3.y + sample.z * N_t.y,
-            sample.x * N_b.z + sample.y * intersection_normal_3.z + sample.z * N_t.z,
-            0
+        sample.x * N_b.x + sample.y * intersection_normal_3.x + sample.z * N_t.x,
+        sample.x * N_b.y + sample.y * intersection_normal_3.y + sample.z * N_t.y,
+        sample.x * N_b.z + sample.y * intersection_normal_3.z + sample.z * N_t.z,
+        0
     );
 
     float pdf = 1 / (2 * (float)M_PI);
 
     // Generate our ray from the random direction calculated previously
     Ray random_ray(
-        closest_intersection_.position + sample_world * 0.0001f,
+        closest_intersection_.position + sample_world * 0.000001f,
         sample_world
     );
 
     // Compute the BRDF for this ray (assuming Lambertian reflection)
     float cos_theta = glm::dot(vec3(random_ray.direction_), intersection_normal_3);
-    vec3 BRDF = material.diffuse_light_component_ / (float) M_PI ;
+    albedo = material.diffuse_light_component_;
+    vec3 BRDF = albedo / (float) M_PI ;
+
+
 
     // Recursively trace reflected light sources.
-    if (emittance == vec3(0.0f)) {
-        vec3 incoming = r1 * random_ray.tracePath(
-            triangles,
-            num_tris,
-            spheres,
-            num_spheres,
-            rand_state,
-            monte_carlo_max_depth,
-            curr_depth + 1
-        );
-        // Apply the Rendering Equation here.
-        return emittance + (BRDF * incoming / pdf);
-    }
-    return emittance + (BRDF / pdf);
+    vec3 new_albedo;
+    vec3 incoming = r1 * random_ray.tracePath(
+        triangles,
+        num_tris,
+        spheres,
+        num_spheres,
+        rand_state,
+        monte_carlo_max_depth,
+        curr_depth + 1,
+        new_albedo
+    );
+
+    return emittance + (BRDF * incoming / pdf);
 }
 
 __device__

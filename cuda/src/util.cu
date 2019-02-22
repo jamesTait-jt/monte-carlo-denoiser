@@ -44,6 +44,8 @@ void save_patches(vec3 * image, int size) {
         image2d[x][y] = image[i];
     }
 
+    printf("Saving...\n");
+
     int ctr = 0;
     for (int a = 0 ; a < screen_width - size ; a++) {
         for (int b = 0 ; b < screen_height - size ; b++) {
@@ -90,7 +92,7 @@ void createCoordinateSystem(const vec3 & N, vec3 & N_t, vec3 & N_b) {
 // Given two random numbers between 0 and 1, return a direction to a point on a
 // hemisphere
 __device__
-        vec3 uniformSampleHemisphere(const float & r1, const float & r2) {
+vec3 uniformSampleHemisphere(const float & r1, const float & r2) {
     // cos(theta) = r1 = y
     // cos^2(theta) + sin^2(theta) = 1 -> sin(theta) = srtf(1 - cos^2(theta))
     float sin_theta = sqrtf(1 - r1 * r1);
@@ -98,4 +100,19 @@ __device__
     float x = sin_theta * cosf(phi);
     float z = sin_theta * sinf(phi);
     return vec3(x, r1, z);
+}
+
+// Calculates the mean of a data set of vec3
+__device__
+vec3 mean(vec3 * data, int data_size) {
+    vec3 accum(0.0f);
+    for (int i = 0 ; i < data_size ; i++) {
+       accum += data[i];
+    }
+    return accum / (float) data_size;
+}
+
+__device__
+float mySum(vec3 v) {
+    return v.x + v.y + v.z;
 }
