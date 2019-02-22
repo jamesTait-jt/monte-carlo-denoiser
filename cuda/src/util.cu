@@ -47,10 +47,33 @@ void save_patches(vec3 * image, int size) {
     printf("Saving...\n");
 
     int ctr = 0;
-    for (int a = 0 ; a < screen_width - size ; a++) {
-        for (int b = 0 ; b < screen_height - size ; b++) {
+
+    for (int x = 0 ; x < screen_width - size ; x += patch_step) {
+        for (int y = 0 ; y < screen_height - size ; y += patch_step) {
             ctr++;
-            std::string filename = "out/patches/" + std::to_string(ctr) + ".ppm";
+            std::string filename = "/pics/patches/" + std::to_string(ctr) + ".ppm";
+            FILE * patch = fopen(filename.c_str(), "wt");
+            fprintf(patch, "P3\n%d %d\n%d\n", screen_height - size, screen_width - size, 255);
+            for (int x1 = x ; x1 <= x + patch_size ; x1++) {
+                for (int y1 = y ; y1 <= y + patch_size; y1++) {
+                    vec3 colour = image2d[x][y];
+
+                    fprintf(patch, "%d %d %d ", scaleTo255(colour.x),
+                                                scaleTo255(colour.y),
+                                                scaleTo255(colour.z)
+                    );
+                }
+            }
+            fclose(patch);
+        }
+    }
+
+    /*
+    for (int a = 0 ; a < screen_width - size ; a += patch_step) {
+        for (int b = 0 ; b < screen_height - size ; b += patch_step) {
+            ctr++;
+            //std::string filename = "out/patches/" + std::to_string(ctr) + ".ppm";
+            std::string filename = "/pics/patches/" + std::to_string(ctr) + ".ppm";
             FILE * patch = fopen(filename.c_str(), "wt");
             fprintf(patch, "P3\n%d %d\n%d\n", size, size, 255);
             for (int c = 0 ; c < size ; c++) {
@@ -64,6 +87,7 @@ void save_patches(vec3 * image, int size) {
             fclose(patch);
         }
     }
+    */
 }
 
 float maxf(float a, float b) {

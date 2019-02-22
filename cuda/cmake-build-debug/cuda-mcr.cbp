@@ -8,23 +8,23 @@
 		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\usr\lib64\;CMake Files\..\..\..\..\..\usr\lib64\cmake\;CMake Files\..\..\..\..\..\usr\lib64\cmake\SDL2\;"/>
 		<Build>
 			<Target title="all">
-				<Option working_dir="/home/james/git-repos/monte-carlo-raytracer/cuda"/>
+				<Option working_dir="/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 all"/>
-					<CompileFile command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="rebuild_cache">
-				<Option working_dir="/home/james/git-repos/monte-carlo-raytracer/cuda"/>
+				<Option working_dir="/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
-					<CompileFile command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="cuda_mcr">
@@ -36,12 +36,20 @@
 				<Compiler>
 					<Add directory="/home/james/git-repos/monte-carlo-raytracer/cuda/include"/>
 					<Add directory="/usr/include/SDL2"/>
+					<Add directory="."/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/8.2.1/../../../../include/c++/8.2.1"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/8.2.1/../../../../include/c++/8.2.1/x86_64-pc-linux-gnu"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/8.2.1/../../../../include/c++/8.2.1/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/8.2.1/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/8.2.1/include-fixed"/>
+					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 cuda_mcr"/>
-					<CompileFile command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 cuda_mcr"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="cuda_mcr/fast">
@@ -53,22 +61,30 @@
 				<Compiler>
 					<Add directory="/home/james/git-repos/monte-carlo-raytracer/cuda/include"/>
 					<Add directory="/usr/include/SDL2"/>
+					<Add directory="."/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/8.2.1/../../../../include/c++/8.2.1"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/8.2.1/../../../../include/c++/8.2.1/x86_64-pc-linux-gnu"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/8.2.1/../../../../include/c++/8.2.1/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/8.2.1/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/8.2.1/include-fixed"/>
+					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 cuda_mcr/fast"/>
-					<CompileFile command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 cuda_mcr/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="edit_cache">
-				<Option working_dir="/home/james/git-repos/monte-carlo-raytracer/cuda"/>
+				<Option working_dir="/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 edit_cache"/>
-					<CompileFile command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/james/git-repos/monte-carlo-raytracer/cuda/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 		</Build>
