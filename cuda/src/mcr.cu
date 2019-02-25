@@ -6,6 +6,8 @@
 
 #include <iostream>
 #include <chrono>
+#include <algorithm>
+#include <vector>
 
 #include "constants/config.h"
 #include "constants/materials.h"
@@ -15,235 +17,254 @@
 #include "util.h"
 
 // ----- DEVICE CONSTANTS ----- //
-__constant__ int d_samples_per_pixel = 512;
+__constant__ int d_ref_samples_per_pixel = 0.5 * 1024;
+__constant__ int d_noisy_samples_per_pixel = 32;
 
 int main (int argc, char* argv[]) {
-    
-    // ----- IMAGE ----- //
 
-    // Pointer to the image on the host (CPU)
-    vec3 * h_colours = new vec3[screen_width * screen_height];
-    // Pointer to the image on the device (GPU)
-    vec3 * d_colours;
-
-    // ----- FEATURE BUFFERS ----- //
-
-    // Pointer to the surface normals on host
-    vec3 * h_surface_normals = new vec3[screen_width * screen_height];
-    // Pointer to the surface normals on device
-    vec3 * d_surface_normals;
-
-    // Pointer to the albedo buffer on host
-    vec3 * h_albedos = new vec3[screen_width * screen_height];
-    // Pointer to the albedo buffer on the device
-    vec3 * d_albedos;
-
-    // Pointer to the depth buffer on host
-    float * h_depths = new float[screen_width * screen_height];
-    // Pointer to the depth buffer on device
-    float * d_depths;
-
-    // ----- VARIANCES ----- //
-
-    // Pointer to the colour variances on host 
-    float * h_colour_variances = new float[screen_width * screen_height];
-    // Pointer to the colour variances on device 
-    float * d_colour_variances;
-
-    // Pointer to the surface normals on host
-    float * h_surface_normal_variances = new float[screen_width * screen_height];
-    // Pointer to the surface normals on device
-    float * d_surface_normal_variances;
-
-    // Pointer to the albedo buffer on host
-    float * h_albedo_variances = new float[screen_width * screen_height];
-    // Pointer to the albedo buffer on the device
-    float * d_albedo_variances;
-
-    // Pointer to the depth buffer on host
-    float * h_depth_variances = new float[screen_width * screen_height];
-    // Pointer to the depth buffer on device
-    float * d_depth_variances;
-
-    // Allocate memory on CUDA device
-    cudaMalloc(&d_colours, screen_width * screen_height * sizeof(vec3));
-    cudaMalloc(&d_surface_normals, screen_width * screen_height * sizeof(vec3));
-    cudaMalloc(&d_albedos, screen_width * screen_height * sizeof(vec3));
-    cudaMalloc(&d_depths, screen_width * screen_height * sizeof(float));
-
-    cudaMalloc(&d_colour_variances, screen_width * screen_height * sizeof(float));
-    cudaMalloc(&d_surface_normal_variances, screen_width * screen_height * sizeof(float));
-    cudaMalloc(&d_albedo_variances, screen_width * screen_height * sizeof(float));
-    cudaMalloc(&d_depth_variances, screen_width * screen_height * sizeof(float));
-
-    // Specify the block and grid dimensions to schedule CUDA threads
-    dim3 threads_per_block(8, 8);
-    dim3 num_blocks(
-        screen_width / threads_per_block.x,
-        screen_height / threads_per_block.y
-    );
-
-    // Create a vector of random states for use on the device
-    curandState * d_rand_states;
-    cudaMalloc(
-        (void **)&d_rand_states,
-        screen_width * screen_height * sizeof(curandState)
-    );
-
-    // Load in the shapes
-    int num_tris = 32;
-    Triangle * triangles = new Triangle[num_tris];
-
-    int num_spheres = 2;
-    Sphere * spheres = new Sphere[num_spheres];
-
-    Triangle * d_triangles;
-    Sphere * d_spheres;
-
-    cudaMalloc(&d_triangles, num_tris * sizeof(Triangle));
-    cudaMalloc(&d_spheres, num_spheres * sizeof(Sphere));
-
-    // Load the polygons into the triangles array
-    loadShapes(triangles, spheres);
-
-    cudaMemcpy(
-        d_triangles,
-        triangles,
-        num_tris * sizeof(Triangle),
-        cudaMemcpyHostToDevice
-    );
-
-    cudaMemcpy(
-        d_spheres,
-        spheres,
-        num_spheres * sizeof(Sphere),
-        cudaMemcpyHostToDevice
-    );
-
-    printf("CUDA has been initialised. Begin rendering...\n");
-    printf("=============================================\n\n");
-
-    // Define our area light
-    LightSphere light_sphere(
-        light_start_position, 
-        area_light_radius, 
-        num_lights, 
-        light_intensity, 
-        light_colour
-    );
-
-    vec4 * camera_start_positions = new vec4[num_iterations];
-    float * camera_start_yaws = new float[num_iterations];
-
-    srand(time(NULL));
-    generateCameraStartPositions(camera_start_positions, camera_start_yaws);
-
-    //SdlWindowHelper sdl_window(screen_width, screen_height);
-
-    for(int i = 0 ; i < num_iterations ; i++) {
-
-        if (num_iterations == 1) {
-            camera_start_positions[0] = cam_start_position;
-            camera_start_yaws[0] = cam_start_yaw;
-        }
-
-        // Initialise the camera object
-        Camera camera(
-            camera_start_positions[i],
-            camera_start_yaws[i],
-            cam_focal_length
-        );
-
-        auto start = std::chrono::high_resolution_clock::now();
-
-        // Launch the CUDA kernel from the host and begin rendering
-        render_init <<<num_blocks, threads_per_block>>>(
-            d_rand_states
-        );
-
-        render_kernel <<<num_blocks, threads_per_block>>>(
-            d_colours,
-            d_surface_normals,
-            d_albedos,
-            d_depths,
-            d_colour_variances,
-            d_surface_normal_variances,
-            d_albedo_variances,
-            d_depth_variances,
-            camera,
-            light_sphere,
-            d_triangles,
-            num_tris,
-            d_spheres,
-            num_spheres,
-            d_rand_states
-        );
-
-        // Copy results of rendering back to the host
-        cudaMemcpy(
-            h_colours,
-            d_colours,
-            screen_width * screen_height * sizeof(vec3),
-            cudaMemcpyDeviceToHost
-        );
-
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = end - start;
-        int duration_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-
-        printf("Finished rendering in %dms.\n", duration_in_ms);
-
-        save_image(
-            h_colours,
-            screen_height,
-            screen_width,
-            aliased_title + "-" + std::to_string(i)
-        );
-
-        if (patch_size > 0) {
-            save_patches(
-                h_colours,
-                patch_size
-            );
-        }
-
-        /*
-        view_live(
-            h_aliased_colours,
-            sdl_window
-        );
-        */
-
+    // Randomly generate the numbers of each file so that the data is shuffled
+    std::vector<int> seed;
+    for (int i = 1; i <= 226 ; i++) {
+        seed.push_back(i);
     }
 
-    // Free CUDA memory
-    cudaFree(d_colours);
-    cudaFree(d_rand_states);
+    std::random_shuffle(seed.begin(), seed.end());
 
-    cudaFree(d_surface_normals);
-    cudaFree(d_albedos);
-    cudaFree(d_depths);
+    for (int i = 0 ; i < 2 ; i++) {
 
-    cudaFree(d_colour_variances);
-    cudaFree(d_surface_normal_variances);
-    cudaFree(d_albedo_variances);
-    cudaFree(d_depth_variances);
+        bool is_reference_image = i == 0 ? true : false;
 
-    cudaFree(triangles);
-    cudaFree(spheres);
+        // ----- IMAGE ----- //
 
-    // Clear memory for host
-    delete[] h_colours;
+        // Pointer to the image on the host (CPU)
+        vec3 * h_colours = new vec3[screen_width * screen_height];
+        // Pointer to the image on the device (GPU)
+        vec3 * d_colours;
 
-    delete[] h_surface_normals;
-    delete[] h_albedos;
-    delete[] h_depths;
+        // ----- FEATURE BUFFERS ----- //
 
-    delete[] h_colour_variances;
-    delete[] h_surface_normal_variances;
-    delete[] h_albedo_variances;
-    delete[] h_depth_variances;
+        // Pointer to the surface normals on host
+        vec3 * h_surface_normals = new vec3[screen_width * screen_height];
+        // Pointer to the surface normals on device
+        vec3 * d_surface_normals;
 
+        // Pointer to the albedo buffer on host
+        vec3 * h_albedos = new vec3[screen_width * screen_height];
+        // Pointer to the albedo buffer on the device
+        vec3 * d_albedos;
+
+        // Pointer to the depth buffer on host
+        float *h_depths = new float[screen_width * screen_height];
+        // Pointer to the depth buffer on device
+        float *d_depths;
+
+        // ----- VARIANCES ----- //
+
+        // Pointer to the colour variances on host
+        float *h_colour_variances = new float[screen_width * screen_height];
+        // Pointer to the colour variances on device
+        float *d_colour_variances;
+
+        // Pointer to the surface normals on host
+        float *h_surface_normal_variances = new float[screen_width * screen_height];
+        // Pointer to the surface normals on device
+        float *d_surface_normal_variances;
+
+        // Pointer to the albedo buffer on host
+        float *h_albedo_variances = new float[screen_width * screen_height];
+        // Pointer to the albedo buffer on the device
+        float *d_albedo_variances;
+
+        // Pointer to the depth buffer on host
+        float *h_depth_variances = new float[screen_width * screen_height];
+        // Pointer to the depth buffer on device
+        float *d_depth_variances;
+
+        // Allocate memory on CUDA device
+        cudaMalloc(&d_colours, screen_width * screen_height * sizeof(vec3));
+        cudaMalloc(&d_surface_normals, screen_width * screen_height * sizeof(vec3));
+        cudaMalloc(&d_albedos, screen_width * screen_height * sizeof(vec3));
+        cudaMalloc(&d_depths, screen_width * screen_height * sizeof(float));
+
+        cudaMalloc(&d_colour_variances, screen_width * screen_height * sizeof(float));
+        cudaMalloc(&d_surface_normal_variances, screen_width * screen_height * sizeof(float));
+        cudaMalloc(&d_albedo_variances, screen_width * screen_height * sizeof(float));
+        cudaMalloc(&d_depth_variances, screen_width * screen_height * sizeof(float));
+
+        // Specify the block and grid dimensions to schedule CUDA threads
+        dim3 threads_per_block(8, 8);
+        dim3 num_blocks(
+                screen_width / threads_per_block.x,
+                screen_height / threads_per_block.y
+        );
+
+        // Create a vector of random states for use on the device
+        curandState * d_rand_states;
+        cudaMalloc(
+                (void **) &d_rand_states,
+                screen_width * screen_height * sizeof(curandState)
+        );
+
+        // Load in the shapes
+        int num_tris = 32;
+        Triangle *triangles = new Triangle[num_tris];
+
+        int num_spheres = 2;
+        Sphere * spheres = new Sphere[num_spheres];
+
+        Triangle *d_triangles;
+        Sphere * d_spheres;
+
+        cudaMalloc(&d_triangles, num_tris * sizeof(Triangle));
+        cudaMalloc(&d_spheres, num_spheres * sizeof(Sphere));
+
+        // Load the polygons into the triangles array
+        loadShapes(triangles, spheres);
+
+        cudaMemcpy(
+                d_triangles,
+                triangles,
+                num_tris * sizeof(Triangle),
+                cudaMemcpyHostToDevice
+        );
+
+        cudaMemcpy(
+                d_spheres,
+                spheres,
+                num_spheres * sizeof(Sphere),
+                cudaMemcpyHostToDevice
+        );
+
+        printf("CUDA has been initialised. Begin rendering...\n");
+        printf("=============================================\n\n");
+
+        // Define our area light
+        LightSphere
+        light_sphere(
+                light_start_position,
+                area_light_radius,
+                num_lights,
+                light_intensity,
+                light_colour
+        );
+
+        vec4 *camera_start_positions = new vec4[num_iterations];
+        float *camera_start_yaws = new float[num_iterations];
+
+        srand(time(NULL));
+        generateCameraStartPositions(camera_start_positions, camera_start_yaws);
+
+        //SdlWindowHelper sdl_window(screen_width, screen_height);
+
+        for (int i = 0; i < num_iterations; i++) {
+
+            if (num_iterations == 1) {
+                camera_start_positions[0] = cam_start_position;
+                camera_start_yaws[0] = cam_start_yaw;
+            }
+
+            // Initialise the camera object
+            Camera camera(
+                    camera_start_positions[i],
+                    camera_start_yaws[i],
+                    cam_focal_length
+            );
+
+            auto start = std::chrono::high_resolution_clock::now();
+
+            // Launch the CUDA kernel from the host and begin rendering
+            render_init <<<num_blocks, threads_per_block>>> (
+                d_rand_states
+            );
+
+            // Render the reference image
+            render_kernel <<<num_blocks, threads_per_block>>> (
+                d_colours,
+                d_surface_normals,
+                d_albedos,
+                d_depths,
+                d_colour_variances,
+                d_surface_normal_variances,
+                d_albedo_variances,
+                d_depth_variances,
+                camera,
+                light_sphere,
+                d_triangles,
+                num_tris,
+                d_spheres,
+                num_spheres,
+                d_rand_states,
+                is_reference_image
+            );
+
+            // Copy results of rendering back to the host
+            cudaMemcpy(
+                h_colours,
+                d_colours,
+                screen_width * screen_height * sizeof(vec3),
+                cudaMemcpyDeviceToHost
+            );
+
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = end - start;
+            int duration_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+
+            printf("Finished rendering in %dms.\n", duration_in_ms);
+
+            std::string title = is_reference_image ? "reference" : "noisy";
+            save_image(
+                h_colours,
+                screen_height,
+                screen_width,
+                title
+            );
+
+            if (patch_size > 0) {
+                save_patches(
+                    h_colours,
+                    patch_size,
+                    title,
+                    seed
+                );
+            }
+
+            /*
+            view_live(
+                h_aliased_colours,
+                sdl_window
+            );
+            */
+
+        }
+
+        // Free CUDA memory
+        cudaFree(d_colours);
+        cudaFree(d_rand_states);
+
+        cudaFree(d_surface_normals);
+        cudaFree(d_albedos);
+        cudaFree(d_depths);
+
+        cudaFree(d_colour_variances);
+        cudaFree(d_surface_normal_variances);
+        cudaFree(d_albedo_variances);
+        cudaFree(d_depth_variances);
+
+        cudaFree(triangles);
+        cudaFree(spheres);
+
+        // Clear memory for host
+        delete[] h_colours;
+
+        delete[] h_surface_normals;
+        delete[] h_albedos;
+        delete[] h_depths;
+
+        delete[] h_colour_variances;
+        delete[] h_surface_normal_variances;
+        delete[] h_albedo_variances;
+        delete[] h_depth_variances;
+    }
     return 0;
 }
 
@@ -315,8 +336,12 @@ void render_kernel(
     int num_tris,
     Sphere * spheres,
     int num_spheres,
-    curandState * rand_state
+    curandState * rand_state,
+    bool is_reference_image
 ) {
+
+    int num_samples = is_reference_image ? d_ref_samples_per_pixel : d_noisy_samples_per_pixel;
+
     // Assign a cuda thread to each pixel (x,y)
     unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -337,7 +362,7 @@ void render_kernel(
     vec3 albedo_square_accum = vec3(0.0f);
     float depth_square_accum = 0.0f;
 
-    for (int i = 0 ; i < d_samples_per_pixel ; i++) {
+    for (int i = 0 ; i < num_samples ; i++) {
 
         // Give the sample a random direction to give an aliasing effect
         float rand_x = curand_uniform(&rand_state[pixel_index]) - 0.5f;
@@ -388,15 +413,15 @@ void render_kernel(
         depth_square_accum += depth * depth;
 
     }
-    colours[pixel_index] = colour_accum / (float) d_samples_per_pixel;
-    surface_normals[pixel_index] = surface_normal_accum / (float) d_samples_per_pixel;
-    albedos[pixel_index] = albedo_accum / (float) d_samples_per_pixel;
-    depths[pixel_index] = depth_accum / (float) d_samples_per_pixel;
+    colours[pixel_index] = colour_accum / (float) num_samples;
+    surface_normals[pixel_index] = surface_normal_accum / (float) num_samples;
+    albedos[pixel_index] = albedo_accum / (float) num_samples;
+    depths[pixel_index] = depth_accum / (float) num_samples;
 
-    vec3 colour_var = colour_square_accum / (float) d_samples_per_pixel - colours[pixel_index] * colours[pixel_index];
-    vec3 surface_normal_var = surface_normal_square_accum / (float) d_samples_per_pixel - surface_normals[pixel_index] * surface_normals[pixel_index];
-    vec3 albedo_var = albedo_square_accum / (float) d_samples_per_pixel - albedos[pixel_index] * albedos[pixel_index];
-    float depth_var = depth_square_accum / (float) d_samples_per_pixel - depths[pixel_index] * depths[pixel_index];
+    vec3 colour_var = colour_square_accum / (float) num_samples - colours[pixel_index] * colours[pixel_index];
+    vec3 surface_normal_var = surface_normal_square_accum / (float) num_samples - surface_normals[pixel_index] * surface_normals[pixel_index];
+    vec3 albedo_var = albedo_square_accum / (float) num_samples - albedos[pixel_index] * albedos[pixel_index];
+    float depth_var = depth_square_accum / (float) num_samples - depths[pixel_index] * depths[pixel_index];
 
     colour_variances[pixel_index] = mySum(colour_var);
     surface_normal_variances[pixel_index] = mySum(surface_normal_var);

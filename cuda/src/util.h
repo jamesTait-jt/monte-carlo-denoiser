@@ -1,4 +1,5 @@
 #include <string>
+#include <vector>
 
 #ifndef UTIL_H
 #define UTIL_H
@@ -25,12 +26,14 @@ void save_image(
     vec3 * image,
     int height,
     int width,
-    std::string name
+    std::string title
 );
 
 void save_patches(
     vec3 * image,
-    int patch_size
+    int patch_size,
+    std::string title,
+    std::vector<int> seed
 );
 
 float max(

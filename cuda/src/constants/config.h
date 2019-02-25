@@ -10,8 +10,8 @@ using glm::vec4;
 const int screen_width = 512; // The width of the final image
 const int screen_height = 512; // The height of the final image
 const int anti_aliasing_factor = 1; // Factor by which we multiply the image dimensions to get the size of the supersampled image
-const int patch_size = 256; // SIze of the patches for NN
-const int patch_step = 256;
+const int patch_size = 64; // SIze of the patches for NN
+const int patch_step = 32;
 
 // Camera configuration
 const vec4 cam_start_position(0.0f, 0.0f, -3.0f, 1.0f); // The starting position of the camera

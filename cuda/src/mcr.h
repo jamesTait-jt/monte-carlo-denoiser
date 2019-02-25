@@ -54,7 +54,8 @@ void render_kernel(
     int num_tris,
     Sphere * spheres,
     int num_spheres,
-    curandState * rand_state
+    curandState * rand_state,
+    bool is_reference_image
 );
 
 __device__

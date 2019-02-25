@@ -12,19 +12,18 @@ much higher quality.
 
 
 import tensorflow as tf
-
-mnist = tf.keras.datasets.mnist
+import data
 
 # Global flags
-FLAGS = tf.app.flags
+FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_integer ("patchSize", 65,
+tf.app.flags.DEFINE_integer ("patchSize", 64,
                             "The size of the input patches")
 
 #tf.app.flags.DEFINE_integer ("reconstructionKernelSize", 21,
 #                            "The size of the reconstruction kernel")
 
-tf.app.flags.DEFINE_integer ("inputChannels", 27,
+tf.app.flags.DEFINE_integer ("inputChannels", 3,
                             "The number of channels in an input patch")
 
 tf.app.flags.DEFINE_integer ("outputChannels", 3,
@@ -36,36 +35,50 @@ tf.app.flags.DEFINE_float   ("learningRate", 0.00001,
 tf.app.flags.DEFINE_integer ("numEpochs", 200,
                             "Number of training epochs")
 
+# First convolutional layer (must define input shape)
+def firstConvLayer():
+    return tf.keras.layers.Conv2D(
+        input_shape=(FLAGS.patchSize, FLAGS.patchSize, FLAGS.inputChannels),
+        filters=100,
+        kernel_size=(5, 5),
+        use_bias=True,
+        strides=[1, 1],
+        padding="VALID",
+        activation=tf.keras.activations.relu,
+        kernel_initializer=tf.keras.initializers.glorot_uniform
+    )
+
 # Convolutional layer (not final)
 def convLayer():
     return tf.keras.layers.Conv2D(
         filters=100,
         kernel_size=(5, 5),
         use_bias=True,
-        strides=[1, 1, 1, 1],
+        strides=[1, 1],
         padding="VALID",
         activation=tf.keras.activations.relu,
         kernel_initializer=tf.keras.initializers.glorot_uniform
     )
 
+# Final convolutional layer - no activation function
 def finalConvLayer():
     return tf.keras.layers.Conv2D(
-        filters=hp.final_layer_size,
-        kernel_size=None,
+        filters=FLAGS.outputChannels,
+        kernel_size=(5, 5),
         use_bias=True,
-        strides=[1, 1, 1, 1],
+        strides=(1, 1),
         padding="VALID",
         activation=None,
         kernel_initializer=tf.keras.initializers.glorot_uniform
     )
 
-(x_train, y_train),(x_test, y_test) = mnist.load_data()
-x_train, x_test = x_train / 255.0, x_test / 255.0
+reference_train = data.data["train"]["colour"]["reference"]
+noisy_train = data.data["train"]["colour"]["noisy"]
 
-my_model = tf.keras.models.Sequential([
+model = tf.keras.models.Sequential([
 
     # Conv layer 1
-    convLayer(),
+    firstConvLayer(),
 
     # Conv layer 2
     convLayer(),
@@ -86,24 +99,30 @@ my_model = tf.keras.models.Sequential([
     convLayer(),
 
     # Conv layer 8
+    convLayer(),
+
+    # Conv layer 9
     finalConvLayer()
 ])
 
-my_model.compile(
+model.compile(
     optimizer="adam",
-    loss="
+    loss="mean_absolute_error",
+    metrics=["accuracy"]
 )
 
-model = tf.keras.models.Sequential([
-    tf.keras.layers.Flatten(input_shape=(28, 28)),
-    tf.keras.layers.Dense(512, activation=tf.nn.relu),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(10, activation=tf.nn.softmax)
-])
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+model.fit(
+    noisy_train,
+    reference_train,
+    epochs=5
+)
 
-model.fit(x_train, y_train, epochs=5)
-model.evaluate(x_test, y_test)
+
+
+#model.compile(optimizer='adam',
+#              loss='sparse_categorical_crossentropy',
+#              metrics=['accuracy'])
+
+#model.fit(x_train, y_train, epochs=5)
+#model.evaluate(x_test, y_test)
 
