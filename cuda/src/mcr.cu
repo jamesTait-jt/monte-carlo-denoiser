@@ -17,7 +17,7 @@
 #include "util.h"
 
 // ----- DEVICE CONSTANTS ----- //
-__constant__ int d_ref_samples_per_pixel = 0.5 * 1024;
+__constant__ int d_ref_samples_per_pixel = 8 * 1024;
 __constant__ int d_noisy_samples_per_pixel = 32;
 
 int main (int argc, char* argv[]) {

@@ -32,10 +32,13 @@ tf.app.flags.DEFINE_integer ("outputChannels", 3,
 tf.app.flags.DEFINE_float   ("learningRate", 0.00001,
                             "The learning rate for ADAM")
 
-tf.app.flags.DEFINE_integer ("numEpochs", 200,
+tf.app.flags.DEFINE_integer ("batchSize", 5,
+                            "Number of patches per minibatch")
+
+tf.app.flags.DEFINE_integer ("numEpochs", 10,
                             "Number of training epochs")
 
-tf.app.flags.DEFINE_integer ("numFilters", 10,
+tf.app.flags.DEFINE_integer ("numFilters", 100,
                             "Number of filters in the hidden layers")
 
 tf.app.flags.DEFINE_integer ("kernelSize", 5,
@@ -87,22 +90,22 @@ model = tf.keras.models.Sequential([
     firstConvLayer(),
 
     # Conv layer 2
-    #convLayer(),
+    convLayer(),
 
     # Conv layer 3
-    #convLayer(),
+    convLayer(),
 
     # Conv layer 4
-    #convLayer(),
+    convLayer(),
 
     # Conv layer 5
-    #convLayer(),
+    convLayer(),
 
     # Conv layer 6
-    #convLayer(),
+    convLayer(),
 
     # Conv layer 7
-    #convLayer(),
+    convLayer(),
 
     # Conv layer 8
     convLayer(),
@@ -111,8 +114,9 @@ model = tf.keras.models.Sequential([
     finalConvLayer()
 ])
 
+adam = tf.keras.optimizers.Adam(FLAGS.learningRate)
 model.compile(
-    optimizer="adam",
+    optimizer=adam,
     loss="mean_absolute_error"
     #metrics=["accuracy"])
 )
@@ -120,8 +124,8 @@ model.compile(
 model.fit(
     noisy_train,
     reference_train,
-    batch_size=5,
-    epochs=2
+    batch_size=FLAGS.batchSize,
+    epochs=FLAGS.numEpochs
 )
 
 # Serialise model to JSON
