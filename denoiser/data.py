@@ -45,6 +45,7 @@ for img in sorted(os.listdir(noisy_dir)):
 
 noisy_data = np.array(noisy_data) / 255.
 
+# Split the data into training and validation
 reference_train = reference_data[int(reference_data.shape[0] * 0.20) :]
 reference_test  = reference_data[: int(reference_data.shape[0] * 0.20)]
 

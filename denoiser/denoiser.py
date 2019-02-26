@@ -10,8 +10,8 @@ running the image through the model to remove the noise, producing images at a
 much higher quality.
 """
 
-
 import tensorflow as tf
+from keras.preprocessing.image import array_to_img
 import data
 
 # Global flags
@@ -35,41 +35,47 @@ tf.app.flags.DEFINE_float   ("learningRate", 0.00001,
 tf.app.flags.DEFINE_integer ("numEpochs", 200,
                             "Number of training epochs")
 
+tf.app.flags.DEFINE_integer ("numFilters", 10,
+                            "Number of filters in the hidden layers")
+
+tf.app.flags.DEFINE_integer ("kernelSize", 5,
+                            "Width and height of the convolution kernels")
+
 # First convolutional layer (must define input shape)
 def firstConvLayer():
     return tf.keras.layers.Conv2D(
         input_shape=(FLAGS.patchSize, FLAGS.patchSize, FLAGS.inputChannels),
-        filters=100,
-        kernel_size=(5, 5),
+        filters=FLAGS.numFilters,
+        kernel_size=FLAGS.kernelSize,
         use_bias=True,
-        strides=[1, 1],
-        padding="VALID",
-        activation=tf.keras.activations.relu,
-        kernel_initializer=tf.keras.initializers.glorot_uniform
+        strides=(1, 1),
+        padding="SAME",
+        activation="relu",
+        kernel_initializer="glorot_uniform" # Xavier uniform
     )
 
 # Convolutional layer (not final)
 def convLayer():
     return tf.keras.layers.Conv2D(
-        filters=100,
-        kernel_size=(5, 5),
+        filters=FLAGS.numFilters,
+        kernel_size=FLAGS.kernelSize,
         use_bias=True,
         strides=[1, 1],
-        padding="VALID",
-        activation=tf.keras.activations.relu,
-        kernel_initializer=tf.keras.initializers.glorot_uniform
+        padding="SAME",
+        activation="relu",
+        kernel_initializer="glorot_uniform" # Xavier uniform
     )
 
 # Final convolutional layer - no activation function
 def finalConvLayer():
     return tf.keras.layers.Conv2D(
         filters=FLAGS.outputChannels,
-        kernel_size=(5, 5),
+        kernel_size=FLAGS.kernelSize,
         use_bias=True,
         strides=(1, 1),
-        padding="VALID",
+        padding="SAME",
         activation=None,
-        kernel_initializer=tf.keras.initializers.glorot_uniform
+        kernel_initializer="glorot_uniform" # Xavier uniform
     )
 
 reference_train = data.data["train"]["colour"]["reference"]
@@ -81,22 +87,22 @@ model = tf.keras.models.Sequential([
     firstConvLayer(),
 
     # Conv layer 2
-    convLayer(),
+    #convLayer(),
 
     # Conv layer 3
-    convLayer(),
+    #convLayer(),
 
     # Conv layer 4
-    convLayer(),
+    #convLayer(),
 
     # Conv layer 5
-    convLayer(),
+    #convLayer(),
 
     # Conv layer 6
-    convLayer(),
+    #convLayer(),
 
     # Conv layer 7
-    convLayer(),
+    #convLayer(),
 
     # Conv layer 8
     convLayer(),
@@ -107,22 +113,25 @@ model = tf.keras.models.Sequential([
 
 model.compile(
     optimizer="adam",
-    loss="mean_absolute_error",
-    metrics=["accuracy"]
+    loss="mean_absolute_error"
+    #metrics=["accuracy"])
 )
 
 model.fit(
     noisy_train,
     reference_train,
-    epochs=5
+    batch_size=5,
+    epochs=2
 )
 
+# Serialise model to JSON
+#model_json = model.to_json()
+#with open("saved_model.json", "w") as f:
+#    f.write(model_json)
 
+# Serialise weights to HDF5
+#model.save_weights("saved_model.h5")
+#print("Saved model to disk")
 
-#model.compile(optimizer='adam',
-#              loss='sparse_categorical_crossentropy',
-#              metrics=['accuracy'])
-
-#model.fit(x_train, y_train, epochs=5)
-#model.evaluate(x_test, y_test)
-
+model.save("model.h5")
+del model
