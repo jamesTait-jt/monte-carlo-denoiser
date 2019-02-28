@@ -14,9 +14,13 @@ import tensorflow as tf
 from keras.preprocessing.image import array_to_img
 import data
 
-# Global flags
+
+########################
+##### Global flags #####
+########################
 FLAGS = tf.app.flags.FLAGS
 
+##### Network #####
 tf.app.flags.DEFINE_integer ("patchSize", 64,
                             "The size of the input patches")
 
@@ -35,7 +39,7 @@ tf.app.flags.DEFINE_float   ("learningRate", 0.00001,
 tf.app.flags.DEFINE_integer ("batchSize", 5,
                             "Number of patches per minibatch")
 
-tf.app.flags.DEFINE_integer ("numEpochs", 10,
+tf.app.flags.DEFINE_integer ("numEpochs", 100,
                             "Number of training epochs")
 
 tf.app.flags.DEFINE_integer ("numFilters", 100,
@@ -43,6 +47,10 @@ tf.app.flags.DEFINE_integer ("numFilters", 100,
 
 tf.app.flags.DEFINE_integer ("kernelSize", 5,
                             "Width and height of the convolution kernels")
+
+##### Filesystem #####
+tf.app.flags.DEFINE_string  ("modelSaveDir", "models",
+                            "Location at which the models are stored")
 
 # First convolutional layer (must define input shape)
 def firstConvLayer():
@@ -128,14 +136,5 @@ model.fit(
     epochs=FLAGS.numEpochs
 )
 
-# Serialise model to JSON
-#model_json = model.to_json()
-#with open("saved_model.json", "w") as f:
-#    f.write(model_json)
-
-# Serialise weights to HDF5
-#model.save_weights("saved_model.h5")
-#print("Saved model to disk")
-
-model.save("model.h5")
+model.save(FLAGS.modelSaveDir + "/model.h5")
 del model
