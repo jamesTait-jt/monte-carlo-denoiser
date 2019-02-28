@@ -13,6 +13,7 @@ much higher quality.
 import tensorflow as tf
 from keras.preprocessing.image import array_to_img
 import data
+import numpy as np
 
 
 ########################
@@ -27,7 +28,7 @@ tf.app.flags.DEFINE_integer ("patchSize", 64,
 #tf.app.flags.DEFINE_integer ("reconstructionKernelSize", 21,
 #                            "The size of the reconstruction kernel")
 
-tf.app.flags.DEFINE_integer ("inputChannels", 3,
+tf.app.flags.DEFINE_integer ("inputChannels", 6,
                             "The number of channels in an input patch")
 
 tf.app.flags.DEFINE_integer ("outputChannels", 3,
@@ -92,6 +93,9 @@ def finalConvLayer():
 reference_train = data.data["train"]["colour"]["reference"]
 noisy_train = data.data["train"]["colour"]["noisy"]
 
+reference_sn_train = data.data["train"]["surface_normal"]["reference"]
+noisy_sn_train = data.data["train"]["surface_normal"]["noisy"]
+
 model = tf.keras.models.Sequential([
 
     # Conv layer 1
@@ -122,6 +126,9 @@ model = tf.keras.models.Sequential([
     finalConvLayer()
 ])
 
+model_input = np.concatenate((noisy_train, noisy_sn_train), 3)
+#model_output = np.concatenate((reference_train, reference_sn_train), 3)
+
 adam = tf.keras.optimizers.Adam(FLAGS.learningRate)
 model.compile(
     optimizer=adam,
@@ -130,7 +137,7 @@ model.compile(
 )
 
 model.fit(
-    noisy_train,
+    model_input,
     reference_train,
     batch_size=FLAGS.batchSize,
     epochs=FLAGS.numEpochs
