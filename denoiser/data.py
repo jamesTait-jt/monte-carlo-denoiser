@@ -24,8 +24,8 @@ datagen = ImageDataGenerator(
         horizontal_flip=True,
         fill_mode='nearest')
 
-reference_dir = "data/reference"
-noisy_dir = "data/noisy"
+reference_dir = "data/patches/reference"
+noisy_dir = "data/patches/noisy"
 
 reference_data = []
 for img in sorted(os.listdir(reference_dir)):

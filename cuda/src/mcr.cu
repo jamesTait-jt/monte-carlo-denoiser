@@ -54,31 +54,31 @@ int main (int argc, char* argv[]) {
         vec3 * d_albedos;
 
         // Pointer to the depth buffer on host
-        float *h_depths = new float[screen_width * screen_height];
+        float * h_depths = new float[screen_width * screen_height];
         // Pointer to the depth buffer on device
-        float *d_depths;
+        float * d_depths;
 
         // ----- VARIANCES ----- //
 
         // Pointer to the colour variances on host
-        float *h_colour_variances = new float[screen_width * screen_height];
+        float * h_colour_variances = new float[screen_width * screen_height];
         // Pointer to the colour variances on device
-        float *d_colour_variances;
+        float * d_colour_variances;
 
         // Pointer to the surface normals on host
-        float *h_surface_normal_variances = new float[screen_width * screen_height];
+        float * h_surface_normal_variances = new float[screen_width * screen_height];
         // Pointer to the surface normals on device
-        float *d_surface_normal_variances;
+        float * d_surface_normal_variances;
 
         // Pointer to the albedo buffer on host
-        float *h_albedo_variances = new float[screen_width * screen_height];
+        float * h_albedo_variances = new float[screen_width * screen_height];
         // Pointer to the albedo buffer on the device
-        float *d_albedo_variances;
+        float * d_albedo_variances;
 
         // Pointer to the depth buffer on host
-        float *h_depth_variances = new float[screen_width * screen_height];
+        float * h_depth_variances = new float[screen_width * screen_height];
         // Pointer to the depth buffer on device
-        float *d_depth_variances;
+        float * d_depth_variances;
 
         // Allocate memory on CUDA device
         cudaMalloc(&d_colours, screen_width * screen_height * sizeof(vec3));
@@ -148,8 +148,8 @@ int main (int argc, char* argv[]) {
                 light_colour
         );
 
-        vec4 *camera_start_positions = new vec4[num_iterations];
-        float *camera_start_yaws = new float[num_iterations];
+        vec4 * camera_start_positions = new vec4[num_iterations];
+        float * camera_start_yaws = new float[num_iterations];
 
         srand(time(NULL));
         generateCameraStartPositions(camera_start_positions, camera_start_yaws);
@@ -165,9 +165,9 @@ int main (int argc, char* argv[]) {
 
             // Initialise the camera object
             Camera camera(
-                    camera_start_positions[i],
-                    camera_start_yaws[i],
-                    cam_focal_length
+                camera_start_positions[i],
+                camera_start_yaws[i],
+                cam_focal_length
             );
 
             auto start = std::chrono::high_resolution_clock::now();
@@ -204,6 +204,13 @@ int main (int argc, char* argv[]) {
                 screen_width * screen_height * sizeof(vec3),
                 cudaMemcpyDeviceToHost
             );
+            
+            cudaMemcpy(
+                h_surface_normals,
+                d_surface_normals,
+                screen_width * screen_height * sizeof(vec3),
+                cudaMemcpyDeviceToHost
+            );
 
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = end - start;
@@ -211,14 +218,22 @@ int main (int argc, char* argv[]) {
 
             printf("Finished rendering in %dms.\n", duration_in_ms);
 
-            std::string title = is_reference_image ? "reference" : "noisy";
+            std::string title_prefix =  is_reference_image ? "reference_" : "noisy_";
             save_image(
                 h_colours,
                 screen_height,
                 screen_width,
-                title
+                title_prefix + "colour"
             );
 
+           save_image(
+                h_surface_normals,
+                screen_height,
+                screen_width,
+                title_prefix + "surface_normal"
+            );
+
+           /*
             if (patch_size > 0) {
                 save_patches(
                     h_colours,
@@ -227,6 +242,7 @@ int main (int argc, char* argv[]) {
                     seed
                 );
             }
+            */
 
             /*
             view_live(
