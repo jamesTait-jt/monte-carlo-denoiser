@@ -25,13 +25,17 @@ PATCH_WIDTH = 64
 PATCH_HEIGHT = 64
 
 IMAGE_PATHS = [
-    "data/full/noisy.jpg",
-    "data/full/reference.jpg"
+    "data/full/noisy_colour.jpg",
+    "data/full/reference_colour.jpg",
+    "data/full/noisy_surface_normal.jpg",
+    "data/full/reference_surface_normal.jpg"
 ]
 
 SAVE_DIRS = [
-    "data/patches/noisy/",
-    "data/patches/reference/"
+    "data/patches/noisy_colour/",
+    "data/patches/reference_colour/",
+    "data/patches/noisy_surface_normal/",
+    "data/patches/reference_surface_normal/"
 ]
 
 darts = generate_darts(
@@ -55,7 +59,4 @@ for i in range(len(IMAGE_PATHS)):
                 new_patch[x][y] = img_array[dart[0] + x][dart[1] + y]
         new_patch = array_to_img(new_patch)
         new_patch.save(SAVE_DIRS[i] + str(ctr) + ".jpg")
-
-
-
 

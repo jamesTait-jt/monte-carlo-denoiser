@@ -15,7 +15,7 @@ int scaleTo255(float x) {
 
 // Saves the image as a simple .ppm file (open with program such as 'feh'
 void save_image(vec3 * image, int height, int width, std::string name) {
-    std::string filename = "out/";
+    std::string filename = "../denoiser/data/full/";
     std::string extension = ".ppm";
     filename += (name + extension);
     FILE * file = fopen(filename.c_str(), "w");
