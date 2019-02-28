@@ -16,14 +16,8 @@
   <component name="ChangeListManager">
     <list default="true" id="3953c3ed-5434-42ed-9ab0-f5eeb2396869" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/out/aliased-0.ppm" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/cuda/src/constants/config.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/constants/config.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/mcr.cu" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/mcr.cu" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/mcr.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/mcr.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cuda/src/util.cu" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/util.cu" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/util.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/util.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/denoiser/denoiser.py" beforeDir="false" afterPath="$PROJECT_DIR$/denoiser/denoiser.py" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cuda/cmake-build-debug/" />
     <ignored path="$PROJECT_DIR$/cuda/CMakeFiles/" />
@@ -35,26 +29,7 @@
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="FileEditorManager">
-    <leaf>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/cuda/src/util.cu">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="585">
-              <caret line="60" column="67" selection-start-line="60" selection-start-column="67" selection-end-line="60" selection-end-column="67" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/cuda/src/constants/config.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="525">
-              <caret line="35" selection-start-line="35" selection-end-line="35" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
@@ -90,9 +65,9 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="26" />
+    <option name="x" value="544" />
     <option name="y" value="10" />
-    <option name="width" value="1868" />
+    <option name="width" value="928" />
     <option name="height" value="999" />
   </component>
   <component name="ProjectView">
@@ -100,6 +75,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -129,7 +105,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -180,17 +155,17 @@
       <workItem from="1551099814826" duration="2052000" />
       <workItem from="1551126985528" duration="1271000" />
       <workItem from="1551128516611" duration="1604000" />
+      <workItem from="1551354558774" duration="75000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="64410000" />
+    <option name="totallyTimeSpent" value="64485000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="26" y="10" width="1868" height="999" extended-state="0" />
-    <editor active="true" />
+    <frame x="544" y="10" width="928" height="999" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15676567" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16059226" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -388,20 +363,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/convertImages.sh">
-      <provider selected="true" editor-type-id="text-editor" />
+    <entry file="file://$PROJECT_DIR$/cuda/convertImages.sh" />
+    <entry file="file://$PROJECT_DIR$/cuda/src/util.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="450">
+          <caret line="51" column="46" selection-start-line="51" selection-start-column="46" selection-end-line="51" selection-end-column="46" />
+        </state>
+      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/cuda/src/constants/config.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="525">
           <caret line="35" selection-start-line="35" selection-end-line="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/util.cu">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="585">
-          <caret line="60" column="67" selection-start-line="60" selection-start-column="67" selection-end-line="60" selection-end-column="67" />
         </state>
       </provider>
     </entry>

@@ -49,7 +49,7 @@ void save_patches(vec3 * image, int size, std::string title, std::vector<int> se
     for (int x = 0 ; x <= screen_width - size ; x += patch_step) {
         for (int y = 0 ; y <= screen_height - size ; y += patch_step) {
             ctr++;
-            std::string filename = "/pics/patches/" + title + std::to_string(seed[ctr]) + ".ppm";
+            std::string filename = "/overflow/pics/patches/" + title + std::to_string(seed[ctr]) + ".ppm";
             FILE * patch = fopen(filename.c_str(), "wt");
             fprintf(patch, "P3\n%d %d\n%d\n", size, size, 255);
             for (int x1 = x ; x1 < x + size ; x1++) {
