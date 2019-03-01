@@ -117,3 +117,10 @@ __device__
 float mySum(vec3 v) {
     return v.x + v.y + v.z;
 }
+
+__device__
+vec3 luminance(vec3 v) {
+    float luminance = 0.299f * v.x * v.x + 0.587f * v.y * v.y + 0.114f * v.z * v.z;
+    //printf("%f\n", luminance);
+    return glm::vec3(luminance);
+}

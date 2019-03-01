@@ -28,10 +28,10 @@ tf.app.flags.DEFINE_integer ("patchSize", 64,
 #tf.app.flags.DEFINE_integer ("reconstructionKernelSize", 21,
 #                            "The size of the reconstruction kernel")
 
-tf.app.flags.DEFINE_integer ("inputChannels", 6,
+tf.app.flags.DEFINE_integer ("inputChannels", 19,
                             "The number of channels in an input patch")
 
-tf.app.flags.DEFINE_integer ("outputChannels", 3,
+tf.app.flags.DEFINE_integer ("outputChannels", 19,
                             "The number of channels in an output patch")
 
 tf.app.flags.DEFINE_float   ("learningRate", 0.00001,
@@ -54,94 +54,231 @@ tf.app.flags.DEFINE_string  ("modelSaveDir", "models",
                             "Location at which the models are stored")
 
 # First convolutional layer (must define input shape)
-def firstConvLayer():
-    return tf.keras.layers.Conv2D(
-        input_shape=(FLAGS.patchSize, FLAGS.patchSize, FLAGS.inputChannels),
-        filters=FLAGS.numFilters,
-        kernel_size=FLAGS.kernelSize,
-        use_bias=True,
-        strides=(1, 1),
-        padding="SAME",
-        activation="relu",
-        kernel_initializer="glorot_uniform" # Xavier uniform
+def firstConvLayer(model):
+    model.add(
+        tf.keras.layers.Conv2D(
+            input_shape=(FLAGS.patchSize, FLAGS.patchSize, FLAGS.inputChannels),
+            filters=FLAGS.numFilters,
+            kernel_size=FLAGS.kernelSize,
+            use_bias=True,
+            strides=(1, 1),
+            padding="SAME",
+            activation="relu",
+            kernel_initializer="glorot_uniform" # Xavier uniform
+        )
     )
 
 # Convolutional layer (not final)
-def convLayer():
-    return tf.keras.layers.Conv2D(
-        filters=FLAGS.numFilters,
-        kernel_size=FLAGS.kernelSize,
-        use_bias=True,
-        strides=[1, 1],
-        padding="SAME",
-        activation="relu",
-        kernel_initializer="glorot_uniform" # Xavier uniform
+def convLayer(model):
+    model.add(
+        tf.keras.layers.Conv2D(
+            filters=FLAGS.numFilters,
+            kernel_size=FLAGS.kernelSize,
+            use_bias=True,
+            strides=[1, 1],
+            padding="SAME",
+            activation="relu",
+            kernel_initializer="glorot_uniform" # Xavier uniform
+        )
     )
+
+def convWithBatchNorm(model):
+    # We don't need to add bias if we use batch normalisation
+    model.add(
+        tf.keras.layers.Conv2D(
+            input_shape=(FLAGS.patchSize, FLAGS.patchSize, FLAGS.inputChannels),
+            filters=FLAGS.numFilters,
+            kernel_size=FLAGS.kernelSize,
+            use_bias=False,
+            strides=(1, 1),
+            padding="SAME",
+            activation=None,
+            kernel_initializer="glorot_uniform" # Xavier uniform
+        )
+    )
+
+    # Batch normalise after the convolutional layer
+    model.add(
+        tf.keras.layers.BatchNormalization()    
+    )
+
+    # Apply the relu activation function
+    model.add(
+        tf.keras.layers.Activation("relu")
+    )
+
 
 # Final convolutional layer - no activation function
-def finalConvLayer():
-    return tf.keras.layers.Conv2D(
-        filters=FLAGS.outputChannels,
-        kernel_size=FLAGS.kernelSize,
-        use_bias=True,
-        strides=(1, 1),
-        padding="SAME",
-        activation=None,
-        kernel_initializer="glorot_uniform" # Xavier uniform
+def finalConvLayer(model):
+    model.add(
+        tf.keras.layers.Conv2D(
+            filters=FLAGS.outputChannels,
+            kernel_size=FLAGS.kernelSize,
+            use_bias=True,
+            strides=(1, 1),
+            padding="SAME",
+            activation=None,
+            kernel_initializer="glorot_uniform" # Xavier uniform
+        )
     )
 
-reference_train = data.data["train"]["colour"]["reference"]
-noisy_train = data.data["train"]["colour"]["noisy"]
 
+# Training data
+# Colour information (RGB picture) and gradients (x and y)
+reference_colour_train = data.data["train"]["colour"]["reference"]
+noisy_colour_train = data.data["train"]["colour"]["noisy"]
+
+reference_colour_gradx_train = data.data["train"]["colour_gradx"]["reference"]
+noisy_colour_gradx_train = data.data["train"]["colour_gradx"]["noisy"]
+
+reference_colour_grady_train = data.data["train"]["colour_grady"]["reference"]
+noisy_colour_grady_train = data.data["train"]["colour_grady"]["noisy"]
+
+# Colour variance (3 channels converted to 1 by calculating luminance) 
+reference_colour_var_train = data.data["train"]["colour_var"]["reference"]
+noisy_colour_var_train = data.data["train"]["colour_var"]["noisy"]
+
+# Surface normals and gradients
 reference_sn_train = data.data["train"]["surface_normal"]["reference"]
 noisy_sn_train = data.data["train"]["surface_normal"]["noisy"]
 
-model = tf.keras.models.Sequential([
+reference_sn_gradx_train = data.data["train"]["surface_normal_gradx"]["reference"]
+noisy_sn_gradx_train = data.data["train"]["surface_normal_gradx"]["noisy"]
 
-    # Conv layer 1
-    firstConvLayer(),
+reference_sn_grady_train = data.data["train"]["surface_normal_grady"]["reference"]
+noisy_sn_grady_train = data.data["train"]["surface_normal_grady"]["noisy"]
 
-    # Conv layer 2
-    convLayer(),
+# Test data
+# Colour information (RGB picture)
+reference_colour_test = data.data["test"]["colour"]["reference"]
+noisy_colour_test = data.data["test"]["colour"]["noisy"]
 
-    # Conv layer 3
-    convLayer(),
+reference_colour_gradx_test = data.data["test"]["colour_gradx"]["reference"]
+noisy_colour_gradx_test = data.data["test"]["colour_gradx"]["noisy"]
 
-    # Conv layer 4
-    convLayer(),
+reference_colour_grady_test = data.data["test"]["colour_grady"]["reference"]
+noisy_colour_grady_test = data.data["test"]["colour_grady"]["noisy"]
 
-    # Conv layer 5
-    convLayer(),
+# Colour variance (3 channels converted to 1 by calculating luminance) 
+reference_colour_var_test = data.data["test"]["colour_var"]["reference"]
+noisy_colour_var_test = data.data["test"]["colour_var"]["noisy"]
 
-    # Conv layer 6
-    convLayer(),
+# Surface normals
+reference_sn_test = data.data["test"]["surface_normal"]["reference"]
+noisy_sn_test = data.data["test"]["surface_normal"]["noisy"]
 
-    # Conv layer 7
-    convLayer(),
+reference_sn_gradx_test = data.data["test"]["surface_normal_gradx"]["reference"]
+noisy_sn_gradx_test = data.data["test"]["surface_normal_gradx"]["noisy"]
 
-    # Conv layer 8
-    convLayer(),
+reference_sn_grady_test = data.data["test"]["surface_normal_grady"]["reference"]
+noisy_sn_grady_test = data.data["test"]["surface_normal_grady"]["noisy"]
 
-    # Conv layer 9
-    finalConvLayer()
-])
+model = tf.keras.models.Sequential()
 
-model_input = np.concatenate((noisy_train, noisy_sn_train), 3)
-#model_output = np.concatenate((reference_train, reference_sn_train), 3)
+# Conv layer 1
+firstConvLayer(model)
+
+# Conv layer 2
+convLayer(model)
+#convWithBatchNorm(model)
+
+# Conv layer 3
+convLayer(model)
+#convWithBatchNorm(model)
+
+# Conv layer 4
+convLayer(model)
+#convWithBatchNorm(model)
+
+# Conv layer 5
+convLayer(model)
+#convWithBatchNorm(model)
+
+# Conv layer 6
+convLayer(model)
+#convWithBatchNorm(model)
+
+# Conv layer 7
+convLayer(model)
+#convWithBatchNorm(model)
+
+# Conv layer 8
+convLayer(model)
+#convWithBatchNorm(model)
+    
+# Conv layer 9
+finalConvLayer(model)
+
+
+tensorboard_callback = tf.keras.callbacks.TensorBoard(
+    log_dir='./logs', 
+    histogram_freq=0,  
+    write_graph=True, 
+    write_images=True
+)
+
+model_input = np.concatenate(
+    (
+        noisy_colour_train, 
+        noisy_colour_gradx_train,
+        noisy_colour_grady_train,
+        noisy_colour_var_train,
+        noisy_sn_train,
+        noisy_sn_gradx_train,
+        noisy_sn_grady_train
+    ), 3)
+
+model_output = np.concatenate(
+    (
+        reference_colour_train, 
+        reference_colour_gradx_train, 
+        reference_colour_grady_train, 
+        reference_colour_var_train, 
+        reference_sn_train,
+        reference_sn_gradx_train,
+        reference_sn_grady_train
+    ), 3)
 
 adam = tf.keras.optimizers.Adam(FLAGS.learningRate)
 model.compile(
     optimizer=adam,
-    loss="mean_absolute_error"
-    #metrics=["accuracy"])
+    loss="mean_absolute_error",
+    metrics=["accuracy"]
 )
 
 model.fit(
     model_input,
-    reference_train,
+    model_output,
     batch_size=FLAGS.batchSize,
-    epochs=FLAGS.numEpochs
+    epochs=FLAGS.numEpochs,
+    callbacks=[tensorboard_callback]
 )
 
 model.save(FLAGS.modelSaveDir + "/model.h5")
+
+test_input = np.concatenate(
+    (
+        noisy_colour_test, 
+        noisy_colour_gradx_test,
+        noisy_colour_grady_test,
+        noisy_colour_var_test,
+        noisy_sn_test,
+        noisy_sn_gradx_test,
+        noisy_sn_grady_test
+    ), 3)
+
+test_output = np.concatenate(
+    (
+        reference_colour_test, 
+        reference_colour_gradx_test, 
+        reference_colour_grady_test, 
+        reference_colour_var_test, 
+        reference_sn_test,
+        reference_sn_gradx_test,
+        reference_sn_grady_test
+    ), 3)
+score = model.evaluate(test_input, test_output, verbose=0)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
+
 del model

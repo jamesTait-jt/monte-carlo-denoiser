@@ -18,7 +18,7 @@
 
 // ----- DEVICE CONSTANTS ----- //
 __constant__ int d_ref_samples_per_pixel = 8 * 1024;
-__constant__ int d_noisy_samples_per_pixel = 32;
+__constant__ int d_noisy_samples_per_pixel = 128;
 
 int main (int argc, char* argv[]) {
 
@@ -61,19 +61,19 @@ int main (int argc, char* argv[]) {
         // ----- VARIANCES ----- //
 
         // Pointer to the colour variances on host
-        float * h_colour_variances = new float[screen_width * screen_height];
+        vec3 * h_colour_variances = new vec3[screen_width * screen_height];
         // Pointer to the colour variances on device
-        float * d_colour_variances;
+        vec3 * d_colour_variances;
 
         // Pointer to the surface normals on host
-        float * h_surface_normal_variances = new float[screen_width * screen_height];
+        vec3 * h_surface_normal_variances = new vec3[screen_width * screen_height];
         // Pointer to the surface normals on device
-        float * d_surface_normal_variances;
+        vec3 * d_surface_normal_variances;
 
         // Pointer to the albedo buffer on host
-        float * h_albedo_variances = new float[screen_width * screen_height];
+        vec3 * h_albedo_variances = new vec3[screen_width * screen_height];
         // Pointer to the albedo buffer on the device
-        float * d_albedo_variances;
+        vec3 * d_albedo_variances;
 
         // Pointer to the depth buffer on host
         float * h_depth_variances = new float[screen_width * screen_height];
@@ -86,10 +86,10 @@ int main (int argc, char* argv[]) {
         cudaMalloc(&d_albedos, screen_width * screen_height * sizeof(vec3));
         cudaMalloc(&d_depths, screen_width * screen_height * sizeof(float));
 
-        cudaMalloc(&d_colour_variances, screen_width * screen_height * sizeof(float));
-        cudaMalloc(&d_surface_normal_variances, screen_width * screen_height * sizeof(float));
-        cudaMalloc(&d_albedo_variances, screen_width * screen_height * sizeof(float));
-        cudaMalloc(&d_depth_variances, screen_width * screen_height * sizeof(float));
+        cudaMalloc(&d_colour_variances, screen_width * screen_height * sizeof(vec3));
+        cudaMalloc(&d_surface_normal_variances, screen_width * screen_height * sizeof(vec3));
+        cudaMalloc(&d_albedo_variances, screen_width * screen_height * sizeof(vec3));
+        cudaMalloc(&d_depth_variances, screen_width * screen_height * sizeof(vec3));
 
         // Specify the block and grid dimensions to schedule CUDA threads
         dim3 threads_per_block(8, 8);
@@ -122,17 +122,17 @@ int main (int argc, char* argv[]) {
         loadShapes(triangles, spheres);
 
         cudaMemcpy(
-                d_triangles,
-                triangles,
-                num_tris * sizeof(Triangle),
-                cudaMemcpyHostToDevice
+            d_triangles,
+            triangles,
+            num_tris * sizeof(Triangle),
+            cudaMemcpyHostToDevice
         );
 
         cudaMemcpy(
-                d_spheres,
-                spheres,
-                num_spheres * sizeof(Sphere),
-                cudaMemcpyHostToDevice
+            d_spheres,
+            spheres,
+            num_spheres * sizeof(Sphere),
+            cudaMemcpyHostToDevice
         );
 
         printf("CUDA has been initialised. Begin rendering...\n");
@@ -141,11 +141,11 @@ int main (int argc, char* argv[]) {
         // Define our area light
         LightSphere
         light_sphere(
-                light_start_position,
-                area_light_radius,
-                num_lights,
-                light_intensity,
-                light_colour
+            light_start_position,
+            area_light_radius,
+            num_lights,
+            light_intensity,
+            light_colour
         );
 
         vec4 * camera_start_positions = new vec4[num_iterations];
@@ -204,7 +204,14 @@ int main (int argc, char* argv[]) {
                 screen_width * screen_height * sizeof(vec3),
                 cudaMemcpyDeviceToHost
             );
-            
+
+            cudaMemcpy(
+                h_colour_variances,
+                d_colour_variances,
+                screen_width * screen_height * sizeof(vec3),
+                cudaMemcpyDeviceToHost
+            );
+
             cudaMemcpy(
                 h_surface_normals,
                 d_surface_normals,
@@ -225,6 +232,13 @@ int main (int argc, char* argv[]) {
                 screen_width,
                 title_prefix + "colour"
             );
+
+           save_image(
+                h_colour_variances,
+                screen_height,
+                screen_width,
+                title_prefix + "colour_vars"
+           );
 
            save_image(
                 h_surface_normals,
@@ -342,9 +356,9 @@ void render_kernel(
     vec3 * surface_normals,
     vec3 * albedos,
     float * depths,
-    float * colour_variances,
-    float * surface_normal_variances,
-    float * albedo_variances,
+    vec3 * colour_variances,
+    vec3 * surface_normal_variances,
+    vec3 * albedo_variances,
     float * depth_variances,
     Camera camera,
     LightSphere light_sphere,
@@ -439,10 +453,11 @@ void render_kernel(
     vec3 albedo_var = albedo_square_accum / (float) num_samples - albedos[pixel_index] * albedos[pixel_index];
     float depth_var = depth_square_accum / (float) num_samples - depths[pixel_index] * depths[pixel_index];
 
-    colour_variances[pixel_index] = mySum(colour_var);
-    surface_normal_variances[pixel_index] = mySum(surface_normal_var);
-    albedo_variances[pixel_index] = mySum(albedo_var);
-    depth_variances[pixel_index] = depth_var;
+    colour_variances[pixel_index] = luminance(colour_var);
+    //printf("%f\n", colour_variances[pixel_index].x);
+    //surface_normal_variances[pixel_index] = luminance(surface_normal_var);
+    //albedo_variances[pixel_index] = luminance(albedo_var);
+    //depth_variances[pixel_index] = depth_var;
 
 }
 

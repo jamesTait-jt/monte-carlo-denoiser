@@ -15,6 +15,28 @@ def shuffle_two_arrays(a, b):
         new_b[i] = s[s[i]]
     return new_a, new_b
 
+# Takes a list of AxBxCx3 array and output AxBxCx1 where the value is the first
+# dimension of the 3D vector
+def convert_channels_3_to_1(data):
+    shape = data.shape
+    new_data = np.zeros((shape[0], shape[1], shape[2], 1))
+    for i in range(len(data)):
+        for x in range(shape[1]):
+            for y in range(shape[2]):
+                new_data[i][x][y] = data[i][x][y][0]
+    return new_data
+
+def convert_channels_7_to_3(data):
+    shape = data.shape
+    new_data = np.zeros((shape[0], shape[1], shape[2], 3))
+    for i in range(len(data)):
+        for x in range(shape[1]):
+            for y in range(shape[2]):
+                new_data[i][x][y][0] = data[i][x][y][0]
+                new_data[i][x][y][1] = data[i][x][y][1]
+                new_data[i][x][y][2] = data[i][x][y][2]
+    return new_data
+
 datagen = ImageDataGenerator(
         rotation_range=40,
         width_shift_range=0.2,
@@ -24,79 +46,102 @@ datagen = ImageDataGenerator(
         horizontal_flip=True,
         fill_mode='nearest')
 
-reference_colour_dir = "data/patches/reference_colour"
-noisy_colour_dir = "data/patches/noisy_colour"
-reference_surface_normal_dir = "data/patches/reference_surface_normal"
-noisy_surface_normal_dir = "data/patches/noisy_surface_normal"
+# List of directories for various data
+IMG_DIRS = [
+    "data/patches/reference_colour/",
+    "data/patches/noisy_colour/",
+    "data/patches/reference_colour_gradx/",
+    "data/patches/noisy_colour_gradx/",
+    "data/patches/reference_colour_grady/",
+    "data/patches/noisy_colour_grady/",
+    "data/patches/reference_colour_vars/",
+    "data/patches/noisy_colour_vars/",
+    "data/patches/reference_surface_normal/",
+    "data/patches/noisy_surface_normal/",
+    "data/patches/reference_surface_normal_gradx/",
+    "data/patches/noisy_surface_normal_gradx/",
+    "data/patches/reference_surface_normal_grady/",
+    "data/patches/noisy_surface_normal_grady/"
+]
 
-reference_data = []
-for img in sorted(os.listdir(reference_colour_dir)):
-    img = load_img(reference_colour_dir + "/" + img)
-    img = img_to_array(img)
-    #img = img.reshape((1,) + img.shape)
-    reference_data.append(img)
+data_list = []
+for i in range(len(IMG_DIRS)):
+    # Extract the image for storing in dict
+    img_dir = IMG_DIRS[i]
 
-reference_data = np.array(reference_data) / 255.
+    data = []
+    for img in sorted(os.listdir(img_dir)):
+        img = load_img(img_dir + img)
+        img = img_to_array(img)
+        data.append(img)
+    data = np.array(data) / 255.0
 
-noisy_data = []
-for img in sorted(os.listdir(noisy_colour_dir)):
-    img = load_img(noisy_colour_dir + "/" + img)
-    img = img_to_array(img)
-    #img = img.reshape((1,) + img.shape)
-    noisy_data.append(img)
+    # Split into training and test data (80:20 split)
+    train = data[int(data.shape[0] * 0.20) :] 
+    test = data[: int(data.shape[0] * 0.20)] 
 
-noisy_data = np.array(noisy_data) / 255.
+    data_list.append((train, test))
 
-reference_surface_normal_data = []
-for img in sorted(os.listdir(reference_surface_normal_dir)):
-    img = load_img(reference_surface_normal_dir + "/" + img)
-    img = img_to_array(img)
-    #img = img.reshape((1,) + img.shape)
-    reference_surface_normal_data.append(img)
-
-reference_surface_normal_data = np.array(reference_surface_normal_data) / 255.
-
-noisy_surface_normal_data = []
-for img in sorted(os.listdir(noisy_surface_normal_dir)):
-    img = load_img(noisy_surface_normal_dir + "/" + img)
-    img = img_to_array(img)
-    #img = img.reshape((1,) + img.shape)
-    noisy_surface_normal_data.append(img)
-
-noisy_surface_normal_data = np.array(noisy_surface_normal_data) / 255.
-
-
-# Split the data into training and validation
-reference_train = reference_data[int(reference_data.shape[0] * 0.20) :]
-reference_test  = reference_data[: int(reference_data.shape[0] * 0.20)]
-reference_surface_normal_train = reference_surface_normal_data[int(reference_surface_normal_data.shape[0] * 0.20) :]
-reference_surface_normal_test  = reference_surface_normal_data[: int(reference_surface_normal_data.shape[0] * 0.20)]
-
-noisy_train = noisy_data[int(noisy_data.shape[0] * 0.20) :]
-noisy_test  = noisy_data[: int(noisy_data.shape[0] * 0.20)]
-noisy_surface_normal_train = noisy_surface_normal_data[int(noisy_surface_normal_data.shape[0] * 0.20) :]
-noisy_surface_normal_test  = noisy_surface_normal_data[: int(noisy_surface_normal_data.shape[0] * 0.20)]
-
+# Define the data dictionary
 data = {
     "train" : {
         "colour" : {
-            "reference" : reference_train,
-            "noisy" : noisy_train
+            "reference" : data_list[0][0],
+            "noisy" : data_list[1][0]
+        },
+        "colour_gradx" : {
+            "reference" : data_list[2][0],
+            "noisy" : data_list[3][0]
+        },
+        "colour_grady" : {
+            "reference" : data_list[4][0],
+            "noisy" : data_list[5][0]
+        },
+        "colour_var" : {
+            "reference" : convert_channels_3_to_1(data_list[6][0]),
+            "noisy" : convert_channels_3_to_1(data_list[7][0])
         },
         "surface_normal" : {
-            "reference" : reference_surface_normal_train,
-            "noisy" : noisy_surface_normal_train
+            "reference" : data_list[8][0],
+            "noisy" : data_list[9][0]
+        },
+        "surface_normal_gradx" : {
+            "reference" : data_list[10][0],
+            "noisy" : data_list[11][0]
+        },
+        "surface_normal_grady" : {
+            "reference" : data_list[12][0],
+            "noisy" : data_list[13][0]
         }
     },
     "test" : {
         "colour" : {
-            "reference" : reference_test,
-            "noisy" : noisy_test
+            "reference" : data_list[0][1],
+            "noisy" : data_list[1][1]
+        },
+        "colour_gradx" : {
+            "reference" : data_list[2][1],
+            "noisy" : data_list[3][1]
+        },
+        "colour_grady" : {
+            "reference" : data_list[4][1],
+            "noisy" : data_list[5][1]
+        },
+        "colour_var" : {
+            "reference" : convert_channels_3_to_1(data_list[6][1]),
+            "noisy" : convert_channels_3_to_1(data_list[7][1])
         },
         "surface_normal" : {
-            "reference" : reference_surface_normal_test,
-            "noisy" : noisy_surface_normal_test
+            "reference" : data_list[8][1],
+            "noisy" : data_list[9][1]
+        },
+        "surface_normal_gradx" : {
+            "reference" : data_list[10][1],
+            "noisy" : data_list[11][1]
+        },
+        "surface_normal_grady" : {
+            "reference" : data_list[12][1],
+            "noisy" : data_list[13][1]
         }
     }
 }
-

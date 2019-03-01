@@ -76,4 +76,9 @@ float mySum(
     vec3 v
 );
 
+__device__
+vec3 luminance(
+    vec3 v
+);
+
 #endif

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/cuda/src/mcr.cu" line="426" mnemonic="8" />
+    <bookmark url="file://$PROJECT_DIR$/cuda/src/mcr.cu" line="457" mnemonic="8" />
   </component>
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
     <generated>
@@ -16,8 +16,819 @@
   <component name="ChangeListManager">
     <list default="true" id="3953c3ed-5434-42ed-9ab0-f5eeb2396869" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cuda/src/constants/config.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/constants/config.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cuda/src/mcr.cu" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/mcr.cu" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cuda/src/mcr.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/mcr.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cuda/src/util.cu" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/util.cu" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cuda/src/util.h" beforeDir="false" afterPath="$PROJECT_DIR$/cuda/src/util.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/denoiser/data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/full/noisy_colour.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/full/noisy_surface_normal.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/full/reference_colour.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/full/reference_surface_normal.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/1.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/10.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/100.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/101.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/102.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/103.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/104.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/105.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/106.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/107.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/108.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/109.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/11.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/110.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/111.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/112.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/113.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/114.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/115.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/116.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/117.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/118.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/119.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/12.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/120.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/121.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/122.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/123.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/124.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/125.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/126.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/127.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/128.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/129.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/13.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/130.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/131.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/132.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/133.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/134.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/135.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/136.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/137.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/138.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/139.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/14.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/140.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/141.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/142.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/143.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/144.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/145.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/146.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/147.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/148.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/149.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/15.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/150.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/151.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/152.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/153.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/154.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/155.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/156.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/157.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/158.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/159.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/16.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/160.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/161.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/162.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/163.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/164.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/165.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/166.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/167.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/168.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/169.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/17.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/170.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/171.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/172.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/173.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/174.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/175.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/176.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/177.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/178.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/179.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/18.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/180.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/181.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/182.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/183.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/184.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/185.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/186.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/187.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/188.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/189.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/19.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/190.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/191.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/192.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/193.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/194.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/195.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/196.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/197.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/198.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/199.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/2.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/20.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/200.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/21.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/22.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/23.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/24.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/25.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/26.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/27.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/28.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/29.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/3.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/30.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/31.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/32.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/33.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/34.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/35.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/36.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/37.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/38.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/39.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/4.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/40.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/41.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/42.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/43.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/44.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/45.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/46.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/47.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/48.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/49.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/5.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/50.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/51.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/52.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/53.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/54.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/55.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/56.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/57.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/58.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/59.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/6.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/60.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/61.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/62.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/63.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/64.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/65.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/66.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/67.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/68.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/69.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/7.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/70.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/71.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/72.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/73.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/74.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/75.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/76.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/77.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/78.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/79.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/8.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/80.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/81.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/82.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/83.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/84.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/85.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/86.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/87.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/88.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/89.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/9.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/90.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/91.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/92.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/93.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/94.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/95.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/96.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/97.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/98.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_colour/99.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/1.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/10.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/100.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/101.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/102.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/103.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/104.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/105.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/106.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/107.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/108.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/109.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/11.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/110.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/111.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/112.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/113.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/114.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/115.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/116.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/117.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/118.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/119.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/12.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/120.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/121.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/122.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/123.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/124.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/125.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/126.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/127.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/128.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/129.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/13.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/130.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/131.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/132.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/133.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/134.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/135.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/136.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/137.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/138.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/139.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/14.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/140.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/141.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/142.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/143.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/144.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/145.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/146.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/147.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/148.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/149.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/15.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/150.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/151.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/152.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/153.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/154.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/155.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/156.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/157.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/158.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/159.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/16.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/160.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/161.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/162.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/163.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/164.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/165.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/166.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/167.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/168.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/169.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/17.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/170.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/171.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/172.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/173.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/174.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/175.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/176.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/177.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/178.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/179.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/18.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/180.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/181.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/182.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/183.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/184.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/185.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/186.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/187.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/188.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/189.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/19.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/190.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/191.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/192.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/193.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/194.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/195.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/196.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/197.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/198.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/199.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/2.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/20.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/200.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/21.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/22.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/23.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/24.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/25.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/26.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/27.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/28.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/29.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/3.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/30.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/31.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/32.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/33.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/34.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/35.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/36.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/37.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/38.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/39.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/4.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/40.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/41.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/42.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/43.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/44.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/45.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/46.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/47.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/48.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/49.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/5.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/50.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/51.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/52.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/53.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/54.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/55.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/56.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/57.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/58.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/59.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/6.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/60.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/61.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/62.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/63.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/64.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/65.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/66.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/67.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/68.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/69.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/7.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/70.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/71.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/72.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/73.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/74.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/75.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/76.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/77.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/78.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/79.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/8.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/80.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/81.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/82.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/83.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/84.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/85.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/86.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/87.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/88.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/89.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/9.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/90.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/91.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/92.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/93.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/94.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/95.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/96.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/97.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/98.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/noisy_surface_normal/99.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/1.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/10.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/100.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/101.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/102.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/103.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/104.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/105.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/106.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/107.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/108.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/109.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/11.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/110.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/111.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/112.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/113.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/114.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/115.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/116.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/117.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/118.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/119.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/12.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/120.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/121.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/122.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/123.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/124.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/125.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/126.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/127.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/128.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/129.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/13.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/130.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/131.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/132.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/133.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/134.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/135.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/136.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/137.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/138.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/139.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/14.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/140.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/141.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/142.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/143.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/144.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/145.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/146.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/147.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/148.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/149.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/15.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/150.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/151.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/152.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/153.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/154.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/155.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/156.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/157.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/158.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/159.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/16.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/160.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/161.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/162.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/163.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/164.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/165.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/166.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/167.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/168.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/169.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/17.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/170.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/171.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/172.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/173.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/174.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/175.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/176.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/177.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/178.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/179.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/18.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/180.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/181.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/182.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/183.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/184.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/185.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/186.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/187.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/188.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/189.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/19.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/190.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/191.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/192.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/193.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/194.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/195.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/196.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/197.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/198.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/199.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/2.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/20.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/200.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/21.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/22.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/23.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/24.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/25.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/26.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/27.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/28.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/29.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/3.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/30.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/31.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/32.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/33.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/34.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/35.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/36.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/37.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/38.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/39.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/4.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/40.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/41.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/42.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/43.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/44.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/45.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/46.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/47.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/48.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/49.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/5.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/50.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/51.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/52.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/53.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/54.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/55.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/56.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/57.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/58.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/59.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/6.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/60.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/61.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/62.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/63.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/64.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/65.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/66.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/67.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/68.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/69.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/7.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/70.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/71.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/72.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/73.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/74.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/75.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/76.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/77.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/78.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/79.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/8.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/80.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/81.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/82.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/83.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/84.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/85.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/86.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/87.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/88.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/89.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/9.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/90.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/91.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/92.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/93.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/94.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/95.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/96.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/97.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/98.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_colour/99.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/1.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/10.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/100.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/101.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/102.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/103.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/104.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/105.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/106.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/107.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/108.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/109.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/11.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/110.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/111.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/112.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/113.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/114.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/115.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/116.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/117.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/118.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/119.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/12.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/120.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/121.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/122.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/123.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/124.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/125.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/126.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/127.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/128.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/129.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/13.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/130.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/131.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/132.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/133.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/134.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/135.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/136.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/137.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/138.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/139.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/14.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/140.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/141.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/142.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/143.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/144.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/145.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/146.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/147.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/148.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/149.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/15.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/150.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/151.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/152.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/153.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/154.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/155.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/156.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/157.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/158.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/159.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/16.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/160.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/161.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/162.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/163.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/164.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/165.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/166.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/167.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/168.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/169.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/17.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/170.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/171.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/172.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/173.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/174.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/175.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/176.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/177.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/178.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/179.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/18.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/180.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/181.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/182.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/183.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/184.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/185.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/186.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/187.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/188.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/189.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/19.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/190.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/191.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/192.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/193.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/194.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/195.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/196.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/197.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/198.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/199.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/2.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/20.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/200.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/21.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/22.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/23.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/24.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/25.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/26.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/27.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/28.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/29.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/3.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/30.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/31.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/32.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/33.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/34.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/35.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/36.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/37.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/38.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/39.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/4.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/40.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/41.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/42.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/43.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/44.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/45.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/46.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/47.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/48.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/49.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/5.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/50.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/51.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/52.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/53.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/54.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/55.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/56.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/57.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/58.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/59.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/6.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/60.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/61.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/62.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/63.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/64.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/65.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/66.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/67.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/68.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/69.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/7.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/70.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/71.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/72.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/73.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/74.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/75.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/76.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/77.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/78.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/79.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/8.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/80.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/81.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/82.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/83.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/84.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/85.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/86.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/87.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/88.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/89.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/9.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/90.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/91.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/92.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/93.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/94.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/95.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/96.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/97.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/98.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/data/patches/reference_surface_normal/99.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/denoise_image.py" beforeDir="false" afterPath="$PROJECT_DIR$/denoiser/denoise_image.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/denoiser.py" beforeDir="false" afterPath="$PROJECT_DIR$/denoiser/denoiser.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/make_patches.py" beforeDir="false" afterPath="$PROJECT_DIR$/denoiser/make_patches.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/denoiser/models/model.h5" beforeDir="false" afterPath="$PROJECT_DIR$/denoiser/models/model.h5" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cuda/cmake-build-debug/" />
     <ignored path="$PROJECT_DIR$/cuda/CMakeFiles/" />
@@ -29,7 +840,76 @@
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
+    <splitter split-orientation="horizontal" split-proportion="0.5147735">
+      <split-first>
+        <leaf>
+          <file pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/cuda/src/mcr.cu">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="300">
+                  <caret line="20" column="48" selection-start-line="20" selection-start-column="48" selection-end-line="20" selection-end-column="48" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/cuda/src/util.cu">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="721">
+                  <caret line="123" column="5" selection-start-line="123" selection-start-column="5" selection-end-line="123" selection-end-column="5" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <leaf>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/cuda/src/mcr.cu">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="6120">
+                  <caret line="418" column="23" selection-start-line="418" selection-start-column="23" selection-end-line="418" selection-end-column="23" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/cuda/src/constants/config.h">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="390">
+                  <caret line="26" column="24" selection-start-line="26" selection-start-column="24" selection-end-line="26" selection-end-column="24" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/cuda/src/mcr.h">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="630">
+                  <caret line="42" column="18" selection-start-line="42" selection-start-column="18" selection-end-line="42" selection-end-column="18" />
+                  <folding>
+                    <element signature="e#0#17#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/cuda/src/util.h">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="900">
+                  <caret line="61" column="9" selection-start-line="61" selection-start-column="9" selection-end-line="61" selection-end-column="9" />
+                  <folding>
+                    <element signature="e#0#17#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-second>
+    </splitter>
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
@@ -56,18 +936,18 @@
         <option value="$PROJECT_DIR$/cuda/src/ray.cuh" />
         <option value="$PROJECT_DIR$/cuda/src/ray.cu" />
         <option value="$PROJECT_DIR$/cuda/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/cuda/src/mcr.h" />
-        <option value="$PROJECT_DIR$/cuda/src/mcr.cu" />
-        <option value="$PROJECT_DIR$/cuda/src/util.h" />
         <option value="$PROJECT_DIR$/cuda/src/constants/config.h" />
+        <option value="$PROJECT_DIR$/cuda/src/util.h" />
+        <option value="$PROJECT_DIR$/cuda/src/mcr.h" />
         <option value="$PROJECT_DIR$/cuda/src/util.cu" />
+        <option value="$PROJECT_DIR$/cuda/src/mcr.cu" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="544" />
     <option name="y" value="10" />
-    <option name="width" value="928" />
+    <option name="width" value="1868" />
     <option name="height" value="999" />
   </component>
   <component name="ProjectView">
@@ -156,16 +1036,18 @@
       <workItem from="1551126985528" duration="1271000" />
       <workItem from="1551128516611" duration="1604000" />
       <workItem from="1551354558774" duration="75000" />
+      <workItem from="1551434445593" duration="17251000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="64485000" />
+    <option name="totallyTimeSpent" value="81736000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="544" y="10" width="928" height="999" extended-state="0" />
+    <frame x="544" y="10" width="1868" height="999" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16059226" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16226622" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -339,42 +1221,45 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/util.h">
+    <entry file="file://$PROJECT_DIR$/cuda/convertImages.sh" />
+    <entry file="file://$PROJECT_DIR$/cuda/src/util.cu">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="15" selection-start-line="1" selection-start-column="15" selection-end-line="1" selection-end-column="15" />
+        <state relative-caret-position="721">
+          <caret line="123" column="5" selection-start-line="123" selection-start-column="5" selection-end-line="123" selection-end-column="5" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/mcr.h">
+    <entry file="file://$PROJECT_DIR$/cuda/src/util.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="14" column="30" selection-start-line="14" selection-start-column="30" selection-end-line="14" selection-end-column="30" />
+        <state relative-caret-position="900">
+          <caret line="61" column="9" selection-start-line="61" selection-start-column="9" selection-end-line="61" selection-end-column="9" />
           <folding>
             <element signature="e#0#17#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/src/mcr.cu">
+    <entry file="file://$PROJECT_DIR$/cuda/src/mcr.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="27" column="25" selection-start-line="27" selection-start-column="25" selection-end-line="27" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cuda/convertImages.sh" />
-    <entry file="file://$PROJECT_DIR$/cuda/src/util.cu">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="51" column="46" selection-start-line="51" selection-start-column="46" selection-end-line="51" selection-end-column="46" />
+        <state relative-caret-position="630">
+          <caret line="42" column="18" selection-start-line="42" selection-start-column="18" selection-end-line="42" selection-end-column="18" />
+          <folding>
+            <element signature="e#0#17#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/cuda/src/constants/config.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="35" selection-start-line="35" selection-end-line="35" />
+        <state relative-caret-position="390">
+          <caret line="26" column="24" selection-start-line="26" selection-start-column="24" selection-end-line="26" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cuda/src/mcr.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="20" column="48" selection-start-line="20" selection-start-column="48" selection-end-line="20" selection-end-column="48" />
         </state>
       </provider>
     </entry>
