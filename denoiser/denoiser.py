@@ -28,10 +28,10 @@ tf.app.flags.DEFINE_integer ("patchSize", 64,
 #tf.app.flags.DEFINE_integer ("reconstructionKernelSize", 21,
 #                            "The size of the reconstruction kernel")
 
-tf.app.flags.DEFINE_integer ("inputChannels", 19,
+tf.app.flags.DEFINE_integer ("inputChannels", 27,
                             "The number of channels in an input patch")
 
-tf.app.flags.DEFINE_integer ("outputChannels", 19,
+tf.app.flags.DEFINE_integer ("outputChannels", 27,
                             "The number of channels in an output patch")
 
 tf.app.flags.DEFINE_float   ("learningRate", 0.00001,
@@ -40,7 +40,7 @@ tf.app.flags.DEFINE_float   ("learningRate", 0.00001,
 tf.app.flags.DEFINE_integer ("batchSize", 5,
                             "Number of patches per minibatch")
 
-tf.app.flags.DEFINE_integer ("numEpochs", 100,
+tf.app.flags.DEFINE_integer ("numEpochs", 500,
                             "Number of training epochs")
 
 tf.app.flags.DEFINE_integer ("numFilters", 100,
@@ -123,56 +123,6 @@ def finalConvLayer(model):
     )
 
 
-# Training data
-# Colour information (RGB picture) and gradients (x and y)
-reference_colour_train = data.data["train"]["colour"]["reference"]
-noisy_colour_train = data.data["train"]["colour"]["noisy"]
-
-reference_colour_gradx_train = data.data["train"]["colour_gradx"]["reference"]
-noisy_colour_gradx_train = data.data["train"]["colour_gradx"]["noisy"]
-
-reference_colour_grady_train = data.data["train"]["colour_grady"]["reference"]
-noisy_colour_grady_train = data.data["train"]["colour_grady"]["noisy"]
-
-# Colour variance (3 channels converted to 1 by calculating luminance) 
-reference_colour_var_train = data.data["train"]["colour_var"]["reference"]
-noisy_colour_var_train = data.data["train"]["colour_var"]["noisy"]
-
-# Surface normals and gradients
-reference_sn_train = data.data["train"]["surface_normal"]["reference"]
-noisy_sn_train = data.data["train"]["surface_normal"]["noisy"]
-
-reference_sn_gradx_train = data.data["train"]["surface_normal_gradx"]["reference"]
-noisy_sn_gradx_train = data.data["train"]["surface_normal_gradx"]["noisy"]
-
-reference_sn_grady_train = data.data["train"]["surface_normal_grady"]["reference"]
-noisy_sn_grady_train = data.data["train"]["surface_normal_grady"]["noisy"]
-
-# Test data
-# Colour information (RGB picture)
-reference_colour_test = data.data["test"]["colour"]["reference"]
-noisy_colour_test = data.data["test"]["colour"]["noisy"]
-
-reference_colour_gradx_test = data.data["test"]["colour_gradx"]["reference"]
-noisy_colour_gradx_test = data.data["test"]["colour_gradx"]["noisy"]
-
-reference_colour_grady_test = data.data["test"]["colour_grady"]["reference"]
-noisy_colour_grady_test = data.data["test"]["colour_grady"]["noisy"]
-
-# Colour variance (3 channels converted to 1 by calculating luminance) 
-reference_colour_var_test = data.data["test"]["colour_var"]["reference"]
-noisy_colour_var_test = data.data["test"]["colour_var"]["noisy"]
-
-# Surface normals
-reference_sn_test = data.data["test"]["surface_normal"]["reference"]
-noisy_sn_test = data.data["test"]["surface_normal"]["noisy"]
-
-reference_sn_gradx_test = data.data["test"]["surface_normal_gradx"]["reference"]
-noisy_sn_gradx_test = data.data["test"]["surface_normal_gradx"]["noisy"]
-
-reference_sn_grady_test = data.data["test"]["surface_normal_grady"]["reference"]
-noisy_sn_grady_test = data.data["test"]["surface_normal_grady"]["noisy"]
-
 model = tf.keras.models.Sequential()
 
 # Conv layer 1
@@ -217,26 +167,57 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(
     write_images=True
 )
 
+print(data.data["train"]["colour"]["noisy"].shape)
+print(data.data["train"]["colour_gradx"]["noisy"].shape)
+print(data.data["train"]["colour_grady"]["noisy"].shape)
+print(data.data["train"]["sn"]["noisy"].shape)
+print(data.data["train"]["sn_gradx"]["noisy"].shape)
+print(data.data["train"]["sn_grady"]["noisy"].shape)
+print(data.data["train"]["albedo"]["noisy"].shape)
+print(data.data["train"]["albedo_gradx"]["noisy"].shape)
+print(data.data["train"]["albedo_grady"]["noisy"].shape)
+print(data.data["train"]["colour_var"]["noisy"].shape)
+print(data.data["train"]["sn_var"]["noisy"].shape)
+print(data.data["train"]["albedo_var"]["noisy"].shape)
+
 model_input = np.concatenate(
     (
-        noisy_colour_train, 
-        noisy_colour_gradx_train,
-        noisy_colour_grady_train,
-        noisy_colour_var_train,
-        noisy_sn_train,
-        noisy_sn_gradx_train,
-        noisy_sn_grady_train
+        data.data["train"]["colour"]["noisy"],
+        data.data["train"]["colour_gradx"]["noisy"],
+        data.data["train"]["colour_grady"]["noisy"],
+        #data.data["train"]["sn"]["noisy"],
+        data.data["train"]["sn_gradx"]["noisy"],
+        data.data["train"]["sn_grady"]["noisy"],
+        #data.data["train"]["albedo"]["noisy"],
+        data.data["train"]["albedo_gradx"]["noisy"],
+        data.data["train"]["albedo_grady"]["noisy"],
+        #data.data["train"]["depth"]["noisy"],
+        data.data["train"]["depth_gradx"]["noisy"],
+        data.data["train"]["depth_grady"]["noisy"],
+        data.data["train"]["colour_var"]["noisy"],
+        data.data["train"]["sn_var"]["noisy"],
+        data.data["train"]["albedo_var"]["noisy"],
+        data.data["train"]["depth_var"]["noisy"]
     ), 3)
 
 model_output = np.concatenate(
     (
-        reference_colour_train, 
-        reference_colour_gradx_train, 
-        reference_colour_grady_train, 
-        reference_colour_var_train, 
-        reference_sn_train,
-        reference_sn_gradx_train,
-        reference_sn_grady_train
+        data.data["train"]["colour"]["reference"],
+        data.data["train"]["colour_gradx"]["reference"],
+        data.data["train"]["colour_grady"]["reference"],
+        #data.data["train"]["sn"]["reference"],
+        data.data["train"]["sn_gradx"]["reference"],
+        data.data["train"]["sn_grady"]["reference"],
+        #data.data["train"]["albedo"]["reference"],
+        data.data["train"]["albedo_gradx"]["reference"],
+        data.data["train"]["albedo_grady"]["reference"],
+        #data.data["train"]["depth"]["reference"],
+        data.data["train"]["depth_gradx"]["reference"],
+        data.data["train"]["depth_grady"]["reference"],
+        data.data["train"]["colour_var"]["reference"],
+        data.data["train"]["sn_var"]["reference"],
+        data.data["train"]["albedo_var"]["reference"],
+        data.data["train"]["depth_var"]["reference"]
     ), 3)
 
 adam = tf.keras.optimizers.Adam(FLAGS.learningRate)
@@ -258,25 +239,44 @@ model.save(FLAGS.modelSaveDir + "/model.h5")
 
 test_input = np.concatenate(
     (
-        noisy_colour_test, 
-        noisy_colour_gradx_test,
-        noisy_colour_grady_test,
-        noisy_colour_var_test,
-        noisy_sn_test,
-        noisy_sn_gradx_test,
-        noisy_sn_grady_test
+        data.data["test"]["colour"]["noisy"],
+        data.data["test"]["colour_gradx"]["noisy"],
+        data.data["test"]["colour_grady"]["noisy"],
+        #data.data["test"]["sn"]["noisy"],
+        data.data["test"]["sn_gradx"]["noisy"],
+        data.data["test"]["sn_grady"]["noisy"],
+        #data.data["test"]["albedo"]["noisy"],
+        data.data["test"]["albedo_gradx"]["noisy"],
+        data.data["test"]["albedo_grady"]["noisy"],
+        #data.data["test"]["depth"]["noisy"],
+        data.data["test"]["depth_gradx"]["noisy"],
+        data.data["test"]["depth_grady"]["noisy"],
+        data.data["test"]["colour_var"]["noisy"],
+        data.data["test"]["sn_var"]["noisy"],
+        data.data["test"]["albedo_var"]["noisy"],
+        data.data["test"]["depth_var"]["noisy"]
     ), 3)
 
 test_output = np.concatenate(
     (
-        reference_colour_test, 
-        reference_colour_gradx_test, 
-        reference_colour_grady_test, 
-        reference_colour_var_test, 
-        reference_sn_test,
-        reference_sn_gradx_test,
-        reference_sn_grady_test
+        data.data["test"]["colour"]["reference"],
+        data.data["test"]["colour_gradx"]["reference"],
+        data.data["test"]["colour_grady"]["reference"],
+        #data.data["test"]["sn"]["reference"],
+        data.data["test"]["sn_gradx"]["reference"],
+        data.data["test"]["sn_grady"]["reference"],
+        #data.data["test"]["albedo"]["reference"],
+        data.data["test"]["albedo_gradx"]["reference"],
+        data.data["test"]["albedo_grady"]["reference"],
+        #data.data["test"]["depth"]["reference"],
+        data.data["test"]["depth_gradx"]["reference"],
+        data.data["test"]["depth_grady"]["reference"],
+        data.data["test"]["colour_var"]["reference"],
+        data.data["test"]["sn_var"]["reference"],
+        data.data["test"]["albedo_var"]["reference"],
+        data.data["test"]["depth_var"]["reference"]
     ), 3)
+
 score = model.evaluate(test_input, test_output, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])

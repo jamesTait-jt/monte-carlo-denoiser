@@ -24,19 +24,41 @@ def generate_darts(num_darts, image_width, image_height, patch_width, patch_heig
 IMAGE_PATHS_TO_DIFFERENTIATE = [
     "data/full/reference_colour.png",
     "data/full/noisy_colour.png",
-    "data/full/reference_surface_normal.png",
-    "data/full/noisy_surface_normal.png"
+
+    "data/full/reference_sn.png",
+    "data/full/noisy_sn.png",
+
+    "data/full/reference_albedo.png",
+    "data/full/noisy_albedo.png",
+
+    "data/full/reference_depth.png",
+    "data/full/noisy_depth.png"
 ]
 
 DIFFERENTIATED_SAVE_DIRS = [
     "data/full/reference_colour_gradx.png",
     "data/full/reference_colour_grady.png",
+
     "data/full/noisy_colour_gradx.png",
     "data/full/noisy_colour_grady.png",
-    "data/full/reference_surface_normal_gradx.png",
-    "data/full/reference_surface_normal_grady.png",
-    "data/full/noisy_surface_normal_gradx.png",
-    "data/full/noisy_surface_normal_grady.png"
+
+    "data/full/reference_sn_gradx.png",
+    "data/full/reference_sn_grady.png",
+
+    "data/full/noisy_sn_gradx.png",
+    "data/full/noisy_sn_grady.png",
+
+    "data/full/reference_albedo_gradx.png",
+    "data/full/reference_albedo_grady.png",
+
+    "data/full/noisy_albedo_gradx.png",
+    "data/full/noisy_albedo_grady.png",
+
+    "data/full/reference_depth_gradx.png",
+    "data/full/reference_depth_grady.png",
+
+    "data/full/noisy_depth_gradx.png",
+    "data/full/noisy_depth_grady.png",
 ]
 
 for i in range(len(IMAGE_PATHS_TO_DIFFERENTIATE)):
@@ -53,44 +75,110 @@ for i in range(len(IMAGE_PATHS_TO_DIFFERENTIATE)):
     grady.save(DIFFERENTIATED_SAVE_DIRS[2 * i + 1])
 
 
-NUM_DARTS = 600
-IMAGE_WIDTH = 512
-IMAGE_HEIGHT = 512
+NUM_DARTS = 400
+IMAGE_WIDTH = 256
+IMAGE_HEIGHT = 256
 PATCH_WIDTH = 64
 PATCH_HEIGHT = 64
 
 IMAGE_PATHS = [
     "data/full/reference_colour.png",
-    "data/full/reference_colour_gradx.png",
-    "data/full/reference_colour_grady.png",
     "data/full/noisy_colour.png",
+
+    "data/full/reference_colour_gradx.png",
     "data/full/noisy_colour_gradx.png",
+
+    "data/full/reference_colour_grady.png",
     "data/full/noisy_colour_grady.png",
+
+    "data/full/reference_sn.png",
+    "data/full/noisy_sn.png",
+
+    "data/full/reference_sn_gradx.png",
+    "data/full/noisy_sn_gradx.png",
+
+    "data/full/reference_sn_grady.png",
+    "data/full/noisy_sn_grady.png",
+
+    "data/full/reference_albedo.png",
+    "data/full/noisy_albedo.png",
+
+    "data/full/reference_albedo_gradx.png",
+    "data/full/noisy_albedo_gradx.png",
+
+    "data/full/reference_albedo_grady.png",
+    "data/full/noisy_albedo_grady.png",
+
+    "data/full/reference_depth.png",
+    "data/full/noisy_depth.png",
+
+    "data/full/reference_depth_gradx.png",
+    "data/full/noisy_depth_gradx.png",
+
+    "data/full/reference_depth_grady.png",
+    "data/full/noisy_depth_grady.png",
+
     "data/full/reference_colour_vars.png",
     "data/full/noisy_colour_vars.png",
-    "data/full/reference_surface_normal.png",
-    "data/full/reference_surface_normal_gradx.png",
-    "data/full/reference_surface_normal_grady.png",
-    "data/full/noisy_surface_normal.png",
-    "data/full/noisy_surface_normal_gradx.png",
-    "data/full/noisy_surface_normal_grady.png"
+
+    "data/full/reference_sn_vars.png",
+    "data/full/noisy_sn_vars.png",
+
+    "data/full/reference_albedo_vars.png",
+    "data/full/noisy_albedo_vars.png",
+
+    "data/full/reference_depth_vars.png",
+    "data/full/noisy_depth_vars.png"
 ]
 
 SAVE_DIRS = [
     "data/patches/reference_colour/",
-    "data/patches/reference_colour_gradx/",
-    "data/patches/reference_colour_grady/",
     "data/patches/noisy_colour/",
+
+    "data/patches/reference_colour_gradx/",
     "data/patches/noisy_colour_gradx/",
+
+    "data/patches/reference_colour_grady/",
     "data/patches/noisy_colour_grady/",
+
+    "data/patches/reference_sn/",
+    "data/patches/noisy_sn/",
+
+    "data/patches/reference_sn_gradx/",
+    "data/patches/noisy_sn_gradx/",
+
+    "data/patches/reference_sn_grady/",
+    "data/patches/noisy_sn_grady/",
+
+    "data/patches/reference_albedo/",
+    "data/patches/noisy_albedo/",
+
+    "data/patches/reference_albedo_gradx/",
+    "data/patches/noisy_albedo_gradx/",
+
+    "data/patches/reference_albedo_grady/",
+    "data/patches/noisy_albedo_grady/",
+
+    "data/patches/reference_depth/",
+    "data/patches/noisy_depth/",
+
+    "data/patches/reference_depth_gradx/",
+    "data/patches/noisy_depth_gradx/",
+
+    "data/patches/reference_depth_grady/",
+    "data/patches/noisy_depth_grady/",
+
     "data/patches/reference_colour_vars/",
     "data/patches/noisy_colour_vars/",
-    "data/patches/reference_surface_normal/",
-    "data/patches/reference_surface_normal_gradx/",
-    "data/patches/reference_surface_normal_grady/",
-    "data/patches/noisy_surface_normal/",
-    "data/patches/noisy_surface_normal_gradx/",
-    "data/patches/noisy_surface_normal_grady/"
+
+    "data/patches/reference_sn_vars/",
+    "data/patches/noisy_sn_vars/",
+
+    "data/patches/reference_albedo_vars/",
+    "data/patches/noisy_albedo_vars/",
+
+    "data/patches/reference_depth_vars/",
+    "data/patches/noisy_depth_vars/"
 ]
 
 darts = generate_darts(

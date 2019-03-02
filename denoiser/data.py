@@ -50,18 +50,51 @@ datagen = ImageDataGenerator(
 IMG_DIRS = [
     "data/patches/reference_colour/",
     "data/patches/noisy_colour/",
+
     "data/patches/reference_colour_gradx/",
     "data/patches/noisy_colour_gradx/",
+
     "data/patches/reference_colour_grady/",
     "data/patches/noisy_colour_grady/",
+
+    "data/patches/reference_sn/",
+    "data/patches/noisy_sn/",
+
+    "data/patches/reference_sn_gradx/",
+    "data/patches/noisy_sn_gradx/",
+
+    "data/patches/reference_sn_grady/",
+    "data/patches/noisy_sn_grady/",
+
+    "data/patches/reference_albedo/",
+    "data/patches/noisy_albedo/",
+
+    "data/patches/reference_albedo_gradx/",
+    "data/patches/noisy_albedo_gradx/",
+
+    "data/patches/reference_albedo_grady/",
+    "data/patches/noisy_albedo_grady/",
+
+    "data/patches/reference_depth/",
+    "data/patches/noisy_depth/",
+
+    "data/patches/reference_depth_gradx/",
+    "data/patches/noisy_depth_gradx/",
+
+    "data/patches/reference_depth_grady/",
+    "data/patches/noisy_depth_grady/",
+
     "data/patches/reference_colour_vars/",
     "data/patches/noisy_colour_vars/",
-    "data/patches/reference_surface_normal/",
-    "data/patches/noisy_surface_normal/",
-    "data/patches/reference_surface_normal_gradx/",
-    "data/patches/noisy_surface_normal_gradx/",
-    "data/patches/reference_surface_normal_grady/",
-    "data/patches/noisy_surface_normal_grady/"
+
+    "data/patches/reference_sn_vars/",
+    "data/patches/noisy_sn_vars/",
+
+    "data/patches/reference_albedo_vars/",
+    "data/patches/noisy_albedo_vars/",
+
+    "data/patches/reference_depth_vars/",
+    "data/patches/noisy_depth_vars/"
 ]
 
 data_list = []
@@ -97,21 +130,57 @@ data = {
             "reference" : data_list[4][0],
             "noisy" : data_list[5][0]
         },
-        "colour_var" : {
-            "reference" : convert_channels_3_to_1(data_list[6][0]),
-            "noisy" : convert_channels_3_to_1(data_list[7][0])
+        "sn" : {
+            "reference" : data_list[6][0],
+            "noisy" : data_list[7][0]
         },
-        "surface_normal" : {
+        "sn_gradx" : {
             "reference" : data_list[8][0],
             "noisy" : data_list[9][0]
         },
-        "surface_normal_gradx" : {
+        "sn_grady" : {
             "reference" : data_list[10][0],
             "noisy" : data_list[11][0]
         },
-        "surface_normal_grady" : {
+        "albedo" : {
             "reference" : data_list[12][0],
             "noisy" : data_list[13][0]
+        },
+        "albedo_gradx" : {
+            "reference" : data_list[14][0],
+            "noisy" : data_list[15][0]
+        },
+        "albedo_grady" : {
+            "reference" : data_list[16][0],
+            "noisy" : data_list[17][0]
+        },
+        "depth" : {
+            "reference" : convert_channels_3_to_1(data_list[18][0]),
+            "noisy" : convert_channels_3_to_1(data_list[19][0])
+        },
+        "depth_gradx" : {
+            "reference" : convert_channels_3_to_1(data_list[20][0]),
+            "noisy" : convert_channels_3_to_1(data_list[21][0])
+        },
+        "depth_grady" : {
+            "reference" : convert_channels_3_to_1(data_list[22][0]),
+            "noisy" : convert_channels_3_to_1(data_list[23][0])
+        },
+        "colour_var" : {
+            "reference" : convert_channels_3_to_1(data_list[24][0]),
+            "noisy" : convert_channels_3_to_1(data_list[25][0])
+        },
+        "sn_var" : {
+            "reference" : convert_channels_3_to_1(data_list[26][0]),
+            "noisy" : convert_channels_3_to_1(data_list[27][0])
+        },
+        "albedo_var" : {
+            "reference" : convert_channels_3_to_1(data_list[28][0]),
+            "noisy" : convert_channels_3_to_1(data_list[29][0])
+        },
+        "depth_var" : {
+            "reference" : convert_channels_3_to_1(data_list[30][0]),
+            "noisy" : convert_channels_3_to_1(data_list[31][0])
         }
     },
     "test" : {
@@ -127,21 +196,57 @@ data = {
             "reference" : data_list[4][1],
             "noisy" : data_list[5][1]
         },
-        "colour_var" : {
-            "reference" : convert_channels_3_to_1(data_list[6][1]),
-            "noisy" : convert_channels_3_to_1(data_list[7][1])
+        "sn" : {
+            "reference" : data_list[6][1],
+            "noisy" : data_list[7][1]
         },
-        "surface_normal" : {
+        "sn_gradx" : {
             "reference" : data_list[8][1],
             "noisy" : data_list[9][1]
         },
-        "surface_normal_gradx" : {
+        "sn_grady" : {
             "reference" : data_list[10][1],
             "noisy" : data_list[11][1]
         },
-        "surface_normal_grady" : {
+        "albedo" : {
             "reference" : data_list[12][1],
             "noisy" : data_list[13][1]
+        },
+        "albedo_gradx" : {
+            "reference" : data_list[14][1],
+            "noisy" : data_list[15][1]
+        },
+        "albedo_grady" : {
+            "reference" : data_list[16][1],
+            "noisy" : data_list[17][1]
+        },
+        "depth" : {
+            "reference" : convert_channels_3_to_1(data_list[18][1]),
+            "noisy" : convert_channels_3_to_1(data_list[19][1])
+        },
+        "depth_gradx" : {
+            "reference" : convert_channels_3_to_1(data_list[20][1]),
+            "noisy" : convert_channels_3_to_1(data_list[21][1])
+        },
+        "depth_grady" : {
+            "reference" : convert_channels_3_to_1(data_list[22][1]),
+            "noisy" : convert_channels_3_to_1(data_list[23][1])
+        },
+        "colour_var" : {
+            "reference" : convert_channels_3_to_1(data_list[24][1]),
+            "noisy" : convert_channels_3_to_1(data_list[25][1])
+        },
+        "sn_var" : {
+            "reference" : convert_channels_3_to_1(data_list[26][1]),
+            "noisy" : convert_channels_3_to_1(data_list[27][1])
+        },
+        "albedo_var" : {
+            "reference" : convert_channels_3_to_1(data_list[28][1]),
+            "noisy" : convert_channels_3_to_1(data_list[29][1])
+        },
+        "depth_var" : {
+            "reference" : convert_channels_3_to_1(data_list[30][1]),
+            "noisy" : convert_channels_3_to_1(data_list[31][1])
         }
     }
 }
