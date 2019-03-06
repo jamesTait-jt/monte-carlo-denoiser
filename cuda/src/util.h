@@ -29,6 +29,13 @@ void save_image(
     std::string title
 );
 
+void save_image(
+    float * image,
+    int height,
+    int width,
+    std::string title
+);
+
 void save_patches(
     vec3 * image,
     int patch_size,
@@ -77,7 +84,7 @@ float mySum(
 );
 
 __device__
-vec3 luminance(
+float luminance(
     vec3 v
 );
 

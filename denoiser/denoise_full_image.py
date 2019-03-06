@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import data
+import config
 
 def patchify(img, patch_width, patch_height, img_width, img_height):
     img = img_to_array(img)
@@ -35,11 +36,6 @@ def stitch(img, patch_width, patch_height, img_width, img_height):
     return array_to_img(img2d)
 
 
-PATCH_WIDTH = 64
-PATCH_HEIGHT = 64
-IMAGE_WIDTH = 256
-IMAGE_HEIGHT = 256
-
 # Load in trained model
 model = tf.keras.models.load_model("models/model.h5")
 
@@ -63,143 +59,143 @@ noisy_depth_var = load_img("data/full/noisy_depth_vars.png")
 
 colour_patches = patchify(
     noisy_colour, 
-    PATCH_WIDTH, 
-    PATCH_HEIGHT, 
-    IMAGE_WIDTH, 
-    IMAGE_HEIGHT
+    config.PATCH_WIDTH, 
+    config.PATCH_HEIGHT, 
+    config.IMAGE_WIDTH, 
+    config.IMAGE_HEIGHT
 )
 
 colour_gradx_patches = patchify(
     noisy_colour_gradx, 
-    PATCH_WIDTH, 
-    PATCH_HEIGHT, 
-    IMAGE_WIDTH, 
-    IMAGE_HEIGHT
+    config.PATCH_WIDTH, 
+    config.PATCH_HEIGHT, 
+    config.IMAGE_WIDTH, 
+    config.IMAGE_HEIGHT
 )
 
 colour_grady_patches = patchify(
     noisy_colour_grady, 
-    PATCH_WIDTH, 
-    PATCH_HEIGHT, 
-    IMAGE_WIDTH, 
-    IMAGE_HEIGHT
+    config.PATCH_WIDTH, 
+    config.PATCH_HEIGHT, 
+    config.IMAGE_WIDTH, 
+    config.IMAGE_HEIGHT
 )
 
 sn_patches = patchify(
     noisy_sn, 
-    PATCH_WIDTH, 
-    PATCH_HEIGHT, 
-    IMAGE_WIDTH, 
-    IMAGE_HEIGHT
+    config.PATCH_WIDTH, 
+    config.PATCH_HEIGHT, 
+    config.IMAGE_WIDTH, 
+    config.IMAGE_HEIGHT
 )
 
 sn_gradx_patches = patchify(
     noisy_sn_gradx, 
-    PATCH_WIDTH, 
-    PATCH_HEIGHT, 
-    IMAGE_WIDTH, 
-    IMAGE_HEIGHT
+    config.PATCH_WIDTH, 
+    config.PATCH_HEIGHT, 
+    config.IMAGE_WIDTH, 
+    config.IMAGE_HEIGHT
 )
 
 sn_grady_patches = patchify(
     noisy_sn_grady, 
-    PATCH_WIDTH,
-    PATCH_HEIGHT,         
-    IMAGE_WIDTH, 
-    IMAGE_HEIGHT
+    config.PATCH_WIDTH,
+    config.PATCH_HEIGHT,         
+    config.IMAGE_WIDTH, 
+    config.IMAGE_HEIGHT
 )
 
 albedo_patches = patchify(
     noisy_albedo, 
-    PATCH_WIDTH, 
-    PATCH_HEIGHT, 
-    IMAGE_WIDTH, 
-    IMAGE_HEIGHT
+    config.PATCH_WIDTH, 
+    config.PATCH_HEIGHT, 
+    config.IMAGE_WIDTH, 
+    config.IMAGE_HEIGHT
 )
 
 albedo_gradx_patches = patchify(
     noisy_albedo_gradx, 
-    PATCH_WIDTH, 
-    PATCH_HEIGHT, 
-    IMAGE_WIDTH, 
-    IMAGE_HEIGHT
+    config.PATCH_WIDTH, 
+    config.PATCH_HEIGHT, 
+    config.IMAGE_WIDTH, 
+    config.IMAGE_HEIGHT
 )
 
 albedo_grady_patches = patchify(
     noisy_albedo_grady, 
-    PATCH_WIDTH,
-    PATCH_HEIGHT,         
-    IMAGE_WIDTH, 
-    IMAGE_HEIGHT
+    config.PATCH_WIDTH,
+    config.PATCH_HEIGHT,         
+    config.IMAGE_WIDTH, 
+    config.IMAGE_HEIGHT
 )
 
 depth_patches = data.convert_channels_3_to_1(
     patchify(
         noisy_depth, 
-        PATCH_WIDTH, 
-        PATCH_HEIGHT, 
-        IMAGE_WIDTH, 
-        IMAGE_HEIGHT
+        config.PATCH_WIDTH, 
+        config.PATCH_HEIGHT, 
+        config.IMAGE_WIDTH, 
+        config.IMAGE_HEIGHT
     )
 )
 
 depth_gradx_patches = data.convert_channels_3_to_1(
     patchify(
         noisy_depth_gradx, 
-        PATCH_WIDTH, 
-        PATCH_HEIGHT, 
-        IMAGE_WIDTH, 
-        IMAGE_HEIGHT
+        config.PATCH_WIDTH, 
+        config.PATCH_HEIGHT, 
+        config.IMAGE_WIDTH, 
+        config.IMAGE_HEIGHT
     )
 )
 
 depth_grady_patches = data.convert_channels_3_to_1(
     patchify(
         noisy_depth_grady, 
-        PATCH_WIDTH,
-        PATCH_HEIGHT,         
-        IMAGE_WIDTH, 
-        IMAGE_HEIGHT
+        config.PATCH_WIDTH,
+        config.PATCH_HEIGHT,         
+        config.IMAGE_WIDTH, 
+        config.IMAGE_HEIGHT
     )
 )
 
 colour_var_patches = data.convert_channels_3_to_1(
     patchify(
         noisy_colour_var, 
-        PATCH_WIDTH, 
-        PATCH_HEIGHT, 
-        IMAGE_WIDTH, 
-        IMAGE_HEIGHT
+        config.PATCH_WIDTH, 
+        config.PATCH_HEIGHT, 
+        config.IMAGE_WIDTH, 
+        config.IMAGE_HEIGHT
     )
 )
 
 sn_var_patches = data.convert_channels_3_to_1(
     patchify(
         noisy_sn_var, 
-        PATCH_WIDTH, 
-        PATCH_HEIGHT, 
-        IMAGE_WIDTH, 
-        IMAGE_HEIGHT
+        config.PATCH_WIDTH, 
+        config.PATCH_HEIGHT, 
+        config.IMAGE_WIDTH, 
+        config.IMAGE_HEIGHT
     )
 )
 
 albedo_var_patches = data.convert_channels_3_to_1(
     patchify(
         noisy_albedo_var, 
-        PATCH_WIDTH, 
-        PATCH_HEIGHT, 
-        IMAGE_WIDTH, 
-        IMAGE_HEIGHT
+        config.PATCH_WIDTH, 
+        config.PATCH_HEIGHT, 
+        config.IMAGE_WIDTH, 
+        config.IMAGE_HEIGHT
     )
 )
 
 depth_var_patches = data.convert_channels_3_to_1(
     patchify(
         noisy_depth_var, 
-        PATCH_WIDTH, 
-        PATCH_HEIGHT, 
-        IMAGE_WIDTH, 
-        IMAGE_HEIGHT
+        config.PATCH_WIDTH, 
+        config.PATCH_HEIGHT, 
+        config.IMAGE_WIDTH, 
+        config.IMAGE_HEIGHT
     )
 )
 
@@ -224,7 +220,7 @@ model_input = np.concatenate(
     ), 3)
 
 
-pred = data.convert_channels_7_to_3(model.predict(model_input))
+pred = model.predict(model_input)
 
-stitched = stitch(pred, PATCH_WIDTH, PATCH_HEIGHT, IMAGE_WIDTH, IMAGE_HEIGHT)
+stitched = stitch(pred, config.PATCH_WIDTH, config.PATCH_HEIGHT, config.IMAGE_WIDTH, config.IMAGE_HEIGHT)
 stitched.save("data/output/denoised.png")

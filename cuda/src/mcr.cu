@@ -16,9 +16,24 @@
 #include "sphere.h"
 #include "util.h"
 
+
 // ----- DEVICE CONSTANTS ----- //
-__constant__ int d_ref_samples_per_pixel = 8 * 1024;
+__constant__ int d_ref_samples_per_pixel = 16 * 1024;
 __constant__ int d_noisy_samples_per_pixel = 128;
+
+
+// limited version of checkCudaErrors from helper_cuda.h in CUDA examples
+#define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )
+
+void check_cuda(cudaError_t result, char const *const func, const char *const file, int const line) {
+    if (result) {
+        std::cerr << "CUDA error = " << static_cast<unsigned int>(result) << " at " <<
+                  file << ":" << line << " '" << func << "' \n";
+        // Make sure we call CUDA Device Reset before exiting
+        cudaDeviceReset();
+        exit(99);
+    }
+}
 
 int main (int argc, char* argv[]) {
 
@@ -61,19 +76,19 @@ int main (int argc, char* argv[]) {
         // ----- VARIANCES ----- //
 
         // Pointer to the colour variances on host
-        vec3 * h_colour_variances = new vec3[screen_width * screen_height];
+        float * h_colour_variances = new float[screen_width * screen_height];
         // Pointer to the colour variances on device
-        vec3 * d_colour_variances;
+        float * d_colour_variances;
 
         // Pointer to the surface normals on host
-        vec3 * h_surface_normal_variances = new vec3[screen_width * screen_height];
+        float * h_surface_normal_variances = new float[screen_width * screen_height];
         // Pointer to the surface normals on device
-        vec3 * d_surface_normal_variances;
+        float * d_surface_normal_variances;
 
         // Pointer to the albedo buffer on host
-        vec3 * h_albedo_variances = new vec3[screen_width * screen_height];
+        float * h_albedo_variances = new float[screen_width * screen_height];
         // Pointer to the albedo buffer on the device
-        vec3 * d_albedo_variances;
+        float * d_albedo_variances;
 
         // Pointer to the depth buffer on host
         float * h_depth_variances = new float[screen_width * screen_height];
@@ -81,15 +96,15 @@ int main (int argc, char* argv[]) {
         float * d_depth_variances;
 
         // Allocate memory on CUDA device
-        cudaMalloc(&d_colours, screen_width * screen_height * sizeof(vec3));
-        cudaMalloc(&d_surface_normals, screen_width * screen_height * sizeof(vec3));
-        cudaMalloc(&d_albedos, screen_width * screen_height * sizeof(vec3));
-        cudaMalloc(&d_depths, screen_width * screen_height * sizeof(float));
+        checkCudaErrors(cudaMalloc(&d_colours, screen_width * screen_height * sizeof(vec3)));
+        checkCudaErrors(cudaMalloc(&d_surface_normals, screen_width * screen_height * sizeof(vec3)));
+        checkCudaErrors(cudaMalloc(&d_albedos, screen_width * screen_height * sizeof(vec3)));
+        checkCudaErrors(cudaMalloc(&d_depths, screen_width * screen_height * sizeof(float)));
 
-        cudaMalloc(&d_colour_variances, screen_width * screen_height * sizeof(vec3));
-        cudaMalloc(&d_surface_normal_variances, screen_width * screen_height * sizeof(vec3));
-        cudaMalloc(&d_albedo_variances, screen_width * screen_height * sizeof(vec3));
-        cudaMalloc(&d_depth_variances, screen_width * screen_height * sizeof(vec3));
+        checkCudaErrors(cudaMalloc(&d_colour_variances, screen_width * screen_height * sizeof(float)));
+        checkCudaErrors(cudaMalloc(&d_surface_normal_variances, screen_width * screen_height * sizeof(float)));
+        checkCudaErrors(cudaMalloc(&d_albedo_variances, screen_width * screen_height * sizeof(float)));
+        checkCudaErrors(cudaMalloc(&d_depth_variances, screen_width * screen_height * sizeof(float)));
 
         // Specify the block and grid dimensions to schedule CUDA threads
         dim3 threads_per_block(8, 8);
@@ -100,40 +115,40 @@ int main (int argc, char* argv[]) {
 
         // Create a vector of random states for use on the device
         curandState * d_rand_states;
-        cudaMalloc(
+        checkCudaErrors(cudaMalloc(
                 (void **) &d_rand_states,
                 screen_width * screen_height * sizeof(curandState)
-        );
+        ));
 
         // Load in the shapes
         int num_tris = 32;
-        Triangle *triangles = new Triangle[num_tris];
+        Triangle * triangles = new Triangle[num_tris];
 
         int num_spheres = 2;
         Sphere * spheres = new Sphere[num_spheres];
 
-        Triangle *d_triangles;
+        Triangle * d_triangles;
         Sphere * d_spheres;
 
-        cudaMalloc(&d_triangles, num_tris * sizeof(Triangle));
-        cudaMalloc(&d_spheres, num_spheres * sizeof(Sphere));
+        checkCudaErrors(cudaMalloc(&d_triangles, num_tris * sizeof(Triangle)));
+        checkCudaErrors(cudaMalloc(&d_spheres, num_spheres * sizeof(Sphere)));
 
         // Load the polygons into the triangles array
         loadShapes(triangles, spheres);
 
-        cudaMemcpy(
+        checkCudaErrors(cudaMemcpy(
             d_triangles,
             triangles,
             num_tris * sizeof(Triangle),
             cudaMemcpyHostToDevice
-        );
+        ));
 
-        cudaMemcpy(
+        checkCudaErrors(cudaMemcpy(
             d_spheres,
             spheres,
             num_spheres * sizeof(Sphere),
             cudaMemcpyHostToDevice
-        );
+        ));
 
         printf("CUDA has been initialised. Begin rendering...\n");
         printf("=============================================\n\n");
@@ -198,26 +213,61 @@ int main (int argc, char* argv[]) {
             );
 
             // Copy results of rendering back to the host
-            cudaMemcpy(
+            checkCudaErrors(cudaMemcpy(
                 h_colours,
                 d_colours,
                 screen_width * screen_height * sizeof(vec3),
                 cudaMemcpyDeviceToHost
-            );
+            ));
 
-            cudaMemcpy(
+            checkCudaErrors(cudaMemcpy(
                 h_colour_variances,
                 d_colour_variances,
-                screen_width * screen_height * sizeof(vec3),
+                screen_width * screen_height * sizeof(float),
                 cudaMemcpyDeviceToHost
-            );
+            ));
 
-            cudaMemcpy(
+            checkCudaErrors(cudaMemcpy(
                 h_surface_normals,
                 d_surface_normals,
                 screen_width * screen_height * sizeof(vec3),
                 cudaMemcpyDeviceToHost
-            );
+            ));
+
+            checkCudaErrors(cudaMemcpy(
+                h_surface_normal_variances,
+                d_surface_normal_variances,
+                screen_width * screen_height * sizeof(float),
+                cudaMemcpyDeviceToHost
+            ));
+
+            checkCudaErrors(cudaMemcpy(
+                h_albedos,
+                d_albedos,
+                screen_width * screen_height * sizeof(vec3),
+                cudaMemcpyDeviceToHost
+            ));
+
+            checkCudaErrors(cudaMemcpy(
+                h_albedo_variances,
+                d_albedo_variances,
+                screen_width * screen_height * sizeof(float),
+                cudaMemcpyDeviceToHost
+            ));
+
+            checkCudaErrors(cudaMemcpy(
+                h_depths,
+                d_depths,
+                screen_width * screen_height * sizeof(float),
+                cudaMemcpyDeviceToHost
+            ));
+
+            checkCudaErrors(cudaMemcpy(
+                h_depth_variances,
+                d_depth_variances,
+                screen_width * screen_height * sizeof(float),
+                cudaMemcpyDeviceToHost
+            ));
 
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = end - start;
@@ -233,18 +283,53 @@ int main (int argc, char* argv[]) {
                 title_prefix + "colour"
             );
 
-           save_image(
-                h_colour_variances,
-                screen_height,
-                screen_width,
-                title_prefix + "colour_vars"
-           );
+            save_image(
+                 h_colour_variances,
+                 screen_height,
+                 screen_width,
+                 title_prefix + "colour_vars"
+            );
 
-           save_image(
-                h_surface_normals,
+            save_image(
+                 h_surface_normals,
+                 screen_height,
+                 screen_width,
+                 title_prefix + "sn"
+            );
+
+            save_image(
+                h_surface_normal_variances,
                 screen_height,
                 screen_width,
-                title_prefix + "surface_normal"
+                title_prefix + "sn_vars"
+            );
+
+            save_image(
+                h_albedos,
+                screen_height,
+                screen_width,
+                title_prefix + "albedo"
+            );
+
+            save_image(
+                h_albedo_variances,
+                screen_height,
+                screen_width,
+                title_prefix + "albedo_vars"
+            );
+
+            save_image(
+                h_depths,
+                screen_height,
+                screen_width,
+                title_prefix + "depth"
+            );
+
+            save_image(
+                h_depth_variances,
+                screen_height,
+                screen_width,
+                title_prefix + "depth_vars"
             );
 
            /*
@@ -268,24 +353,23 @@ int main (int argc, char* argv[]) {
         }
 
         // Free CUDA memory
-        cudaFree(d_colours);
-        cudaFree(d_rand_states);
+        checkCudaErrors(cudaFree(d_rand_states));
 
-        cudaFree(d_surface_normals);
-        cudaFree(d_albedos);
-        cudaFree(d_depths);
+        checkCudaErrors(cudaFree(d_colours));
+        checkCudaErrors(cudaFree(d_surface_normals));
+        checkCudaErrors(cudaFree(d_albedos));
+        checkCudaErrors(cudaFree(d_depths));
 
-        cudaFree(d_colour_variances);
-        cudaFree(d_surface_normal_variances);
-        cudaFree(d_albedo_variances);
-        cudaFree(d_depth_variances);
+        checkCudaErrors(cudaFree(d_colour_variances));
+        checkCudaErrors(cudaFree(d_surface_normal_variances));
+        checkCudaErrors(cudaFree(d_albedo_variances));
+        checkCudaErrors(cudaFree(d_depth_variances));
 
-        cudaFree(triangles);
-        cudaFree(spheres);
+        checkCudaErrors(cudaFree(d_triangles));
+        checkCudaErrors(cudaFree(d_spheres));
 
         // Clear memory for host
         delete[] h_colours;
-
         delete[] h_surface_normals;
         delete[] h_albedos;
         delete[] h_depths;
@@ -294,6 +378,9 @@ int main (int argc, char* argv[]) {
         delete[] h_surface_normal_variances;
         delete[] h_albedo_variances;
         delete[] h_depth_variances;
+
+        delete[] triangles;
+        delete[] spheres;
     }
     return 0;
 }
@@ -356,9 +443,9 @@ void render_kernel(
     vec3 * surface_normals,
     vec3 * albedos,
     float * depths,
-    vec3 * colour_variances,
-    vec3 * surface_normal_variances,
-    vec3 * albedo_variances,
+    float * colour_variances,
+    float * surface_normal_variances,
+    float * albedo_variances,
     float * depth_variances,
     Camera camera,
     LightSphere light_sphere,
@@ -453,12 +540,12 @@ void render_kernel(
     vec3 albedo_var = albedo_square_accum / (float) num_samples - albedos[pixel_index] * albedos[pixel_index];
     float depth_var = depth_square_accum / (float) num_samples - depths[pixel_index] * depths[pixel_index];
 
+    /*
     colour_variances[pixel_index] = luminance(colour_var);
-    //printf("%f\n", colour_variances[pixel_index].x);
-    //surface_normal_variances[pixel_index] = luminance(surface_normal_var);
-    //albedo_variances[pixel_index] = luminance(albedo_var);
-    //depth_variances[pixel_index] = depth_var;
-
+    surface_normal_variances[pixel_index] = luminance(surface_normal_var);
+    albedo_variances[pixel_index] = luminance(albedo_var);
+    depth_variances[pixel_index] = depth_var;
+    */
 }
 
 // Calculates the indirect and direct light estimation for diffuse objects
@@ -684,45 +771,45 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
     curr_tris++;
 
     // Left wall
-    Triangle left_wall_1 = Triangle(A, E, C, m_sol_base02);
+    Triangle left_wall_1 = Triangle(A, E, C, m_sol_red);
     //triangles.push_back(left_wall_1);
     triangles[curr_tris] = left_wall_1;
     curr_tris++;
 
-    Triangle left_wall_2 = Triangle(C, E, G, m_sol_base02);
+    Triangle left_wall_2 = Triangle(C, E, G, m_sol_red);
     //triangles.push_back(left_wall_2);
     triangles[curr_tris] = left_wall_2;
     curr_tris++;
 
     // Right wall
-    Triangle right_wall_1 = Triangle(F, B, D, m_sol_base02);
+    Triangle right_wall_1 = Triangle(F, B, D, m_sol_green);
     //triangles.push_back(right_wall_1);
     triangles[curr_tris] = right_wall_1;
     curr_tris++;
 
-    Triangle right_wall_2 = Triangle(H, F, D, m_sol_base02);
+    Triangle right_wall_2 = Triangle(H, F, D, m_sol_green);
     //triangles.push_back(right_wall_2);
     triangles[curr_tris] = right_wall_2;
     curr_tris++;
 
     // Ceiling
-    Triangle ceiling_1 = Triangle(E, F, G, m_sol_base01);
+    Triangle ceiling_1 = Triangle(E, F, G, m_sol_base03);
     //triangles.push_back(ceiling_1);
     triangles[curr_tris] = ceiling_1;
     curr_tris++;
 
-    Triangle ceiling_2 = Triangle(F, H, G, m_sol_base01);
+    Triangle ceiling_2 = Triangle(F, H, G, m_sol_base03);
     //triangles.push_back(ceiling_2);
     triangles[curr_tris] = ceiling_2;
     curr_tris++;
 
     // Back wall
-    Triangle back_wall_1 = Triangle(G, D, C, m_sol_yellow);
+    Triangle back_wall_1 = Triangle(G, D, C, m_sol_base03;
     //triangles.push_back(back_wall_1);
     triangles[curr_tris] = back_wall_1;
     curr_tris++;
 
-    Triangle back_wall_2 = Triangle(G, H, D, m_sol_yellow);
+    Triangle back_wall_2 = Triangle(G, H, D, m_sol_base03);
     //triangles.push_back(back_wall_2);
     triangles[curr_tris] = back_wall_2;
     curr_tris++;
@@ -753,43 +840,43 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
     H = vec4( 32,165,345,1);
 
     // Front
-    //triangles.push_back(Triangle(E, B, A, m_sol_red));
-    triangles[curr_tris] = Triangle(E, B, A, m_sol_red);
+    //triangles.push_back(Triangle(E, B, A, m_sol_base03));
+    triangles[curr_tris] = Triangle(E, B, A, m_sol_base03);
     curr_tris++;
-    //triangles.push_back(Triangle(E, F, B, m_sol_red));
-    triangles[curr_tris] = Triangle(E, F, B, m_sol_red);
+    //triangles.push_back(Triangle(E, F, B, m_sol_base03));
+    triangles[curr_tris] = Triangle(E, F, B, m_sol_base03);
     curr_tris++;
 
     // Front
-    //triangles.push_back(Triangle(F, D, B, m_sol_red));
-    triangles[curr_tris] = Triangle(F, D, B, m_sol_red);
+    //triangles.push_back(Triangle(F, D, B, m_sol_base03));
+    triangles[curr_tris] = Triangle(F, D, B, m_sol_base03);
     curr_tris++;
-    //triangles.push_back(Triangle(F, H, D, m_sol_red));
-    triangles[curr_tris] = Triangle(F, H, D, m_sol_red);
+    //triangles.push_back(Triangle(F, H, D, m_sol_base03));
+    triangles[curr_tris] = Triangle(F, H, D, m_sol_base03);
     curr_tris++;
 
     // BACK
-    //triangles.push_back(Triangle(H, C, D, m_sol_red));
-    triangles[curr_tris] = Triangle(H, C, D, m_sol_red);
+    //triangles.push_back(Triangle(H, C, D, m_sol_base03));
+    triangles[curr_tris] = Triangle(H, C, D, m_sol_base03);
     curr_tris++;
-    //triangles.push_back(Triangle(H, G, C, m_sol_red));
-    triangles[curr_tris] = Triangle(H, G, C, m_sol_red);
+    //triangles.push_back(Triangle(H, G, C, m_sol_base03));
+    triangles[curr_tris] = Triangle(H, G, C, m_sol_base03);
     curr_tris++;
 
     // LEFT
-    //triangles.push_back(Triangle(G, E, C, m_sol_red));
-    triangles[curr_tris] = Triangle(G, E, C, m_sol_red);
+    //triangles.push_back(Triangle(G, E, C, m_sol_base03));
+    triangles[curr_tris] = Triangle(G, E, C, m_sol_base03);
     curr_tris++;
-    //triangles.push_back(Triangle(E, A, C, m_sol_red));
-    triangles[curr_tris] = Triangle(E, A, C, m_sol_red);
+    //triangles.push_back(Triangle(E, A, C, m_sol_base03));
+    triangles[curr_tris] = Triangle(E, A, C, m_sol_base03);
     curr_tris++;
 
     // TOP
-    //triangles.push_back(Triangle(G, F, E, m_sol_red));
-    triangles[curr_tris] = Triangle(G, F, E, m_sol_red);
+    //triangles.push_back(Triangle(G, F, E, m_sol_base03));
+    triangles[curr_tris] = Triangle(G, F, E, m_sol_base03);
     curr_tris++;
-    //triangles.push_back(Triangle(G, H, F, m_sol_red));
-    triangles[curr_tris] = Triangle(G, H, F, m_sol_red);
+    //triangles.push_back(Triangle(G, H, F, m_sol_base03));
+    triangles[curr_tris] = Triangle(G, H, F, m_sol_base03);
     curr_tris++;
 
     // ---------------------------------------------------------------------------
@@ -807,43 +894,43 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
 
     // Front
    
-    //triangles.push_back(Triangle(E, B, A, m_sol_blue));
-    triangles[curr_tris] = Triangle(E, B, A, m_sol_blue);
+    //triangles.push_back(Triangle(E, B, A, m_sol_base03));
+    triangles[curr_tris] = Triangle(E, B, A, m_sol_base03);
     curr_tris++;
-    //triangles.push_back(Triangle(E, F, B, m_sol_blue));
-    triangles[curr_tris] = Triangle(E, F, B, m_sol_blue);
+    //triangles.push_back(Triangle(E, F, B, m_sol_base03));
+    triangles[curr_tris] = Triangle(E, F, B, m_sol_base03);
     curr_tris++;
 
     // Front
-    //triangles.push_back(Triangle(F, D, B, m_sol_blue));
-    triangles[curr_tris] = Triangle(F, D, B, m_sol_blue);
+    //triangles.push_back(Triangle(F, D, B, m_sol_base03));
+    triangles[curr_tris] = Triangle(F, D, B, m_sol_base03);
     curr_tris++;
-    //triangles.push_back(Triangle(F, H, D, m_sol_blue));
-    triangles[curr_tris] = Triangle(F, H, D, m_sol_blue);
+    //triangles.push_back(Triangle(F, H, D, m_sol_base03));
+    triangles[curr_tris] = Triangle(F, H, D, m_sol_base03);
     curr_tris++;
 
     // BACK
-    //triangles.push_back(Triangle(H, C, D, m_sol_blue));
-    triangles[curr_tris] = Triangle(H, C, D, m_sol_blue);
+    //triangles.push_back(Triangle(H, C, D, m_sol_base03));
+    triangles[curr_tris] = Triangle(H, C, D, m_sol_base03);
     curr_tris++;
-    //triangles.push_back(Triangle(H, G, C, m_sol_blue));
-    triangles[curr_tris] = Triangle(H, G, C, m_sol_blue);
+    //triangles.push_back(Triangle(H, G, C, m_sol_base03));
+    triangles[curr_tris] = Triangle(H, G, C, m_sol_base03);
     curr_tris++;
 
     // LEFT
-    //triangles.push_back(Triangle(G, E, C, m_sol_blue));
-    triangles[curr_tris] = Triangle(G, E, C, m_sol_blue);
+    //triangles.push_back(Triangle(G, E, C, m_sol_base03));
+    triangles[curr_tris] = Triangle(G, E, C, m_sol_base03);
     curr_tris++;
-    //triangles.push_back(Triangle(E, A, C, m_sol_blue));
-    triangles[curr_tris] = Triangle(E, A, C, m_sol_blue);
+    //triangles.push_back(Triangle(E, A, C, m_sol_base03));
+    triangles[curr_tris] = Triangle(E, A, C, m_sol_base03);
     curr_tris++;
 
     // TOP
-    //triangles.push_back(Triangle(G, F, E, m_sol_blue));
-    triangles[curr_tris] = Triangle(G, F, E, m_sol_blue);
+    //triangles.push_back(Triangle(G, F, E, m_sol_base03));
+    triangles[curr_tris] = Triangle(G, F, E, m_sol_base03);
     curr_tris++;
-    //triangles.push_back(Triangle(G, H, F, m_sol_blue));
-    triangles[curr_tris] = Triangle(G, H, F, m_sol_blue);
+    //triangles.push_back(Triangle(G, H, F, m_sol_base03));
+    triangles[curr_tris] = Triangle(G, H, F, m_sol_base03);
     curr_tris++;
 
     // ---------------------------------------------------------------------------
@@ -852,7 +939,7 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
     //Sphere for the light
     spheres[curr_spheres] = Sphere(vec4(0, -1.7, 0, 1), 1, m_light);
     curr_spheres++;
-    spheres[curr_spheres] = Sphere(vec4(-0.4, 0.8, -0.5, 1), 0.2, m_sol_green);
+    spheres[curr_spheres] = Sphere(vec4(-0.4, 0.8, -0.5, 1), 0.2, m_sol_base03);
     curr_spheres++;
 
     // ----------------------------------------------

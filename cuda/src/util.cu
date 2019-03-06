@@ -30,6 +30,22 @@ void save_image(vec3 * image, int height, int width, std::string name) {
     printf("Saved image to '%s'\n", filename.c_str());
 }
 
+void save_image(float * image, int height, int width, std::string name) {
+    std::string filename = "../denoiser/data/full/";
+    std::string extension = ".ppm";
+    filename += (name + extension);
+    FILE * file = fopen(filename.c_str(), "w");
+    fprintf(file, "P3\n%d %d\n%d\n", width, height, 255);
+    for(int i = 0 ; i < width * height; i++) {
+        fprintf(file, "%d %d %d ", scaleTo255(image[i]),
+                                   scaleTo255(image[i]),
+                                   scaleTo255(image[i])
+        );
+    }
+    fclose(file);
+    printf("Saved image to '%s'\n", filename.c_str());
+}
+
 void save_patches(vec3 * image, int size, std::string title, std::vector<int> seed) {
 
     std::vector<std::vector<vec3>> image2d (
@@ -119,8 +135,7 @@ float mySum(vec3 v) {
 }
 
 __device__
-vec3 luminance(vec3 v) {
+float luminance(vec3 v) {
     float luminance = 0.299f * v.x * v.x + 0.587f * v.y * v.y + 0.114f * v.z * v.z;
-    //printf("%f\n", luminance);
-    return glm::vec3(luminance);
+    return luminance;
 }

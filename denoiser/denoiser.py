@@ -13,6 +13,7 @@ much higher quality.
 import tensorflow as tf
 from keras.preprocessing.image import array_to_img
 import data
+import config
 import numpy as np
 
 
@@ -22,7 +23,7 @@ import numpy as np
 FLAGS = tf.app.flags.FLAGS
 
 ##### Network #####
-tf.app.flags.DEFINE_integer ("patchSize", 64,
+tf.app.flags.DEFINE_integer ("patchSize", config.PATCH_WIDTH,
                             "The size of the input patches")
 
 #tf.app.flags.DEFINE_integer ("reconstructionKernelSize", 21,
@@ -31,7 +32,7 @@ tf.app.flags.DEFINE_integer ("patchSize", 64,
 tf.app.flags.DEFINE_integer ("inputChannels", 27,
                             "The number of channels in an input patch")
 
-tf.app.flags.DEFINE_integer ("outputChannels", 27,
+tf.app.flags.DEFINE_integer ("outputChannels", 3,
                             "The number of channels in an output patch")
 
 tf.app.flags.DEFINE_float   ("learningRate", 0.00001,
@@ -167,19 +168,6 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(
     write_images=True
 )
 
-print(data.data["train"]["colour"]["noisy"].shape)
-print(data.data["train"]["colour_gradx"]["noisy"].shape)
-print(data.data["train"]["colour_grady"]["noisy"].shape)
-print(data.data["train"]["sn"]["noisy"].shape)
-print(data.data["train"]["sn_gradx"]["noisy"].shape)
-print(data.data["train"]["sn_grady"]["noisy"].shape)
-print(data.data["train"]["albedo"]["noisy"].shape)
-print(data.data["train"]["albedo_gradx"]["noisy"].shape)
-print(data.data["train"]["albedo_grady"]["noisy"].shape)
-print(data.data["train"]["colour_var"]["noisy"].shape)
-print(data.data["train"]["sn_var"]["noisy"].shape)
-print(data.data["train"]["albedo_var"]["noisy"].shape)
-
 model_input = np.concatenate(
     (
         data.data["train"]["colour"]["noisy"],
@@ -203,21 +191,21 @@ model_input = np.concatenate(
 model_output = np.concatenate(
     (
         data.data["train"]["colour"]["reference"],
-        data.data["train"]["colour_gradx"]["reference"],
-        data.data["train"]["colour_grady"]["reference"],
+        #data.data["train"]["colour_gradx"]["reference"],
+        #data.data["train"]["colour_grady"]["reference"],
         #data.data["train"]["sn"]["reference"],
-        data.data["train"]["sn_gradx"]["reference"],
-        data.data["train"]["sn_grady"]["reference"],
+        #data.data["train"]["sn_gradx"]["reference"],
+        #data.data["train"]["sn_grady"]["reference"],
         #data.data["train"]["albedo"]["reference"],
-        data.data["train"]["albedo_gradx"]["reference"],
-        data.data["train"]["albedo_grady"]["reference"],
+        #data.data["train"]["albedo_gradx"]["reference"],
+        #data.data["train"]["albedo_grady"]["reference"],
         #data.data["train"]["depth"]["reference"],
-        data.data["train"]["depth_gradx"]["reference"],
-        data.data["train"]["depth_grady"]["reference"],
-        data.data["train"]["colour_var"]["reference"],
-        data.data["train"]["sn_var"]["reference"],
-        data.data["train"]["albedo_var"]["reference"],
-        data.data["train"]["depth_var"]["reference"]
+        #data.data["train"]["depth_gradx"]["reference"],
+        #data.data["train"]["depth_grady"]["reference"],
+        #data.data["train"]["colour_var"]["reference"],
+        #data.data["train"]["sn_var"]["reference"],
+        #data.data["train"]["albedo_var"]["reference"],
+        #data.data["train"]["depth_var"]["reference"]
     ), 3)
 
 adam = tf.keras.optimizers.Adam(FLAGS.learningRate)
@@ -260,21 +248,21 @@ test_input = np.concatenate(
 test_output = np.concatenate(
     (
         data.data["test"]["colour"]["reference"],
-        data.data["test"]["colour_gradx"]["reference"],
-        data.data["test"]["colour_grady"]["reference"],
+        #data.data["test"]["colour_gradx"]["reference"],
+        #data.data["test"]["colour_grady"]["reference"],
         #data.data["test"]["sn"]["reference"],
-        data.data["test"]["sn_gradx"]["reference"],
-        data.data["test"]["sn_grady"]["reference"],
+        #data.data["test"]["sn_gradx"]["reference"],
+        #data.data["test"]["sn_grady"]["reference"],
         #data.data["test"]["albedo"]["reference"],
-        data.data["test"]["albedo_gradx"]["reference"],
-        data.data["test"]["albedo_grady"]["reference"],
+        #data.data["test"]["albedo_gradx"]["reference"],
+        #data.data["test"]["albedo_grady"]["reference"],
         #data.data["test"]["depth"]["reference"],
-        data.data["test"]["depth_gradx"]["reference"],
-        data.data["test"]["depth_grady"]["reference"],
-        data.data["test"]["colour_var"]["reference"],
-        data.data["test"]["sn_var"]["reference"],
-        data.data["test"]["albedo_var"]["reference"],
-        data.data["test"]["depth_var"]["reference"]
+        #data.data["test"]["depth_gradx"]["reference"],
+        #data.data["test"]["depth_grady"]["reference"],
+        #data.data["test"]["colour_var"]["reference"],
+        #data.data["test"]["sn_var"]["reference"],
+        #data.data["test"]["albedo_var"]["reference"],
+        #data.data["test"]["depth_var"]["reference"]
     ), 3)
 
 score = model.evaluate(test_input, test_output, verbose=0)
