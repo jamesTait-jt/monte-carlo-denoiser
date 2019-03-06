@@ -23,11 +23,11 @@ const int cam_focal_length = screen_height * anti_aliasing_factor; // Focal leng
 const vec4 light_start_position(0.0f, -0.4f, -0.9f, 1.0f); // The start position of the centre of the area light
 const float area_light_radius = 0.1f; // Distance away from the centre point lights can spawn
 const int num_lights = 1; // The number of point lights in the area light
-const float light_intensity = 2.0f; // The intensity of the area light as a whole
+const float light_intensity = 0.5f; // The intensity of the area light as a whole
 const vec3 light_colour(0.75f, 0.75f, 0.75f); // The colour of the area light
 
 // Monte carlo configuration
-const int monte_carlo_max_depth = 10; // Number of bounces in the monte carlo estimation
+const int num_bounces = 100000; // Number of bounces in the monte carlo estimation
 const int monte_carlo_num_samples = 32; // Number of samples per pixel in monte carlo estimation
 
 // Misc.

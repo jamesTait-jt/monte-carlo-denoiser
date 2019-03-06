@@ -59,6 +59,16 @@ class Ray {
             int sphere_index
         );
 
+        CUDA_DEV vec3 tracePathIterative(
+            Triangle * triangles,
+            int num_tris,
+            Sphere * spheres,
+            int num_spheres,
+            curandState & rand_state,
+            int num_bounces,
+            vec3 & albedo
+        );
+
         CUDA_DEV vec3 tracePath(
             Triangle * triangles,
             int num_tris,

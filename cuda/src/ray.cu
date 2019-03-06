@@ -141,6 +141,88 @@ bool Ray::closestIntersection(
 }
 
 __device__
+vec3 Ray::tracePathIterative(
+    Triangle * triangles,
+    int num_tris,
+    Sphere * spheres,
+    int num_spheres,
+    curandState & rand_state,
+    int num_bounces,
+    vec3 & albedo
+) {
+
+    vec3 throughput = vec3(1.0f);
+    float pdf = 1 / (2 * (float)M_PI);
+
+    for (int i = 0 ; i < num_bounces ; i++) {
+
+        // If the ray didn't hit an object, return black
+        if (!closestIntersection(triangles, num_tris, spheres, num_spheres)) {
+            return vec3(0.0f);
+        }
+
+
+        // Get the material of the object we have intersected with
+        Material material = closest_intersection_.is_triangle ?
+            triangles[closest_intersection_.index].material_ :
+            spheres[closest_intersection_.index].material_;
+
+        // Get the light that is emitted from the object. This will be 0 for anything
+        // other than the light objects
+        vec3 emittance = material.emitted_light_component_;
+
+        // If we hit a light, stop bouncing
+        if (emittance.x > 0 && emittance.y > 0 && emittance.z > 0) {
+            throughput *= emittance;
+            return throughput;
+        }
+
+        // Get the surface normal of the intersected object (in 3d not 4d)
+        vec3 intersection_normal_3 = vec3(closest_intersection_.normal);
+        vec3 N_t, N_b;
+
+        // Create out new coordinate system about out intersection point
+        createCoordinateSystem(intersection_normal_3, N_t, N_b);
+
+        // Generate two rando numbers
+        float r1 = curand_uniform(&rand_state);
+        float r2 = curand_uniform(&rand_state);
+
+        // Sample a random point on the hemisphere surrounding out intersection point
+        vec3 sample = uniformSampleHemisphere(r1, r2);
+
+        // Convert the sample from our coordinate space to world space
+        vec4 sample_world(
+            sample.x * N_b.x + sample.y * intersection_normal_3.x + sample.z * N_t.x,
+            sample.x * N_b.y + sample.y * intersection_normal_3.y + sample.z * N_t.y,
+            sample.x * N_b.z + sample.y * intersection_normal_3.z + sample.z * N_t.z,
+            0
+        );
+
+        // Generate our ray from the random direction calculated previously
+        start_ = closest_intersection_.position + sample_world * 0.000001f;
+        direction_ = sample_world;
+
+        // Compute the BRDF for this ray (assuming Lambertian reflection)
+        float cos_theta = glm::dot(vec3(direction_), intersection_normal_3);
+
+        // This block ensures that the first bounce returns the albedo to the parameter in the
+        // function arguments, if it is not the first bounce then use a different variable name
+        vec3 BRDF;
+        if (i == 0) {
+            albedo = material.diffuse_light_component_;
+            BRDF = albedo / (float) M_PI ;
+        } else {
+            vec3 new_albedo = material.diffuse_light_component_;
+            BRDF = new_albedo / (float) M_PI;
+        }
+
+        throughput = (throughput * BRDF * r1 / pdf);
+    }
+    return throughput;
+}
+
+__device__
 vec3 Ray::tracePath(
     Triangle * triangles,
     int num_tris,
@@ -195,8 +277,6 @@ vec3 Ray::tracePath(
     float cos_theta = glm::dot(vec3(random_ray.direction_), intersection_normal_3);
     albedo = material.diffuse_light_component_;
     vec3 BRDF = albedo / (float) M_PI ;
-
-
 
     // Recursively trace reflected light sources.
     vec3 new_albedo;

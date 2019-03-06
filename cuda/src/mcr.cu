@@ -18,7 +18,7 @@
 
 
 // ----- DEVICE CONSTANTS ----- //
-__constant__ int d_ref_samples_per_pixel = 16 * 1024;
+__constant__ int d_ref_samples_per_pixel = 32 * 1024;
 __constant__ int d_noisy_samples_per_pixel = 128;
 
 
@@ -121,10 +121,10 @@ int main (int argc, char* argv[]) {
         ));
 
         // Load in the shapes
-        int num_tris = 32;
+        int num_tris = 34;
         Triangle * triangles = new Triangle[num_tris];
 
-        int num_spheres = 2;
+        int num_spheres = 1;
         Sphere * spheres = new Sphere[num_spheres];
 
         Triangle * d_triangles;
@@ -503,6 +503,7 @@ void render_kernel(
         ray.rotateRay(camera.yaw_);
 
         vec3 albedo;
+        /*
         vec3 colour = ray.tracePath(
             triangles,
             num_tris,
@@ -511,6 +512,16 @@ void render_kernel(
             rand_state[pixel_index],
             monte_carlo_max_depth,
             0,
+            albedo
+        );
+        */
+        vec3 colour = ray.tracePathIterative(
+            triangles,
+            num_tris,
+            spheres,
+            num_spheres,
+            rand_state[pixel_index],
+            num_bounces,
             albedo
         );
 
@@ -540,12 +551,10 @@ void render_kernel(
     vec3 albedo_var = albedo_square_accum / (float) num_samples - albedos[pixel_index] * albedos[pixel_index];
     float depth_var = depth_square_accum / (float) num_samples - depths[pixel_index] * depths[pixel_index];
 
-    /*
     colour_variances[pixel_index] = luminance(colour_var);
     surface_normal_variances[pixel_index] = luminance(surface_normal_var);
     albedo_variances[pixel_index] = luminance(albedo_var);
     depth_variances[pixel_index] = depth_var;
-    */
 }
 
 // Calculates the indirect and direct light estimation for diffuse objects
@@ -782,34 +791,35 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
     curr_tris++;
 
     // Right wall
-    Triangle right_wall_1 = Triangle(F, B, D, m_sol_green);
+    Triangle right_wall_1 = Triangle(F, B, D, m_sol_cyan);
     //triangles.push_back(right_wall_1);
     triangles[curr_tris] = right_wall_1;
     curr_tris++;
 
-    Triangle right_wall_2 = Triangle(H, F, D, m_sol_green);
+    Triangle right_wall_2 = Triangle(H, F, D, m_sol_cyan);
     //triangles.push_back(right_wall_2);
     triangles[curr_tris] = right_wall_2;
     curr_tris++;
 
     // Ceiling
-    Triangle ceiling_1 = Triangle(E, F, G, m_sol_base03);
+    Triangle ceiling_1 = Triangle(E, F, G, m_sol_base3);
     //triangles.push_back(ceiling_1);
     triangles[curr_tris] = ceiling_1;
     curr_tris++;
 
-    Triangle ceiling_2 = Triangle(F, H, G, m_sol_base03);
+    Triangle ceiling_2 = Triangle(F, H, G, m_sol_base3);
     //triangles.push_back(ceiling_2);
     triangles[curr_tris] = ceiling_2;
     curr_tris++;
 
+
     // Back wall
-    Triangle back_wall_1 = Triangle(G, D, C, m_sol_base03;
+    Triangle back_wall_1 = Triangle(G, D, C, m_sol_yellow);
     //triangles.push_back(back_wall_1);
     triangles[curr_tris] = back_wall_1;
     curr_tris++;
 
-    Triangle back_wall_2 = Triangle(G, H, D, m_sol_base03);
+    Triangle back_wall_2 = Triangle(G, H, D, m_sol_yellow);
     //triangles.push_back(back_wall_2);
     triangles[curr_tris] = back_wall_2;
     curr_tris++;
@@ -825,6 +835,23 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
         curr_tris++;
     }
 
+    // ----- LIGHTS ----- //
+    float divisor = 1.5f;
+    float diff = cornell_length - (cornell_length / divisor);
+    vec4 new_e = vec4(E.x - diff, E.y-1, E.z + diff, 1.0f);
+    vec4 new_f = vec4(F.x + diff, F.y-1, F.z + diff, 1.0f);
+    vec4 new_g = vec4(G.x - diff, G.y-1, G.z - diff, 1.0f);
+    vec4 new_h = vec4(H.x + diff, H.y-1, H.z - diff, 1.0f);
+
+    Triangle light_1 = Triangle(new_e, new_f, new_g, m_light);
+    //triangles.push_back(ceiling_1);
+    triangles[curr_tris] = light_1;
+    curr_tris++;
+
+    Triangle light_2 = Triangle(new_f, new_h, new_g, m_light);
+    //triangles.push_back(ceiling_2);
+    triangles[curr_tris] = light_2;
+    curr_tris++;
 
     // ---------------------------------------------------------------------------
     // Short block
@@ -840,43 +867,43 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
     H = vec4( 32,165,345,1);
 
     // Front
-    //triangles.push_back(Triangle(E, B, A, m_sol_base03));
-    triangles[curr_tris] = Triangle(E, B, A, m_sol_base03);
+    //triangles.push_back(Triangle(E, B, A, m_sol_base3));
+    triangles[curr_tris] = Triangle(E, B, A, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(E, F, B, m_sol_base03));
-    triangles[curr_tris] = Triangle(E, F, B, m_sol_base03);
+    //triangles.push_back(Triangle(E, F, B, m_sol_base3));
+    triangles[curr_tris] = Triangle(E, F, B, m_sol_base3);
     curr_tris++;
 
     // Front
-    //triangles.push_back(Triangle(F, D, B, m_sol_base03));
-    triangles[curr_tris] = Triangle(F, D, B, m_sol_base03);
+    //triangles.push_back(Triangle(F, D, B, m_sol_base3));
+    triangles[curr_tris] = Triangle(F, D, B, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(F, H, D, m_sol_base03));
-    triangles[curr_tris] = Triangle(F, H, D, m_sol_base03);
+    //triangles.push_back(Triangle(F, H, D, m_sol_base3));
+    triangles[curr_tris] = Triangle(F, H, D, m_sol_base3);
     curr_tris++;
 
     // BACK
-    //triangles.push_back(Triangle(H, C, D, m_sol_base03));
-    triangles[curr_tris] = Triangle(H, C, D, m_sol_base03);
+    //triangles.push_back(Triangle(H, C, D, m_sol_base3));
+    triangles[curr_tris] = Triangle(H, C, D, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(H, G, C, m_sol_base03));
-    triangles[curr_tris] = Triangle(H, G, C, m_sol_base03);
+    //triangles.push_back(Triangle(H, G, C, m_sol_base3));
+    triangles[curr_tris] = Triangle(H, G, C, m_sol_base3);
     curr_tris++;
 
     // LEFT
-    //triangles.push_back(Triangle(G, E, C, m_sol_base03));
-    triangles[curr_tris] = Triangle(G, E, C, m_sol_base03);
+    //triangles.push_back(Triangle(G, E, C, m_sol_base3));
+    triangles[curr_tris] = Triangle(G, E, C, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(E, A, C, m_sol_base03));
-    triangles[curr_tris] = Triangle(E, A, C, m_sol_base03);
+    //triangles.push_back(Triangle(E, A, C, m_sol_base3));
+    triangles[curr_tris] = Triangle(E, A, C, m_sol_base3);
     curr_tris++;
 
     // TOP
-    //triangles.push_back(Triangle(G, F, E, m_sol_base03));
-    triangles[curr_tris] = Triangle(G, F, E, m_sol_base03);
+    //triangles.push_back(Triangle(G, F, E, m_sol_base3));
+    triangles[curr_tris] = Triangle(G, F, E, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(G, H, F, m_sol_base03));
-    triangles[curr_tris] = Triangle(G, H, F, m_sol_base03);
+    //triangles.push_back(Triangle(G, H, F, m_sol_base3));
+    triangles[curr_tris] = Triangle(G, H, F, m_sol_base3);
     curr_tris++;
 
     // ---------------------------------------------------------------------------
@@ -894,53 +921,54 @@ void loadShapes(Triangle * triangles, Sphere * spheres) {
 
     // Front
    
-    //triangles.push_back(Triangle(E, B, A, m_sol_base03));
-    triangles[curr_tris] = Triangle(E, B, A, m_sol_base03);
+    //triangles.push_back(Triangle(E, B, A, m_sol_base3));
+    triangles[curr_tris] = Triangle(E, B, A, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(E, F, B, m_sol_base03));
-    triangles[curr_tris] = Triangle(E, F, B, m_sol_base03);
+    //triangles.push_back(Triangle(E, F, B, m_sol_base3));
+    triangles[curr_tris] = Triangle(E, F, B, m_sol_base3);
     curr_tris++;
 
     // Front
-    //triangles.push_back(Triangle(F, D, B, m_sol_base03));
-    triangles[curr_tris] = Triangle(F, D, B, m_sol_base03);
+    //triangles.push_back(Triangle(F, D, B, m_sol_base3));
+    triangles[curr_tris] = Triangle(F, D, B, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(F, H, D, m_sol_base03));
-    triangles[curr_tris] = Triangle(F, H, D, m_sol_base03);
+    //triangles.push_back(Triangle(F, H, D, m_sol_base3));
+    triangles[curr_tris] = Triangle(F, H, D, m_sol_base3);
     curr_tris++;
 
     // BACK
-    //triangles.push_back(Triangle(H, C, D, m_sol_base03));
-    triangles[curr_tris] = Triangle(H, C, D, m_sol_base03);
+    //triangles.push_back(Triangle(H, C, D, m_sol_base3));
+    triangles[curr_tris] = Triangle(H, C, D, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(H, G, C, m_sol_base03));
-    triangles[curr_tris] = Triangle(H, G, C, m_sol_base03);
+    //triangles.push_back(Triangle(H, G, C, m_sol_base3));
+    triangles[curr_tris] = Triangle(H, G, C, m_sol_base3);
     curr_tris++;
 
     // LEFT
-    //triangles.push_back(Triangle(G, E, C, m_sol_base03));
-    triangles[curr_tris] = Triangle(G, E, C, m_sol_base03);
+    //triangles.push_back(Triangle(G, E, C, m_sol_base3));
+    triangles[curr_tris] = Triangle(G, E, C, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(E, A, C, m_sol_base03));
-    triangles[curr_tris] = Triangle(E, A, C, m_sol_base03);
+    //triangles.push_back(Triangle(E, A, C, m_sol_base3));
+    triangles[curr_tris] = Triangle(E, A, C, m_sol_base3);
     curr_tris++;
 
     // TOP
-    //triangles.push_back(Triangle(G, F, E, m_sol_base03));
-    triangles[curr_tris] = Triangle(G, F, E, m_sol_base03);
+    //triangles.push_back(Triangle(G, F, E, m_sol_base3));
+    triangles[curr_tris] = Triangle(G, F, E, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(G, H, F, m_sol_base03));
-    triangles[curr_tris] = Triangle(G, H, F, m_sol_base03);
+    //triangles.push_back(Triangle(G, H, F, m_sol_base3));
+    triangles[curr_tris] = Triangle(G, H, F, m_sol_base3);
     curr_tris++;
 
     // ---------------------------------------------------------------------------
     // Sphere
 
     //Sphere for the light
-    spheres[curr_spheres] = Sphere(vec4(0, -1.7, 0, 1), 1, m_light);
+    //spheres[curr_spheres] = Sphere(vec4(0, -1, 0, 1), 0.2, m_light);
+    //curr_spheres++;
+    spheres[curr_spheres] = Sphere(vec4(-0.4, 0.8, -0.5, 1), 0.2, m_sol_base3);
     curr_spheres++;
-    spheres[curr_spheres] = Sphere(vec4(-0.4, 0.8, -0.5, 1), 0.2, m_sol_base03);
-    curr_spheres++;
+
 
     // ----------------------------------------------
     // Scale to the volume [-1,1]^3
