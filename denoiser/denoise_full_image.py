@@ -1,3 +1,4 @@
+import sys
 import tensorflow as tf
 from keras.preprocessing.image import array_to_img, img_to_array, load_img
 import matplotlib.pyplot as plt
@@ -37,7 +38,7 @@ def stitch(img, patch_width, patch_height, img_width, img_height):
 
 
 # Load in trained model
-model = tf.keras.models.load_model("models/model.h5")
+model = tf.keras.models.load_model(sys.argv[1])
 
 # Load in the noisy image and feature buffers
 noisy_colour = load_img("data/full/noisy_colour.png")
@@ -204,18 +205,15 @@ model_input = np.concatenate(
         colour_patches,
         colour_gradx_patches,
         colour_grady_patches,
-        #sn_patches,
+        colour_var_patches,
         sn_gradx_patches,
         sn_grady_patches,
-        #albedo_patches,
+        sn_var_patches,
         albedo_gradx_patches,
         albedo_grady_patches,
-        #depth_patches,
+        albedo_var_patches,
         depth_gradx_patches,
         depth_grady_patches,
-        colour_var_patches,
-        sn_var_patches,
-        albedo_var_patches,
         depth_var_patches
     ), 3)
 
@@ -223,4 +221,6 @@ model_input = np.concatenate(
 pred = model.predict(model_input)
 
 stitched = stitch(pred, config.PATCH_WIDTH, config.PATCH_HEIGHT, config.IMAGE_WIDTH, config.IMAGE_HEIGHT)
-stitched.save("data/output/denoised.png")
+
+save_dir = sys.argv[1].split('/')[1]
+stitched.save("data/output/" + save_dir + "denoised.png")
