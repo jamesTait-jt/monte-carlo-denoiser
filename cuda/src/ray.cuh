@@ -66,7 +66,9 @@ class Ray {
             int num_spheres,
             curandState & rand_state,
             int num_bounces,
-            vec3 & albedo
+            vec3 & first_sn,
+            vec3 & first_albedo,
+            float & first_depth
         );
 
         CUDA_DEV vec3 tracePath(
@@ -75,9 +77,11 @@ class Ray {
             Sphere * spheres,
             int num_spheres,
             curandState & local_rand_state,
-            int monte_carlo_max_depth,
+            int num_bounces,
             int curr_depth,
-            vec3 & albedo
+            vec3 & first_sn,
+            vec3 & first_albedo,
+            float & first_depth
         );
 
         CUDA_DEV void rotateRay(

@@ -14,7 +14,7 @@ const int patch_size = 0; // SIze of the patches for NN
 const int patch_step = 32;
 
 // Camera configuration
-const vec4 cam_start_position(0.0f, 0.0f, -3.0f, 1.0f); // The starting position of the camera
+const vec4 cam_start_position(0.0f, 0.0f, -2.99f, 1.0f); // The starting position of the camera
 const float cam_start_yaw = 0; // Starting direction of the camera
 const int cam_focal_length = screen_height * anti_aliasing_factor; // Focal length of the camera must match the supersampled dimensions
 
@@ -27,7 +27,7 @@ const float light_intensity = 0.5f; // The intensity of the area light as a whol
 const vec3 light_colour(0.75f, 0.75f, 0.75f); // The colour of the area light
 
 // Monte carlo configuration
-const int num_bounces = 100000; // Number of bounces in the monte carlo estimation
+const int num_bounces = 1000; // Number of bounces in the monte carlo estimation
 const int monte_carlo_num_samples = 32; // Number of samples per pixel in monte carlo estimation
 
 // Misc.

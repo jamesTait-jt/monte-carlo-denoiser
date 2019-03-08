@@ -4,6 +4,7 @@ import os
 
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 import config
+import make_patches
 
 # Shuffle two arrays in the same way so that they keep their correspondance
 def shuffle_two_arrays(a, b):
@@ -39,116 +40,115 @@ def convert_channels_7_to_3(data):
     return new_data
 
 datagen = ImageDataGenerator(
-        rotation_range=40,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        shear_range=0.2,
-        zoom_range=0.2,
-        horizontal_flip=True,
-        fill_mode='nearest')
+    rotation_range=40,
+    horizontal_flip=True,
+    fill_mode='nearest'
+)
 
-data_list = []
-for i in range(len(config.PATCH_SAVE_DIRS)):
-    # Extract the image for storing in dict
-    img_dir = config.PATCH_SAVE_DIRS[i]
 
-    data = []
-    for img in sorted(os.listdir(img_dir)):
-        img = load_img(img_dir + img)
-        img = img_to_array(img)
-        data.append(img)
-    data = np.array(data) / 255.0
-
-    # Split into training and test data (80:20 split)
-    train = data[int(data.shape[0] * 0.20) :] 
-    test = data[: int(data.shape[0] * 0.20)] 
-
-    data_list.append((train, test))
-
-# Define the data dictionary
 data = {
     "train" : {
         "colour" : {
-            "reference" : data_list[0][0],
-            "noisy" : data_list[1][0]
+            "reference" : None,
+            "noisy" : None
         },
         "colour_gradx" : {
-            "noisy" : data_list[2][0]
+            "noisy" : None
         },
         "colour_grady" : {
-            "noisy" : data_list[3][0]
+            "noisy" : None
         },
         "colour_var" : {
-            "noisy" : data_list[4][0]
+            "noisy" : None
         },
         "sn_gradx" : {
-            "noisy" : data_list[5][0]
+            "noisy" : None
         },
         "sn_grady" : {
-            "noisy" : data_list[6][0]
+            "noisy" : None
         },
         "sn_var" : {
-            "noisy" : data_list[7][0]
+            "noisy" : None
         },
         "albedo_gradx" : {
-            "noisy" : data_list[8][0]
+            "noisy" : None
         },
         "albedo_grady" : {
-            "noisy" : data_list[9][0]
+            "noisy" : None
         },
         "albedo_var" : {
-            "noisy" : data_list[10][0]
+            "noisy" : None
         },
         "depth_gradx" : {
-            "noisy" : data_list[11][0]
+            "noisy" : None
         },
         "depth_grady" : {
-            "noisy" : data_list[12][0]
+            "noisy" : None
         },
         "depth_var" : {
-            "noisy" : data_list[13][0]
+            "noisy" : None
         }
     },
     "test" : {
         "colour" : {
-            "reference" : data_list[0][1],
-            "noisy" : data_list[1][1]
+            "reference" : None,
+            "noisy" : None
         },
         "colour_gradx" : {
-            "noisy" : data_list[2][1]
+            "noisy" : None
         },
         "colour_grady" : {
-            "noisy" : data_list[3][1]
+            "noisy" : None
         },
         "colour_var" : {
-            "noisy" : data_list[4][1]
+            "noisy" : None
         },
         "sn_gradx" : {
-            "noisy" : data_list[5][1]
+            "noisy" : None
         },
         "sn_grady" : {
-            "noisy" : data_list[6][1]
+            "noisy" : None
         },
         "sn_var" : {
-            "noisy" : data_list[7][1]
+            "noisy" : None
         },
         "albedo_gradx" : {
-            "noisy" : data_list[8][1]
+            "noisy" : None
         },
         "albedo_grady" : {
-            "noisy" : data_list[9][1]
+            "noisy" : None
         },
         "albedo_var" : {
-            "noisy" : data_list[10][1]
+            "noisy" : None
         },
         "depth_gradx" : {
-            "noisy" : data_list[11][1]
+            "noisy" : None
         },
         "depth_grady" : {
-            "noisy" : data_list[12][1]
+            "noisy" : None
         },
         "depth_var" : {
-            "noisy" : data_list[13][1]
+            "noisy" : None
         }
     }
 }
+
+data_list = []
+for key in make_patches.patches:
+    patches = make_patches.patches[key]
+    train = patches[int(patches.shape[0] * 0.20) :]
+    test = patches[: int(patches.shape[0] * 0.20) ]
+    data_list.append((train, test))
+
+    
+
+    print(key)
+    print(np.amax(patches))
+
+    key_list = key.split('_')
+    if (len(key_list) == 3):
+        data["train"][key_list[1] + '_' + key_list[2]][key_list[0]] = train
+        data["test"][key_list[1] + '_' + key_list[2]][key_list[0]] = test
+    else:
+        data["train"][key_list[1]][key_list[0]] = train
+        data["test"][key_list[1]][key_list[0]] = test

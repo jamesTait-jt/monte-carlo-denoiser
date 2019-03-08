@@ -148,19 +148,25 @@ vec3 Ray::tracePathIterative(
     int num_spheres,
     curandState & rand_state,
     int num_bounces,
-    vec3 & albedo
+    vec3 & first_sn,
+    vec3 & first_albedo,
+    float & first_depth
 ) {
 
     vec3 throughput = vec3(1.0f);
+
+    vec3 accum_colour = vec3(0.0f);
+    vec3 mask = vec3(1.0f);
+
     float pdf = 1 / (2 * (float)M_PI);
 
     for (int i = 0 ; i < num_bounces ; i++) {
 
         // If the ray didn't hit an object, return black
         if (!closestIntersection(triangles, num_tris, spheres, num_spheres)) {
-            return vec3(0.0f);
+            //return vec3(0.0f);
+            return accum_colour;
         }
-
 
         // Get the material of the object we have intersected with
         Material material = closest_intersection_.is_triangle ?
@@ -172,10 +178,16 @@ vec3 Ray::tracePathIterative(
         vec3 emittance = material.emitted_light_component_;
 
         // If we hit a light, stop bouncing
-        if (emittance.x > 0 && emittance.y > 0 && emittance.z > 0) {
-            throughput *= emittance;
-            return throughput;
-        }
+
+        //if (emittance.x > 0 && emittance.y > 0 && emittance.z > 0) {
+        //    throughput *= emittance;
+        //    if (i == 0) {
+        //        first_sn = closest_intersection_.normal;
+        //        first_albedo = material.diffuse_light_component_;
+        //        first_depth = closest_intersection_.distance;
+        //    }
+        //    return throughput;
+        //}
 
         // Get the surface normal of the intersected object (in 3d not 4d)
         vec3 intersection_normal_3 = vec3(closest_intersection_.normal);
@@ -210,16 +222,22 @@ vec3 Ray::tracePathIterative(
         // function arguments, if it is not the first bounce then use a different variable name
         vec3 BRDF;
         if (i == 0) {
-            albedo = material.diffuse_light_component_;
-            BRDF = albedo / (float) M_PI ;
-        } else {
-            vec3 new_albedo = material.diffuse_light_component_;
-            BRDF = new_albedo / (float) M_PI;
+            first_sn = vec3(closest_intersection_.normal);
+            first_albedo = material.diffuse_light_component_;
+            first_depth = closest_intersection_.distance;
         }
+        vec3 albedo = material.diffuse_light_component_;
+        BRDF = albedo / (float) M_PI;
 
-        throughput = (throughput * BRDF * r1 / pdf);
+        throughput *= (throughput * BRDF * r1 / pdf);
+
+        accum_colour += mask * emittance;
+        mask *= albedo;
+        mask *= glm::dot(direction_, closest_intersection_.normal);
+
     }
-    return throughput;
+    //return throughput;
+    return accum_colour;
 }
 
 __device__
@@ -229,12 +247,14 @@ vec3 Ray::tracePath(
     Sphere * spheres,
     int num_spheres,
     curandState & rand_state,
-    int monte_carlo_max_depth,
+    int num_bounces,
     int curr_depth,
-    vec3 & albedo
+    vec3 & first_sn,
+    vec3 & first_albedo,
+    float & first_depth
 ) {
     // We have bounced enough times
-    if (curr_depth >= monte_carlo_max_depth) {
+    if (curr_depth >= num_bounces) {
         return vec3(0.0f);
     }
 
@@ -249,6 +269,11 @@ vec3 Ray::tracePath(
     vec3 emittance = material.emitted_light_component_;
 
     vec3 intersection_normal_3 = vec3(closest_intersection_.normal);
+
+    first_sn = intersection_normal_3;
+    first_albedo = material.diffuse_light_component_;
+    first_depth = closest_intersection_.distance;
+
     vec3 N_t, N_b;
     createCoordinateSystem(intersection_normal_3, N_t, N_b);
 
@@ -275,20 +300,24 @@ vec3 Ray::tracePath(
 
     // Compute the BRDF for this ray (assuming Lambertian reflection)
     float cos_theta = glm::dot(vec3(random_ray.direction_), intersection_normal_3);
-    albedo = material.diffuse_light_component_;
+    vec3 albedo = material.diffuse_light_component_;
     vec3 BRDF = albedo / (float) M_PI ;
 
     // Recursively trace reflected light sources.
+    vec3 new_sn;
     vec3 new_albedo;
+    float new_depth;
     vec3 incoming = r1 * random_ray.tracePath(
         triangles,
         num_tris,
         spheres,
         num_spheres,
         rand_state,
-        monte_carlo_max_depth,
+        num_bounces,
         curr_depth + 1,
-        new_albedo
+        new_sn,
+        new_albedo,
+        new_depth
     );
 
     return emittance + (BRDF * incoming / pdf);

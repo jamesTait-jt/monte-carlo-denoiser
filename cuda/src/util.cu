@@ -14,7 +14,7 @@ int scaleTo255(float x) {
 }
 
 // Saves the image as a simple .ppm file (open with program such as 'feh'
-void save_image(vec3 * image, int height, int width, std::string name) {
+void save_colour_image(vec3 * image, int height, int width, std::string name) {
     std::string filename = "../denoiser/data/full/";
     std::string extension = ".ppm";
     filename += (name + extension);
@@ -30,17 +30,28 @@ void save_image(vec3 * image, int height, int width, std::string name) {
     printf("Saved image to '%s'\n", filename.c_str());
 }
 
-void save_image(float * image, int height, int width, std::string name) {
+void save_image(vec3 * image, int height, int width, std::string name) {
     std::string filename = "../denoiser/data/full/";
-    std::string extension = ".ppm";
+    std::string extension = ".txt";
     filename += (name + extension);
     FILE * file = fopen(filename.c_str(), "w");
-    fprintf(file, "P3\n%d %d\n%d\n", width, height, 255);
+    //fprintf(file, "P3\n%d %d\n%d\n", width, height, 65535);
     for(int i = 0 ; i < width * height; i++) {
-        fprintf(file, "%d %d %d ", scaleTo255(image[i]),
-                                   scaleTo255(image[i]),
-                                   scaleTo255(image[i])
-        );
+        //fprintf(file, "%d %d %d,", scaleTo255(image[i].x), scaleTo255(image[i].y), scaleTo255(image[i].z));
+        fprintf(file, "%f %f %f,", image[i].x, image[i].y, image[i].z);
+    }
+    fclose(file);
+    printf("Saved image to '%s'\n", filename.c_str());
+}
+
+void save_image(float * image, int height, int width, std::string name) {
+    std::string filename = "../denoiser/data/full/";
+    std::string extension = ".txt";
+    filename += (name + extension);
+    FILE * file = fopen(filename.c_str(), "w");
+    //fprintf(file, "P3\n%d %d\n%d\n", width, height, 65535);
+    for(int i = 0 ; i < width * height; i++) {
+        fprintf(file, "%f,", image[i], image[i], image[i]);
     }
     fclose(file);
     printf("Saved image to '%s'\n", filename.c_str());

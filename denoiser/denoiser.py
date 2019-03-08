@@ -177,6 +177,8 @@ class Denoiser():
             self.test_data["colour_var"]["noisy"]
         ]
 
+        print(np.concatenate((new_train_in), 3).shape)
+
         for feature in self.feature_list:
             # Each feature is split into gradient in X and Y direction, and it's
             # corresponding variance
@@ -194,6 +196,7 @@ class Denoiser():
 
         # Ensure input channels is the right size
         self.input_channels = self.train_input.shape[3]
+        print(self.train_input.shape)
 
     # First convolutional layer (must define input shape)
     def initialConvLayer(self):
@@ -361,9 +364,12 @@ def denoise():
     denoiser = Denoiser(
         train_data, 
         test_data, 
-        num_epochs=100,
+        num_epochs=200,
         feature_list=feature_list
     )
+
+    print(denoiser.input_channels)
+
     denoiser.train()
     denoiser.eval()
     del denoiser
@@ -372,9 +378,22 @@ def denoise():
     denoiser = Denoiser(
         train_data, 
         test_data, 
-        num_epochs=100,
+        num_epochs=200,
         feature_list=feature_list
     )
     denoiser.train()
     denoiser.eval()
+    del denoiser
+
+    denoiser = Denoiser(
+        train_data,
+        test_data,
+        num_epochs=50,
+        adam_lr_decay=0.001,
+        feature_list=feature_list
+    )
+
+    #denoiser.train()
+    #denoiser.eval()
+
     del denoiser
