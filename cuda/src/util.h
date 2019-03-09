@@ -29,6 +29,13 @@ void save_image(
     std::string title
 );
 
+void save_colour_image(
+        vec3 * image,
+        int height,
+        int width,
+        std::string title
+);
+
 void save_image(
     float * image,
     int height,

@@ -104,49 +104,16 @@ FULL_IMAGE_PATHS = [
 PATCH_SAVE_DIRS = [
     "data/patches/reference_colour/",
     "data/patches/noisy_colour/",
-
-    "data/patches/reference_colour_gradx/",
     "data/patches/noisy_colour_gradx/",
-
-    "data/patches/reference_colour_grady/",
     "data/patches/noisy_colour_grady/",
-
-    "data/patches/reference_sn/",
-    "data/patches/noisy_sn/",
-
-    "data/patches/reference_sn_gradx/",
-    "data/patches/noisy_sn_gradx/",
-
-    "data/patches/reference_sn_grady/",
-    "data/patches/noisy_sn_grady/",
-
-    "data/patches/reference_albedo/",
-    "data/patches/noisy_albedo/",
-
-    "data/patches/reference_albedo_gradx/",
-    "data/patches/noisy_albedo_gradx/",
-
-    "data/patches/reference_albedo_grady/",
-    "data/patches/noisy_albedo_grady/",
-
-    "data/patches/reference_depth/",
-    "data/patches/noisy_depth/",
-
-    "data/patches/reference_depth_gradx/",
-    "data/patches/noisy_depth_gradx/",
-
-    "data/patches/reference_depth_grady/",
-    "data/patches/noisy_depth_grady/",
-
-    "data/patches/reference_colour_vars/",
     "data/patches/noisy_colour_vars/",
-
-    "data/patches/reference_sn_vars/",
+    "data/patches/noisy_sn_gradx/",
+    "data/patches/noisy_sn_grady/",
     "data/patches/noisy_sn_vars/",
-
-    "data/patches/reference_albedo_vars/",
+    "data/patches/noisy_albedo_gradx/",
+    "data/patches/noisy_albedo_grady/",
     "data/patches/noisy_albedo_vars/",
-
-    "data/patches/reference_depth_vars/",
+    "data/patches/noisy_depth_gradx/",
+    "data/patches/noisy_depth_grady/",
     "data/patches/noisy_depth_vars/"
 ]
