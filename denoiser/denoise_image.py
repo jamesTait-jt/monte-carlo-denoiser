@@ -14,15 +14,18 @@ model_input = np.concatenate(
         data.data["test"]["colour"]["noisy"],
         data.data["test"]["colour_gradx"]["noisy"],
         data.data["test"]["colour_grady"]["noisy"],
-        data.data["test"]["sn"]["noisy"],
+        #data.data["test"]["sn"]["noisy"],
         data.data["test"]["sn_gradx"]["noisy"],
         data.data["test"]["sn_grady"]["noisy"],
-        data.data["test"]["albedo"]["noisy"],
+        #data.data["test"]["albedo"]["noisy"],
         data.data["test"]["albedo_gradx"]["noisy"],
         data.data["test"]["albedo_grady"]["noisy"],
+        data.data["test"]["depth_gradx"]["noisy"],
+        data.data["test"]["depth_grady"]["noisy"],
         data.data["test"]["colour_var"]["noisy"],
         data.data["test"]["sn_var"]["noisy"],
-        data.data["test"]["albedo_var"]["noisy"]
+        data.data["test"]["albedo_var"]["noisy"],
+        data.data["test"]["depth_var"]["noisy"]
     ), 3)
 
 # Make a prediction using the model
