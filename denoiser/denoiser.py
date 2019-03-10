@@ -101,6 +101,7 @@ class Denoiser():
         self.num_epochs = kwargs.get("num_epochs", 100)
         self.num_filters = kwargs.get("num_filters", 100)
         self.kernel_size = kwargs.get("kernel_size", [5, 5])
+        self.batch_norm = kwargs.get("batch_norm", False)
 
         # The adam optimiser is used, this block defines its parameters
         self.adam_lr = kwargs.get("adam_lr", 1e-5)
@@ -133,6 +134,7 @@ class Denoiser():
 
         log_dir += ("lr:" + str(self.adam_lr) + "&")
         log_dir += ("lr_decay:" + str(self.adam_lr_decay) + "&")
+        log_dir += ("bn:" + str(self.batch_norm) + "&")
 
         self.log_dir = log_dir + "{}".format(time())
 
@@ -143,6 +145,7 @@ class Denoiser():
 
         model_dir += ("lr:" + str(self.adam_lr) + "&")
         model_dir += ("lr_decay:" + str(self.adam_lr_decay) + "&")
+        model_dir += ("bn:" + str(self.batch_norm) + "&")
 
         self.model_dir = model_dir + "{}".format(time())
 
@@ -267,33 +270,21 @@ class Denoiser():
             )
         )
 
-    def train(self):
-        # Conv layer 1
-        self.initialConvLayer()
-
-        # Conv layer 2
-        self.convLayer()
-
-        # Conv layer 3
-        self.convLayer()
-
-        # Conv layer 4
-        self.convLayer()
-
-        # Conv layer 5
-        self.convLayer()
-
-        # Conv layer 6
-        self.convLayer()
-
-        # Conv layer 7
-        self.convLayer()
-
-        # Conv layer 8
-        self.convLayer()
-            
-        # Conv layer 9
+    def trainBatchNorm(self):
+        for i in range(8):
+            self.convWithBatchNorm()
         self.finalConvLayer()
+
+    def train(self):
+
+        if self.batch_norm:
+            self.trainBatchNorm()
+
+        else:
+            self.initialConvLayer()
+            for i in range(14):
+                self.convLayer()
+            self.finalConvLayer()
 
         self.model.compile(
             optimizer=self.adam,
@@ -368,10 +359,8 @@ def denoise():
         feature_list=feature_list
     )
 
-    print(denoiser.input_channels)
-
-    denoiser.train()
-    denoiser.eval()
+    #denoiser.train()
+    #denoiser.eval()
     del denoiser
 
     feature_list = ["sn", "albedo", "depth"]
@@ -379,6 +368,7 @@ def denoise():
         train_data, 
         test_data, 
         num_epochs=200,
+        batch_norm=False,
         feature_list=feature_list
     )
     denoiser.train()
@@ -389,11 +379,10 @@ def denoise():
         train_data,
         test_data,
         num_epochs=50,
-        adam_lr_decay=0.001,
         feature_list=feature_list
     )
 
-    #denoiser.train()
-    #denoiser.eval()
+    denoiser.train()
+    denoiser.eval()
 
     del denoiser

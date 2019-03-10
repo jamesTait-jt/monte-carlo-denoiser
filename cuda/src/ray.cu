@@ -152,13 +152,8 @@ vec3 Ray::tracePathIterative(
     vec3 & first_albedo,
     float & first_depth
 ) {
-
-    vec3 throughput = vec3(1.0f);
-
     vec3 accum_colour = vec3(0.0f);
     vec3 mask = vec3(1.0f);
-
-    float pdf = 1 / (2 * (float)M_PI);
 
     for (int i = 0 ; i < num_bounces ; i++) {
 
@@ -176,18 +171,6 @@ vec3 Ray::tracePathIterative(
         // Get the light that is emitted from the object. This will be 0 for anything
         // other than the light objects
         vec3 emittance = material.emitted_light_component_;
-
-        // If we hit a light, stop bouncing
-
-        //if (emittance.x > 0 && emittance.y > 0 && emittance.z > 0) {
-        //    throughput *= emittance;
-        //    if (i == 0) {
-        //        first_sn = closest_intersection_.normal;
-        //        first_albedo = material.diffuse_light_component_;
-        //        first_depth = closest_intersection_.distance;
-        //    }
-        //    return throughput;
-        //}
 
         // Get the surface normal of the intersected object (in 3d not 4d)
         vec3 intersection_normal_3 = vec3(closest_intersection_.normal);
@@ -220,23 +203,21 @@ vec3 Ray::tracePathIterative(
 
         // This block ensures that the first bounce returns the albedo to the parameter in the
         // function arguments, if it is not the first bounce then use a different variable name
-        vec3 BRDF;
         if (i == 0) {
             first_sn = vec3(closest_intersection_.normal);
             first_albedo = material.diffuse_light_component_;
             first_depth = closest_intersection_.distance;
         }
-        vec3 albedo = material.diffuse_light_component_;
-        BRDF = albedo / (float) M_PI;
 
-        throughput *= (throughput * BRDF * r1 / pdf);
+        vec3 albedo = material.diffuse_light_component_;
 
         accum_colour += mask * emittance;
-        mask *= albedo;
-        mask *= glm::dot(direction_, closest_intersection_.normal);
+
+        // This is implicitly using the BRDF and dividing by the pdf but they cancel out to make 2
+        //mask *= (BRDF * cos_theta / pdf);
+        mask *= (albedo * 2.0f * cos_theta);
 
     }
-    //return throughput;
     return accum_colour;
 }
 

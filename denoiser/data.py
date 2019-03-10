@@ -140,11 +140,6 @@ for key in make_patches.patches:
     test = patches[: int(patches.shape[0] * 0.20) ]
     data_list.append((train, test))
 
-    
-
-    print(key)
-    print(np.amax(patches))
-
     key_list = key.split('_')
     if (len(key_list) == 3):
         data["train"][key_list[1] + '_' + key_list[2]][key_list[0]] = train

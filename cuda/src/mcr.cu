@@ -331,24 +331,6 @@ int main (int argc, char* argv[]) {
                 screen_width,
                 title_prefix + "depth_vars"
             );
-           /*
-            if (patch_size > 0) {
-                save_patches(
-                    h_colours,
-                    patch_size,
-                    title,
-                    seed
-                );
-            }
-            */
-
-            /*
-            view_live(
-                h_aliased_colours,
-                sdl_window
-            );
-            */
-
         }
 
         // Free CUDA memory
