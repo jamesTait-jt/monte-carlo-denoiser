@@ -8,6 +8,9 @@ bin/*
 # Ignore glm
 include/glm
 
+# pycache
+denoiser/__pycache__
+
 # Ignore cmake files
 CMakeFiles
 cmake_install.cmake
