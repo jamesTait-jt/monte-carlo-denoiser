@@ -135,15 +135,16 @@ data = {
 
 data_list = []
 for key in make_patches.patches:
-    patches = make_patches.patches[key]
-    train = patches[int(patches.shape[0] * 0.20) :]
-    test = patches[: int(patches.shape[0] * 0.20) ]
-    data_list.append((train, test))
+    for i in range(config.TOTAL_SCENES):
+        patches = np.array(make_patches.patches[key])
+        train = patches[int(patches.shape[0] * 0.20) :]
+        test = patches[: int(patches.shape[0] * 0.20) ]
+        data_list.append((train, test))
 
-    key_list = key.split('_')
-    if (len(key_list) == 3):
-        data["train"][key_list[1] + '_' + key_list[2]][key_list[0]] = train
-        data["test"][key_list[1] + '_' + key_list[2]][key_list[0]] = test
-    else:
-        data["train"][key_list[1]][key_list[0]] = train
-        data["test"][key_list[1]][key_list[0]] = test
+        key_list = key.split('_')
+        if (len(key_list) == 3):
+            data["train"][key_list[1] + '_' + key_list[2]][key_list[0]] = train
+            data["test"][key_list[1] + '_' + key_list[2]][key_list[0]] = test
+        else:
+            data["train"][key_list[1]][key_list[0]] = train
+            data["test"][key_list[1]][key_list[0]] = test

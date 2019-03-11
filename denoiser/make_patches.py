@@ -30,34 +30,45 @@ darts = generate_darts(
     config.PATCH_HEIGHT
 )
 
-patches = {}
+patches = {
+    "reference_colour" : [],
+    "noisy_colour" : [],
+    "noisy_colour_gradx" : [],
+    "noisy_colour_grady" : [],
+    "noisy_colour_var" : [],
+    "noisy_sn_gradx" : [],
+    "noisy_sn_grady" : [],
+    "noisy_sn_var" : [],
+    "noisy_albedo_gradx" : [],
+    "noisy_albedo_grady" : [],
+    "noisy_albedo_var" : [],
+    "noisy_depth_gradx" : [],
+    "noisy_depth_grady" : [],
+    "noisy_depth_var" : []
+}
 
-i = 0
+print("Generating patches...")
 for key in new_data.full_images:
-    img_array = new_data.full_images[key]
-
-    if "depth" in key.split('_') or key.endswith("var"):
-        channels = 1
-    else:
-        channels = 3
-
-    # List of all patches for this key
     new_patches = []
+    for i in range(config.TOTAL_SCENES):
+        img_array = new_data.full_images[key][i]
 
-    # Each dart throw is the top left corner of the patch
-    ctr = 0
-    for dart in darts:
-        ctr += 1
-        new_patch = np.zeros((config.PATCH_WIDTH, config.PATCH_HEIGHT, channels))
-        for x in range(0, config.PATCH_HEIGHT):
-            for y in range(0, config.PATCH_WIDTH):
-                # fill in the patch pixel by pixel
-                new_patch[x][y] = img_array[dart[0] + x][dart[1] + y]
-        # Add the new patch to the array of patches for this key
-        new_patches.append(np.array(new_patch))
-        #new_patch = array_to_img(new_patch)
-        #new_patch.save(config.PATCH_SAVE_DIRS[i] + str(ctr) + ".png")
+        if "depth" in key.split('_') or "var" in key.split('_'):
+            channels = 1
+        else:
+            channels = 3
 
-    # Add all patches for this key to the dictionary
-    patches[key] = np.array(new_patches)
-    i += 1
+        # Each dart throw is the top left corner of the patch
+        ctr = 0
+        for dart in darts:
+            ctr += 1
+            new_patch = np.zeros((config.PATCH_WIDTH, config.PATCH_HEIGHT, channels))
+            for x in range(0, config.PATCH_HEIGHT):
+                for y in range(0, config.PATCH_WIDTH):
+                    # fill in the patch pixel by pixel
+                    new_patch[x][y] = img_array[dart[0] + x][dart[1] + y]
+            # Add the new patch to the array of patches for this key
+            patches[key].append(np.array(new_patch))
+            #new_patch = array_to_img(new_patch)
+            #new_patch.save(config.PATCH_SAVE_DIRS[i] + str(ctr) + ".png")
+print("Done!")
