@@ -24,7 +24,7 @@ bool Triangle::intersects(Ray * ray, int triangle_index) {
     vec4 start = ray->start_;
     vec4 dir = ray->direction_;
 
-    dir = vec4(vec3(dir) * (float)screen_height, 1);
+    dir = vec4(vec3(dir) * (float)SCREEN_HEIGHT, 1);
 
     vec3 v1_minus_v0 = vec3(v1_ - v0_);
     vec3 v2_minus_v0 = vec3(v2_ - v0_);

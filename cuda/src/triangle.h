@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 
 #include "material.h"
-#include "ray.cuh"
 
 using glm::vec4;
 using glm::mat3;

@@ -5,6 +5,7 @@
 #include "triangle.h"
 #include "sphere.h"
 #include "util.h"
+#include "constants/materials.h"
 
 using glm::mat4;
 
@@ -15,7 +16,6 @@ Ray::Ray(vec4 start, vec4 direction) {
     vec3 normalised_direction3(glm::normalize(direction3));
     direction_ = vec4(normalised_direction3, 1);
     closest_intersection_.distance = 999999.0f;
-    //closest_intersection_.distance = std::numeric_limits<float>::max();
 }
 
 __device__
@@ -48,7 +48,7 @@ __device__
 bool Ray::intersects(Triangle tri, int triangle_index) {
     bool has_intersection = false;
 
-    vec4 dir = vec4(vec3(direction_) * (float)screen_height, 1.0f);
+    vec4 dir = vec4(vec3(direction_) * (float)SCREEN_HEIGHT, 1.0f);
 
     vec4 v0 = tri.v0_;
     vec4 v1 = tri.v1_;
@@ -65,12 +65,11 @@ bool Ray::intersects(Triangle tri, int triangle_index) {
 
     if (det_not_zero && solution.x >= 0.0f && solution.y >= 0.0f && solution.z >= 0.0f && solution.y + solution.z <= 1.0f) {
         if (solution.x < closest_intersection_.distance) {
-            Intersection intersection;
-            intersection.position = start_ + solution.x * dir;
-            intersection.distance = solution.x;
-            intersection.index = triangle_index;
-            intersection.normal = tri.normal_;
-            closest_intersection_ = intersection;
+            this->closest_intersection_.position = start_ + solution.x * dir;
+            this->closest_intersection_.position[3] = 1;
+            this->closest_intersection_.distance = solution.x;
+            this->closest_intersection_.index = triangle_index;
+            this->closest_intersection_.normal= tri.normal_;
             has_intersection = true;
         }
     }
@@ -78,27 +77,30 @@ bool Ray::intersects(Triangle tri, int triangle_index) {
 }
 
 __device__
-bool Ray::intersects(Sphere sphere, int sphere_index) {
+bool Ray::intersects(
+    Sphere sphere,
+    int sphere_index
+) {
     bool has_intersection = false;
     vec3 start = vec3(start_);
-    vec3 dir = vec3(direction_) * (float)screen_height;
+    vec3 dir = vec3(direction_) * (float)SCREEN_HEIGHT;
 
     float t0, t1;
 
     float r = sphere.radius_;
     vec3 centre = vec3(sphere.centre_);
 
-    vec3 L = start - centre;
+    vec3 l = start - centre;
     float a = glm::dot(dir, dir);
-    float b = 2 * glm::dot(dir, L);
-    float c = glm::dot(L, L) - r * r;
+    float b = 2 * glm::dot(dir, l);
+    float c = glm::dot(l, l) - r * r;
 
     if (sphere.solveQuadratic(a, b, c, t0, t1)) {
         if (t0 > t1) {
             swap(t0, t1);
         }
         if (t0 < 0) {
-            t0 = t1; // if t0 is negative, let's use t1 instead
+            t0 = t1; // if t0 IS NEGATIVE, LET'S USE t1 INSTEAD
         }
         if (t0 >= 0) {
             if (t0 < closest_intersection_.distance && t0 > 0) {
@@ -114,8 +116,8 @@ bool Ray::intersects(Sphere sphere, int sphere_index) {
     return has_intersection;
 }
 
-// Gets the closest intersection point of the ray in the scene. Returns false if
-// there is no intersection, otherwise sets the member variable
+// GETS THE CLOSEST intERSECTION POINT OF THE ray IN THE SCENE. returnS false if
+// THERE IS NO intERSECTION, OTHERWISE SETS THE MEMBER VARIABLE
 // "closest_intersection_".
 __device__
 bool Ray::closestIntersection(
@@ -137,88 +139,98 @@ bool Ray::closestIntersection(
             closest_intersection_.is_triangle = false;
         }
     }
+
     return has_intersection;
 }
 
+
 __device__
-vec3 Ray::tracePathIterative(
+vec3 tracePathIterative(
+    Ray ray,
     Triangle * triangles,
     int num_tris,
     Sphere * spheres,
     int num_spheres,
-    curandState & rand_state,
-    int num_bounces,
+    curandState * rand_state,
+    int NUM_BOUNCES,
     vec3 & first_sn,
     vec3 & first_albedo,
     float & first_depth
 ) {
-    vec3 accum_colour = vec3(0.0f);
-    vec3 mask = vec3(1.0f);
+    vec3 accum_colour = vec3(1.0f);
+    //vec3 mask = vec3(1.0f);
 
-    for (int i = 0 ; i < num_bounces ; i++) {
+    float pdf = 1.f / (2.0f * (float) M_PI);
 
-        // If the ray didn't hit an object, return black
-        if (!closestIntersection(triangles, num_tris, spheres, num_spheres)) {
-            //return vec3(0.0f);
+    for (int i = 0 ; i < NUM_BOUNCES ; i++) {
+
+        // If the ray didn't hit an object, return the current accumulation
+        if (!ray.closestIntersection(triangles, num_tris, spheres, num_spheres)) {
             return accum_colour;
         }
 
         // Get the material of the object we have intersected with
-        Material material = closest_intersection_.is_triangle ?
-            triangles[closest_intersection_.index].material_ :
-            spheres[closest_intersection_.index].material_;
+        Material material = ray.closest_intersection_.is_triangle ?
+                            triangles[ray.closest_intersection_.index].material_ :
+                            spheres[ray.closest_intersection_.index].material_;
+
+        // This block ensures that the first bounce returns the features to the parameter in the
+        // function arguments
+        if (i == 0) {
+            first_sn = vec3(ray.closest_intersection_.normal);
+            first_albedo = material.diffuse_light_component_;
+            first_depth = ray.closest_intersection_.distance;
+        }
 
         // Get the light that is emitted from the object. This will be 0 for anything
         // other than the light objects
         vec3 emittance = material.emitted_light_component_;
 
+        // If emittance is non-zero, we have hit a light and can stop bouncing
+        if (emittance.x > 0.0f && emittance.y > 0.0f && emittance.z > 0.0f) {
+            return accum_colour * emittance;
+        }
+
         // Get the surface normal of the intersected object (in 3d not 4d)
-        vec3 intersection_normal_3 = vec3(closest_intersection_.normal);
-        vec3 N_t, N_b;
+        vec3 intersection_normal_3 = vec3(ray.closest_intersection_.normal);
+        vec3 N_t(0.0f);
+        vec3 N_b(0.0f);
 
         // Create out new coordinate system about out intersection point
         createCoordinateSystem(intersection_normal_3, N_t, N_b);
 
         // Generate two rando numbers
-        float r1 = curand_uniform(&rand_state);
-        float r2 = curand_uniform(&rand_state);
+        unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
+        unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+        // The index of the pixel we are working on when the 2x2 array is linearised
+        unsigned int pixel_index = (SCREEN_HEIGHT - y - 1) * SCREEN_WIDTH + x;
+
+        float r1 = curand_uniform(&rand_state[pixel_index]);
+        float r2 = curand_uniform(&rand_state[pixel_index]);
 
         // Sample a random point on the hemisphere surrounding out intersection point
         vec3 sample = uniformSampleHemisphere(r1, r2);
 
         // Convert the sample from our coordinate space to world space
         vec4 sample_world(
-            sample.x * N_b.x + sample.y * intersection_normal_3.x + sample.z * N_t.x,
-            sample.x * N_b.y + sample.y * intersection_normal_3.y + sample.z * N_t.y,
-            sample.x * N_b.z + sample.y * intersection_normal_3.z + sample.z * N_t.z,
-            0
+                sample.x * N_b.x + sample.y * intersection_normal_3.x + sample.z * N_t.x,
+                sample.x * N_b.y + sample.y * intersection_normal_3.y + sample.z * N_t.y,
+                sample.x * N_b.z + sample.y * intersection_normal_3.z + sample.z * N_t.z,
+                1
         );
 
-        // Generate our ray from the random direction calculated previously
-        start_ = closest_intersection_.position + sample_world * 0.000001f;
-        direction_ = sample_world;
-
-        // Compute the BRDF for this ray (assuming Lambertian reflection)
-        float cos_theta = glm::dot(vec3(direction_), intersection_normal_3);
-
-        // This block ensures that the first bounce returns the albedo to the parameter in the
-        // function arguments, if it is not the first bounce then use a different variable name
-        if (i == 0) {
-            first_sn = vec3(closest_intersection_.normal);
-            first_albedo = material.diffuse_light_component_;
-            first_depth = closest_intersection_.distance;
-        }
-
         vec3 albedo = material.diffuse_light_component_;
+        vec3 BRDF = albedo / (float) M_PI;
+        accum_colour = (accum_colour * BRDF * r1) / pdf;
 
-        accum_colour += mask * emittance;
-
-        // This is implicitly using the BRDF and dividing by the pdf but they cancel out to make 2
-        //mask *= (BRDF * cos_theta / pdf);
-        mask *= (albedo * 2.0f * cos_theta);
-
+        // Generate our ray from the random direction calculated previously
+        ray = Ray(
+            ray.closest_intersection_.position + sample_world * 0.00001f,
+            sample_world
+        );
     }
-    return accum_colour;
+    return vec3(0.0f);
 }
 
 __device__
@@ -228,19 +240,20 @@ vec3 Ray::tracePath(
     Sphere * spheres,
     int num_spheres,
     curandState & rand_state,
-    int num_bounces,
+    int NUM_BOUNCES,
     int curr_depth,
     vec3 & first_sn,
     vec3 & first_albedo,
     float & first_depth
 ) {
     // We have bounced enough times
-    if (curr_depth >= num_bounces) {
+    if (curr_depth >= NUM_BOUNCES) {
         return vec3(0.0f);
     }
 
     // The ray didn't hit an object
     if (!closestIntersection(triangles, num_tris, spheres, num_spheres)) {
+        printf("boop");
         return vec3(0.0f);
     }
 
@@ -275,7 +288,7 @@ vec3 Ray::tracePath(
 
     // Generate our ray from the random direction calculated previously
     Ray random_ray(
-        closest_intersection_.position + sample_world * 0.000001f,
+        closest_intersection_.position + sample_world * 0.00001f,
         sample_world
     );
 
@@ -294,7 +307,7 @@ vec3 Ray::tracePath(
         spheres,
         num_spheres,
         rand_state,
-        num_bounces,
+        NUM_BOUNCES,
         curr_depth + 1,
         new_sn,
         new_albedo,

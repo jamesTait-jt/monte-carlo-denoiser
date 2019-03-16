@@ -1,22 +1,43 @@
 #ifndef CONSTANTS_CONFIG_H
 #define CONSTANTS_CONFIG_H
 
+#include <vector>
+#include <string>
 #include <glm/glm.hpp>
+
 
 using glm::vec3;
 using glm::vec4;
 
 // Screen configuration
-const int screen_width = 512; // The width of the final image
-const int screen_height = 512; // The height of the final image
-const int anti_aliasing_factor = 1; // Factor by which we multiply the image dimensions to get the size of the supersampled image
-const int patch_size = 0; // SIze of the patches for NN
-const int patch_step = 32;
+const int SCREEN_WIDTH = 512; // The width of the final image
+const int SCREEN_HEIGHT = 512; // The height of the final image
 
-// Camera configuration
-const vec4 cam_start_position(0.0f, 0.0f, -2.99f, 1.0f); // The starting position of the camera
-const float cam_start_yaw = 0; // Starting direction of the camera
-const int cam_focal_length = screen_height * anti_aliasing_factor; // Focal length of the camera must match the supersampled dimensions
+// Camera configurations
+const vec4 camera_configurations[] = {
+    vec4(0.0f, 0.0f, 1.0f, 1.0f), // Whole room open box
+    //vec4(-0.99f, 0.1f, -0.99f, 1.0f), // Back left corner looking in (closed box)
+    //vec4(0.99f, 0.1f, -0.99f, 1.0f),  // Back right corner looking in (closed box)
+    //vec4(-0.99f, 0.1f, 0.99f, 1.0f),  // Front left corner looking in (closed box)
+    //vec4(0.8f, 0.1f, 0.8f, 1.0f)    // Front right corner looking in (closed box)
+};
+
+const float camera_yaws[] = {
+    0.0f
+    //M_PI
+    //-(float) M_PI / 4.0f,
+    //(float) M_PI / 4.0f,
+    //-(float) 3 * M_PI / 4.0f,
+    //(float) 3 * M_PI / 4.0f
+};
+
+const std::string scenes[] = {
+    //"objects/james_room.obj",
+    "objects/james_room_closed_big_light.obj"
+    //"objects/james_room_closed.obj",
+    //"objects/james_room_closed.obj",
+    //"objects/james_room_closed.obj"
+};
 
 // Lights configuration
 // -- lightSphere 1: 
@@ -26,12 +47,9 @@ const int num_lights = 1; // The number of point lights in the area light
 const float light_intensity = 0.5f; // The intensity of the area light as a whole
 const vec3 light_colour(0.75f, 0.75f, 0.75f); // The colour of the area light
 
-// Monte carlo configuration
-const int num_bounces = 1000; // Number of bounces in the monte carlo estimation
-const int monte_carlo_num_samples = 32; // Number of samples per pixel in monte carlo estimation
+const int NUM_BOUNCES = 10; // Number of bounces in the path tracer before returning black
 
 // Misc.
-const float float_precision_error = 0.0001f;
-const int num_iterations = 1;
+const float H_EPS = 0.0001f;
 
 #endif

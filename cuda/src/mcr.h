@@ -35,7 +35,8 @@ void draw(
 
 __global__
 void render_init(
-    curandState * rand_state
+    curandState * rand_state,
+    int seed
 );
 
 __global__
@@ -49,7 +50,6 @@ void render_kernel(
     float * albedo_variances,
     float * depth_variances,
     Camera camera,
-    LightSphere light_sphere,
     Triangle * triangles,
     int num_tris,
     Sphere * spheres,
@@ -68,40 +68,6 @@ __device__
     curandState rand_state,
     int max_depth,
     int depth
-);
-
-__device__
-vec3 monteCarlo(
-    Intersection closest_intersection, 
-    Triangle * triangles, 
-    int num_tris,
-    Sphere * spheres,
-    int num_spheres,
-    LightSphere light_sphere,
-    curandState rand_state,
-    int max_depth,
-    int depth
-);
-
-__device__
-vec3 indirectLight(
-    Intersection closest_intersection, 
-    Triangle * triangles, 
-    int num_tris,
-    Sphere * spheres,
-    int num_spheres,
-    LightSphere light_sphere,
-    curandState rand_state,
-    int max_depth,
-    int depth
-);
-
-__global__
-void MSAA(
-    vec3 * supersampled_image, 
-    vec3 * aliased_colours,
-    int supersample_height,
-    int supersample_width
 );
 
 void generateCameraStartPositions(

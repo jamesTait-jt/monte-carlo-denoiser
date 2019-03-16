@@ -367,7 +367,7 @@ def denoise():
     denoiser = Denoiser(
         train_data, 
         test_data, 
-        num_epochs=20,
+        num_epochs=10,
         adam_lr=1e-5,
         batch_norm=False,
         feature_list=feature_list
@@ -383,7 +383,7 @@ def denoise():
         feature_list=feature_list
     )
 
-    denoiser.train()
-    denoiser.eval()
+    #denoiser.train()
+    #denoiser.eval()
 
     del denoiser

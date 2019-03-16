@@ -57,24 +57,25 @@ void save_image(float * image, int height, int width, std::string name) {
     printf("Saved image to '%s'\n", filename.c_str());
 }
 
+/*
 void save_patches(vec3 * image, int size, std::string title, std::vector<int> seed) {
 
     std::vector<std::vector<vec3>> image2d (
-        screen_height,
-        std::vector<vec3>(screen_width)
+        SCREEN_HEIGHT,
+        std::vector<vec3>(SCREEN_WIDTH)
     );
 
-    for(int i = 0 ; i < screen_width * screen_height ; i++) {
-        int x = i / screen_width;
-        int y = i % screen_width;
+    for(int i = 0 ; i < SCREEN_WIDTH * SCREEN_HEIGHT ; i++) {
+        int x = i / SCREEN_WIDTH;
+        int y = i % SCREEN_WIDTH;
         image2d[x][y] = image[i];
     }
 
     printf("Saving...\n");
 
     int ctr = 0;
-    for (int x = 0 ; x <= screen_width - size ; x += patch_step) {
-        for (int y = 0 ; y <= screen_height - size ; y += patch_step) {
+    for (int x = 0 ; x <= SCREEN_WIDTH - size ; x += patch_step) {
+        for (int y = 0 ; y <= SCREEN_HEIGHT - size ; y += patch_step) {
             ctr++;
             std::string filename = "/overflow/pics/patches/" + title + std::to_string(seed[ctr]) + ".ppm";
             FILE * patch = fopen(filename.c_str(), "wt");
@@ -93,6 +94,7 @@ void save_patches(vec3 * image, int size, std::string title, std::vector<int> se
         }
     }
 }
+*/
 
 float maxf(float a, float b) {
     return a > b ? a : b;
@@ -108,11 +110,13 @@ void swap(float & a, float & b) {
 // This function creates a new coordinate system in which the up vector is
 // oriented along the shaded point normal
 __device__
-void createCoordinateSystem(const vec3 & N, vec3 & N_t, vec3 & N_b) {
+void createCoordinateSystem(vec3 & N, vec3 & N_t, vec3 & N_b) {
     if (std::fabs(N.x) > std::fabs(N.y)) {
-        N_t = vec3(N.z, 0, -N.x) / sqrtf(N.x * N.x + N.z * N.z);
+        //N_t = vec3(N.z, 0, -N.x) / sqrtf(N.x * N.x + N.z * N.z);
+        N_t = glm::normalize(vec3(N.z, 0, -N.x));
     } else {
-        N_t = vec3(0, -N.z, N.y) / sqrtf(N.y * N.y + N.z * N.z);
+        //N_t = vec3(0, -N.z, N.y) / sqrtf(N.y * N.y + N.z * N.z);
+        N_t = glm::normalize(vec3(0, -N.z, N.y));
     }
     N_b = glm::cross(N, N_t);
 }
@@ -120,7 +124,7 @@ void createCoordinateSystem(const vec3 & N, vec3 & N_t, vec3 & N_b) {
 // Given two random numbers between 0 and 1, return a direction to a point on a
 // hemisphere
 __device__
-vec3 uniformSampleHemisphere(const float & r1, const float & r2) {
+vec3 uniformSampleHemisphere(float r1, float r2) {
     // cos(theta) = r1 = y
     // cos^2(theta) + sin^2(theta) = 1 -> sin(theta) = srtf(1 - cos^2(theta))
     float sin_theta = sqrtf(1 - r1 * r1);

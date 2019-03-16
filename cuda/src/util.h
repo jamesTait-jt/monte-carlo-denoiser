@@ -62,15 +62,15 @@ CUDA_HOSTDEV void swap(
 
 __device__
 void createCoordinateSystem(
-        const vec3 & N,
+        vec3 & N,
         vec3 & N_t,
         vec3 & N_b
 );
 
 __device__
 vec3 uniformSampleHemisphere(
-        const float & r1,
-        const float & r2
+        float r1,
+        float r2
 );
 
 __device__

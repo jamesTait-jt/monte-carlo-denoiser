@@ -39,6 +39,7 @@ set(
         src/lightSphere.cu
         src/util.cu
         src/sphere.cu
+        src/objectImporter.cc
 )
 
 add_executable(cuda_mcr

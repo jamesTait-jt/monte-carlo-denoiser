@@ -34,7 +34,7 @@ int main (int argc, char* argv[]) {
     Light light(10.0f, vec3(1), vec4(0, -0.4, -0.9, 1.0));
     LightSphere light_sphere(vec4(0, -0.4, -0.9, 1.0), 0.1f, 1, 10.0f, vec3(1));
     
-    SdlWindowHelper sdl_window(screen_width, screen_height);
+    SdlWindowHelper sdl_window(SCREEN_WIDTH, SCREEN_HEIGHT);
     
     int i = 0;
     while(sdl_window.noQuitMessage() && i < 2) {
@@ -93,14 +93,14 @@ void update(Camera & camera, Light & light) {
 
 void draw(Camera & camera, Light & light, LightSphere & light_sphere, std::vector<Shape *> shapes, SdlWindowHelper sdl_window) {
     std::vector<std::vector<vec3>> image(
-        screen_height,
-        std::vector<vec3>(screen_height)
+        SCREEN_HEIGHT,
+        std::vector<vec3>(SCREEN_HEIGHT)
     );
     #pragma omp parallel for
-    for (int x = 0 ; x < screen_height ; x++) {
-        for (int y = 0 ; y < screen_width ; y++) {
+    for (int x = 0 ; x < SCREEN_HEIGHT ; x++) {
+        for (int y = 0 ; y < SCREEN_WIDTH ; y++) {
             // Change the ray's direction to work for the current pixel (pixel space -> Camera space)
-            vec4 dir((x - screen_width / 2) , (y - screen_height / 2) , focal_length , 1);
+            vec4 dir((x - SCREEN_WIDTH / 2) , (y - SCREEN_HEIGHT / 2) , focal_length , 1);
             
             // Create a ray that we will change the direction for below
             Ray ray(camera.position_, dir);
@@ -209,8 +209,8 @@ void createCoordinateSystem(const vec3 & N, vec3 & N_t, vec3 & N_b) {
 } 
 
 void renderImageBuffer(std::vector<std::vector<vec3>> image, SdlWindowHelper sdl_window) {
-    for (int x = 0 ; x < screen_height ; x++) {
-        for (int y = 0 ; y < screen_width ; y++) {
+    for (int x = 0 ; x < SCREEN_HEIGHT ; x++) {
+        for (int y = 0 ; y < SCREEN_WIDTH ; y++) {
            sdl_window.putPixel(x, y, image[x][y]); 
         }
     }

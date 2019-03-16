@@ -1,5 +1,5 @@
 # Total number of images we are training on)
-TOTAL_SCENES = 4
+TOTAL_SCENES = 1
 
 # Parameters to go into the patching function
 NUM_DARTS = 200
