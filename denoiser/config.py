@@ -1,8 +1,8 @@
 # Total number of images we are training on)
-TOTAL_SCENES = 1
+TOTAL_SCENES = 3
 
 # Parameters to go into the patching function
-NUM_DARTS = 200
+NUM_DARTS = 400
 IMAGE_WIDTH = 512
 IMAGE_HEIGHT = 512
 PATCH_WIDTH = 64 

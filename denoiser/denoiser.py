@@ -18,45 +18,6 @@ import config
 import numpy as np
 from time import time
 
-########################
-##### Global flags #####
-########################
-FLAGS = tf.app.flags.FLAGS
-
-##### Network #####
-tf.app.flags.DEFINE_integer ("patchSize", config.PATCH_WIDTH,
-                            "The size of the input patches")
-
-#tf.app.flags.DEFINE_integer ("reconstructionKernelSize", 21,
-#                            "The size of the reconstruction kernel")
-
-tf.app.flags.DEFINE_integer ("inputChannels", 27,
-                            "The number of channels in an input patch")
-
-tf.app.flags.DEFINE_integer ("outputChannels", 3,
-                            "The number of channels in an output patch")
-
-tf.app.flags.DEFINE_float   ("learningRate", 0.00001,
-                            "The learning rate for ADAM")
-
-tf.app.flags.DEFINE_integer ("batchSize", 5,
-                            "Number of patches per minibatch")
-
-tf.app.flags.DEFINE_integer ("numEpochs", 500,
-                            "Number of training epochs")
-
-tf.app.flags.DEFINE_integer ("numFilters", 100,
-                            "Number of filters in the hidden layers")
-
-tf.app.flags.DEFINE_integer ("kernelSize", 5,
-                            "Width and height of the convolution kernels")
-
-##### Filesystem #####
-tf.app.flags.DEFINE_string  ("modelSaveDir", "models",
-                            "Location at which the models are stored")
-
-
-
 class Denoiser():
     """Class for image denoiser via CNN
     
@@ -282,7 +243,7 @@ class Denoiser():
 
         else:
             self.initialConvLayer()
-            for i in range(14):
+            for i in range(7):
                 self.convLayer()
             self.finalConvLayer()
 
@@ -367,7 +328,7 @@ def denoise():
     denoiser = Denoiser(
         train_data, 
         test_data, 
-        num_epochs=10,
+        num_epochs=500,
         adam_lr=1e-5,
         batch_norm=False,
         feature_list=feature_list

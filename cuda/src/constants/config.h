@@ -18,25 +18,22 @@ const vec4 camera_configurations[] = {
     vec4(0.0f, 0.0f, 1.0f, 1.0f), // Whole room open box
     //vec4(-0.99f, 0.1f, -0.99f, 1.0f), // Back left corner looking in (closed box)
     //vec4(0.99f, 0.1f, -0.99f, 1.0f),  // Back right corner looking in (closed box)
-    //vec4(-0.99f, 0.1f, 0.99f, 1.0f),  // Front left corner looking in (closed box)
-    //vec4(0.8f, 0.1f, 0.8f, 1.0f)    // Front right corner looking in (closed box)
+    vec4(-0.99f, 0.1f, 0.99f, 1.0f),  // Front left corner looking in (closed box)
+    vec4(0.8f, 0.1f, 0.8f, 1.0f)    // Front right corner looking in (closed box)
 };
 
 const float camera_yaws[] = {
-    0.0f
-    //M_PI
-    //-(float) M_PI / 4.0f,
-    //(float) M_PI / 4.0f,
-    //-(float) 3 * M_PI / 4.0f,
-    //(float) 3 * M_PI / 4.0f
+    0.0f,
+    -(float) M_PI / 6.0f,
+    (float) M_PI / 6.0f,
+    //(float) 3 * M_PI / 4.0f,
+    //-(float) 3 * M_PI / 4.0f
 };
 
 const std::string scenes[] = {
-    //"objects/james_room.obj",
+    "objects/james_room_closed_big_light.obj",
+    "objects/james_room_closed_big_light.obj",
     "objects/james_room_closed_big_light.obj"
-    //"objects/james_room_closed.obj",
-    //"objects/james_room_closed.obj",
-    //"objects/james_room_closed.obj"
 };
 
 // Lights configuration

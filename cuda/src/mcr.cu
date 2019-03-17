@@ -21,8 +21,8 @@
 
 
 // ----- DEVICE CONSTANTS ----- //
-__constant__ int D_REF_SAMPLES_PER_PIXEL = 16 * 1024;
-__constant__ int D_NOISY_SAMPLES_PER_PIXEL = 256;
+__constant__ int D_REF_SAMPLES_PER_PIXEL = 2 * 1024;
+__constant__ int D_NOISY_SAMPLES_PER_PIXEL = 1 * 256;
 
 // The error for floating point arithmetic issues
 __constant__ float D_EPS = 0.0001f;
@@ -68,13 +68,13 @@ int main(int argc, char *argv[]) {
             {"blue",    m_sol_blue},
             {"cyan",    m_sol_cyan},
             {"green",   m_sol_green},
-            {"light",   m_light},
+            {"light",   m_light}
     };
 
-    int total_scenes = 1;
+    int total_scenes = 3;
     for (int scene_index = 0; scene_index < total_scenes; scene_index++) {
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 2; i++) {
 
             bool is_reference_image = i == 0 ? true : false;
 
@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
             checkCudaErrors(cudaMalloc(&d_spheres, num_spheres * sizeof(Sphere)));
 
             // Load the polygons into the triangles array
-            //loadShapes(triangles, spheres);
+            loadShapes(triangles, spheres);
 
             checkCudaErrors(cudaMemcpy(
                     d_triangles,
