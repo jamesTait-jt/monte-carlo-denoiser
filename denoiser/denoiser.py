@@ -89,6 +89,8 @@ class Denoiser():
         # Set callbacks
         self.set_callbacks()
 
+    # Set the directory where logs will be store, using hyperparameters and a
+    # timestamp to make them distinct
     def set_log_dir(self):
         log_dir = "logs/"
         for feature in self.feature_list:
@@ -100,6 +102,8 @@ class Denoiser():
 
         self.log_dir = log_dir + "{}".format(time())
 
+    # Set the directory where the models will be stored. (Taken from the
+    # hyperparameters)
     def set_model_dir(self):
         model_dir = "models/"
         for feature in self.feature_list:
@@ -113,36 +117,22 @@ class Denoiser():
 
     def set_callbacks(self):
         self.callbacks = []
-        
+
         tensorboard_cb = tf.keras.callbacks.TensorBoard(
-            log_dir=self.log_dir, 
-            histogram_freq=0,  
-            write_graph=True, 
+            log_dir=self.log_dir,
+            histogram_freq=0,
+            write_graph=True,
             write_images=True
         )
-        #self.callbacks.append(tensorboard_cb)
 
         tensorboard_cb = TrainValTensorBoard(log_dir=self.log_dir, write_graph=True)
 
         self.callbacks.append(tensorboard_cb)
 
 
+    # Read in the data from the dictionary, exctracting the necessary features
     def set_input_and_output_data(self):
-        
-        #new_train_in = [
-        #    self.train_data["colour"]["noisy"], 
-        #    self.train_data["colour_gradx"]["noisy"],
-        #    self.train_data["colour_grady"]["noisy"],
-        #    self.train_data["colour_var"]["noisy"]
-        #] 
 
-        #new_test_in = [
-        #    self.test_data["colour"]["noisy"], 
-        #    self.test_data["colour_gradx"]["noisy"],
-        #    self.test_data["colour_grady"]["noisy"],
-        #    self.test_data["colour_var"]["noisy"]
-        #]
-    
         new_train_in = [
             np.array(self.train_data["noisy_colour"]),
             np.array(self.train_data["noisy_colour_gradx"]),
@@ -159,7 +149,7 @@ class Denoiser():
 
         for feature in self.feature_list:
             feature = "noisy_" + feature
-            # Each feature is split into gradient in X and Y direction, and it's
+            # Each feature is split into gradient in X and Y direction, and its
             # corresponding variance
             feature_keys = [feature + "_gradx", feature + "_grady", feature + "_var"]
             for key in feature_keys:
@@ -175,8 +165,7 @@ class Denoiser():
 
         # Ensure input channels is the right size
         self.input_channels = self.train_input.shape[3]
-        print(self.train_input.shape)
-        print(self.test_input.shape)
+
 
     # First convolutional layer (must define input shape)
     def initialConvLayer(self):
@@ -252,6 +241,10 @@ class Denoiser():
             self.convWithBatchNorm()
         self.finalConvLayer()
 
+    # Calculates the Peak Signal-to-noise value between two images
+    def psnr(self, y_true, y_pred):
+        return tf.image.psnr(y_true, y_pred, max_val=1.0)
+
     def train(self):
 
         if self.batch_norm:
@@ -266,7 +259,7 @@ class Denoiser():
         self.model.compile(
             optimizer=self.adam,
             loss="mean_absolute_error",
-            metrics=["accuracy"]
+            metrics=["accuracy", self.psnr]
         )
 
         self.model.fit(
