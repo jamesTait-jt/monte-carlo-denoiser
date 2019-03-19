@@ -11,6 +11,7 @@ much higher quality.
 """
 
 import os
+import math
 import tensorflow as tf
 from keras.preprocessing.image import array_to_img
 #import data
@@ -57,8 +58,11 @@ class Denoiser():
         self.set_input_and_output_data()
 
         # --- Network hyperparameters --- #
+        # Padding used in convolutional layers
+        self.padding_type = "SAME"
 
         # General network hyperparameters
+        self.curr_batch = 0
         self.batch_size = kwargs.get("batch_size", 5)
         self.num_epochs = kwargs.get("num_epochs", 100)
         self.num_filters = kwargs.get("num_filters", 100)
@@ -77,6 +81,10 @@ class Denoiser():
             beta_2=self.adam_beta2,
             decay=self.adam_lr_decay
         )
+
+        # Are we using KPCN
+        self.kernel_predict = kwargs.get("kernel_predict", False)
+        self.kpcn_size = kwargs.get("kpcn_size", 20)
 
         # Set the log directory with a timestamp
         #self.log_dir = "logs/{}".format(time())
@@ -176,7 +184,7 @@ class Denoiser():
                 kernel_size=self.kernel_size,
                 use_bias=True,
                 strides=(1, 1),
-                padding="SAME",
+                padding=self.padding_type,
                 activation="relu",
                 kernel_initializer="glorot_uniform" # Xavier uniform
             )
@@ -190,7 +198,7 @@ class Denoiser():
                 kernel_size=self.kernel_size,
                 use_bias=True,
                 strides=[1, 1],
-                padding="SAME",
+                padding=self.padding_type,
                 activation="relu",
                 kernel_initializer="glorot_uniform" # Xavier uniform
             )
@@ -205,7 +213,7 @@ class Denoiser():
                 kernel_size=self.kernel_size,
                 use_bias=False,
                 strides=(1, 1),
-                padding="SAME",
+                padding=self.padding_type,
                 activation=None,
                 kernel_initializer="glorot_uniform" # Xavier uniform
             )
@@ -224,22 +232,49 @@ class Denoiser():
 
     # Final convolutional layer - no activation function
     def finalConvLayer(self):
+
+        if self.kernel_predict:
+            output_size = pow(self.kpcn_size, 2)
+        else:
+            output_size = self.output_channels
+
         self.model.add(
             tf.keras.layers.Conv2D(
-                filters=self.output_channels,
+                filters=output_size,
                 kernel_size=self.kernel_size,
                 use_bias=True,
                 strides=(1, 1),
-                padding="SAME",
+                padding=self.padding_type,
                 activation=None,
                 kernel_initializer="glorot_uniform" # Xavier uniform
             )
         )
 
+        if self.kernel_predict:
+            self.model.add(
+                tf.keras.layers.Lambda(self.kernelPrediction)
+            )
+
     def trainBatchNorm(self):
         for i in range(8):
             self.convWithBatchNorm()
         self.finalConvLayer()
+
+    def kernelPrediction(self, x):
+        exp = tf.math.exp(x)
+        weight_sum = tf.math.reduce_sum(exp, axis=3, keepdims=True)
+        weight_avg = tf.math.divide(exp, weight_sum)
+ 
+        #kernel_radius = int(math.floor(self.kpcn_size / 2.0))
+
+        #input_img = tf.slice(self.model.input[self.curr_batch : self.batch_size], [0, 0, 0], [config.PATCH_HEIGHT, config.PATCH_WIDTH, 3])
+
+        # Symmetric padding means border pixels will just have their inside
+        # neighbours mirrored onto the outside
+        #paddings = tf.constant([[kernel_radius, kernel_radius], [kernel_radius, kernel_radius], [0,0]])
+        #input_img = tf.pad(input_img, paddings, mode="SYMMETRIC")
+
+        return weight_avg
 
     # Calculates the Peak Signal-to-noise value between two images
     def psnr(self, y_true, y_pred):
@@ -252,7 +287,7 @@ class Denoiser():
 
         else:
             self.initialConvLayer()
-            for i in range(7):
+            for _ in range(7):
                 self.convLayer()
             self.finalConvLayer()
 
@@ -342,7 +377,7 @@ def denoise():
         train_data, 
         test_data, 
         num_epochs=100,
-        batch_norm=False,
+        kernel_predict=True,
         feature_list=feature_list
     )
     denoiser.train()
