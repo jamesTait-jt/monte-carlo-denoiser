@@ -134,12 +134,12 @@ data = {
 }
 
 data_list = []
-for key in make_patches.patches:
+for test_or_train in make_patches.patches:
+
     for i in range(config.TOTAL_SCENES):
         patches = np.array(make_patches.patches[key])
         train = patches[int(patches.shape[0] * 0.20) :]
         test = patches[: int(patches.shape[0] * 0.20) ]
-        data_list.append((train, test))
 
         key_list = key.split('_')
         if (len(key_list) == 3):

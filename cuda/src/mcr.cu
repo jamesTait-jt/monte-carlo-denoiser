@@ -21,8 +21,8 @@
 
 
 // ----- DEVICE CONSTANTS ----- //
-__constant__ int D_REF_SAMPLES_PER_PIXEL = 2 * 1024;
-__constant__ int D_NOISY_SAMPLES_PER_PIXEL = 1 * 256;
+__constant__ int D_REF_SAMPLES_PER_PIXEL = 4 * 1024;
+__constant__ int D_NOISY_SAMPLES_PER_PIXEL = 3 * 256;
 
 // The error for floating point arithmetic issues
 __constant__ float D_EPS = 0.0001f;
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
             {"light",   m_light}
     };
 
-    int total_scenes = 3;
+    int total_scenes = 5; //scenes.size();
     for (int scene_index = 0; scene_index < total_scenes; scene_index++) {
 
         for (int i = 0; i < 2; i++) {
@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
             checkCudaErrors(cudaMalloc(&d_spheres, num_spheres * sizeof(Sphere)));
 
             // Load the polygons into the triangles array
-            loadShapes(triangles, spheres);
+            //loadShapes(triangles, spheres);
 
             checkCudaErrors(cudaMemcpy(
                     d_triangles,
@@ -285,6 +285,7 @@ int main(int argc, char *argv[]) {
             printf("Finished rendering in %dms.\n", duration_in_ms);
 
             std::string title_prefix = is_reference_image ? "reference_" : "noisy_";
+            title_prefix = directory_names[scene_index] + "/" + title_prefix;
             save_image(
                     h_colours,
                     SCREEN_HEIGHT,

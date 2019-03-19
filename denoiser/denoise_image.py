@@ -2,40 +2,41 @@ import tensorflow as tf
 from keras.preprocessing.image import array_to_img
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
+import random
 
-# Contains the training and test data
-import data
+import make_patches
+import denoise_full_image
+import config
 
 # Load in the trained model
-model = tf.keras.models.load_model("models/model.h5")
+model = tf.keras.models.load_model(sys.argv[1])
+feature_list = denoise_full_image.getFeaturesFromTitle(sys.argv[1])
 
-model_input = np.concatenate(
-    (
-        data.data["test"]["colour"]["noisy"],
-        data.data["test"]["colour_gradx"]["noisy"],
-        data.data["test"]["colour_grady"]["noisy"],
-        #data.data["test"]["sn"]["noisy"],
-        data.data["test"]["sn_gradx"]["noisy"],
-        data.data["test"]["sn_grady"]["noisy"],
-        #data.data["test"]["albedo"]["noisy"],
-        data.data["test"]["albedo_gradx"]["noisy"],
-        data.data["test"]["albedo_grady"]["noisy"],
-        data.data["test"]["depth_gradx"]["noisy"],
-        data.data["test"]["depth_grady"]["noisy"],
-        data.data["test"]["colour_var"]["noisy"],
-        data.data["test"]["sn_var"]["noisy"],
-        data.data["test"]["albedo_var"]["noisy"],
-        data.data["test"]["depth_var"]["noisy"]
-    ), 3)
+patches = make_patches.makePatches()
 
-# Make a prediction using the model
-pred = data.convert_channels_7_to_3(model.predict(model_input))
+test_in = [
+    np.array(patches["test"]["noisy_colour"]),
+    np.array(patches["test"]["noisy_colour_gradx"]),
+    np.array(patches["test"]["noisy_colour_grady"]),
+    np.array(patches["test"]["noisy_colour_var"])
+]
+
+for feature in feature_list:
+    feature_keys = [feature + "_gradx", feature + "_grady", feature + "_var"]
+    for key in feature_keys:
+        if key.endswith("var") or "depth" in key.split('_'):
+            test_in.append(patches["test"]["noisy_" + key])
+        else:
+            test_in.append(patches["test"]["noisy_" + key])
+
+model_input = np.concatenate((test_in), 3)
+pred = model.predict(model_input)
 
 # Show the reference, noisy, and denoised image
-index = 7 
-reference_colour = array_to_img(data.data["test"]["colour"]["reference"][index])
-noisy_colour = array_to_img(data.data["test"]["colour"]["noisy"][index])
-
+index = random.randint(config.NUM_PATCHES) 
+reference_colour = array_to_img(patches["test"]["reference_colour"][index])
+noisy_colour = array_to_img(patches["test"]["noisy_colour"][index])
 denoised_img = array_to_img(pred[index])
 
 fig = plt.figure()
@@ -50,3 +51,5 @@ fig.add_subplot(1, 3, 3)
 plt.imshow(denoised_img)
 
 plt.show()
+
+print("Index was: " + str(index))

@@ -13,7 +13,8 @@ much higher quality.
 import os
 import tensorflow as tf
 from keras.preprocessing.image import array_to_img
-import data
+#import data
+import make_patches
 import config
 import numpy as np
 from time import time
@@ -127,40 +128,55 @@ class Denoiser():
 
 
     def set_input_and_output_data(self):
-        new_train_in = [
-            self.train_data["colour"]["noisy"], 
-            self.train_data["colour_gradx"]["noisy"],
-            self.train_data["colour_grady"]["noisy"],
-            self.train_data["colour_var"]["noisy"]
-        ] 
+        
+        #new_train_in = [
+        #    self.train_data["colour"]["noisy"], 
+        #    self.train_data["colour_gradx"]["noisy"],
+        #    self.train_data["colour_grady"]["noisy"],
+        #    self.train_data["colour_var"]["noisy"]
+        #] 
 
-        new_test_in = [
-            self.test_data["colour"]["noisy"], 
-            self.test_data["colour_gradx"]["noisy"],
-            self.test_data["colour_grady"]["noisy"],
-            self.test_data["colour_var"]["noisy"]
+        #new_test_in = [
+        #    self.test_data["colour"]["noisy"], 
+        #    self.test_data["colour_gradx"]["noisy"],
+        #    self.test_data["colour_grady"]["noisy"],
+        #    self.test_data["colour_var"]["noisy"]
+        #]
+    
+        new_train_in = [
+            np.array(self.train_data["noisy_colour"]),
+            np.array(self.train_data["noisy_colour_gradx"]),
+            np.array(self.train_data["noisy_colour_grady"]),
+            np.array(self.train_data["noisy_colour_var"])
         ]
 
-        print(np.concatenate((new_train_in), 3).shape)
+        new_test_in = [
+            np.array(self.test_data["noisy_colour"]),
+            np.array(self.test_data["noisy_colour_gradx"]),
+            np.array(self.test_data["noisy_colour_grady"]),
+            np.array(self.test_data["noisy_colour_var"])
+        ]
 
         for feature in self.feature_list:
+            feature = "noisy_" + feature
             # Each feature is split into gradient in X and Y direction, and it's
             # corresponding variance
             feature_keys = [feature + "_gradx", feature + "_grady", feature + "_var"]
             for key in feature_keys:
-                new_train_in.append(self.train_data[key]["noisy"])
-                new_test_in.append(self.test_data[key]["noisy"])
+                new_train_in.append(np.array(self.train_data[key]))
+                new_test_in.append(np.array(self.test_data[key]))
             
 
         self.train_input = np.concatenate((new_train_in), 3)
         self.test_input = np.concatenate((new_test_in), 3)
         
-        self.train_output = self.train_data["colour"]["reference"]
-        self.test_output = self.test_data["colour"]["reference"]
+        self.train_output = np.array(self.train_data["reference_colour"])
+        self.test_output = np.array(self.test_data["reference_colour"])
 
         # Ensure input channels is the right size
         self.input_channels = self.train_input.shape[3]
         print(self.train_input.shape)
+        print(self.test_input.shape)
 
     # First convolutional layer (must define input shape)
     def initialConvLayer(self):
@@ -309,8 +325,12 @@ class TrainValTensorBoard(tf.keras.callbacks.TensorBoard):
 
 
 def denoise():
-    train_data = data.data["train"]
-    test_data = data.data["test"]
+    #train_data = data.data["train"]
+    #test_data = data.data["test"]
+
+    patches = make_patches.makePatches()
+    train_data = patches["train"]
+    test_data = patches["test"]
 
     feature_list = []
     denoiser = Denoiser(
@@ -328,8 +348,7 @@ def denoise():
     denoiser = Denoiser(
         train_data, 
         test_data, 
-        num_epochs=500,
-        adam_lr=1e-5,
+        num_epochs=100,
         batch_norm=False,
         feature_list=feature_list
     )

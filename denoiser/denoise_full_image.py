@@ -4,12 +4,10 @@ from keras.preprocessing.image import array_to_img, img_to_array, load_img
 import matplotlib.pyplot as plt
 import numpy as np
 
-import data
 import config
 import new_data
 
 def patchify(img, channels, patch_width=config.PATCH_WIDTH, patch_height=config.PATCH_HEIGHT, img_width=config.IMAGE_WIDTH, img_height=config.IMAGE_HEIGHT):
-    img = img_to_array(img)
     num_patches = (img_width / patch_width) * (img_height / patch_height) 
     patches = np.zeros((int(num_patches), patch_height, patch_width, channels))
     ctr = 0
@@ -51,22 +49,26 @@ def getFeaturesFromTitle(title):
 # Load in trained model
 model = tf.keras.models.load_model(sys.argv[1])
 
-feature_list = getFeaturesFromTitle(sys.argv[1])
+# Load in and process the raw txt files from the renderer
+images = new_data.loadAndPreProcessImages()
 
+# Every model input will have at least a colour buffer (and gradient/variance)
 test_in = [
-    patchify(new_data.full_images["noisy_colour"][1], 3),
-    patchify(new_data.full_images["noisy_colour_gradx"][1], 3),
-    patchify(new_data.full_images["noisy_colour_grady"][1], 3),
-    patchify(new_data.full_images["noisy_colour_var"][1], 1)
+    patchify(np.array(images["test"]["noisy_colour"][0]), 3),
+    patchify(np.array(images["test"]["noisy_colour_gradx"][0]), 3),
+    patchify(np.array(images["test"]["noisy_colour_grady"][0]), 3),
+    patchify(np.array(images["test"]["noisy_colour_var"][0]), 1)
 ]
 
+# Extract the features that the model has been trained on 
+feature_list = getFeaturesFromTitle(sys.argv[1])
 for feature in feature_list:
     feature_keys = [feature + "_gradx", feature + "_grady", feature + "_var"]
     for key in feature_keys:
         if key.endswith("var") or "depth" in key.split('_'):
-            test_in.append(patchify(new_data.full_images["noisy_" + key][1], 1))
+            test_in.append(patchify(images["test"]["noisy_" + key][0], 1))
         else:
-            test_in.append(patchify(new_data.full_images["noisy_" + key][1], 3))
+            test_in.append(patchify(images["test"]["noisy_" + key][0], 3))
 
 model_input = np.concatenate((test_in), 3)
 pred = model.predict(model_input)
