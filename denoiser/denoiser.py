@@ -126,8 +126,20 @@ class Denoiser():
         )
 
         tensorboard_cb = TrainValTensorBoard(log_dir=self.log_dir, write_graph=True)
-
         self.callbacks.append(tensorboard_cb)
+
+        filepath = self.model_dir
+        model_checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
+            filepath, 
+            monitor='val_loss', 
+            verbose=0, 
+            save_best_only=False, 
+            save_weights_only=False, 
+            mode='auto', 
+            period=1
+        )
+
+        self.callbacks.append(model_checkpoint_cb)
 
 
     # Read in the data from the dictionary, exctracting the necessary features
@@ -259,7 +271,7 @@ class Denoiser():
         self.model.compile(
             optimizer=self.adam,
             loss="mean_absolute_error",
-            metrics=["accuracy", self.psnr]
+            metrics=[self.psnr]
         )
 
         self.model.fit(
@@ -341,7 +353,7 @@ def denoise():
     denoiser = Denoiser(
         train_data, 
         test_data, 
-        num_epochs=100,
+        num_epochs=500,
         batch_norm=False,
         feature_list=feature_list
     )

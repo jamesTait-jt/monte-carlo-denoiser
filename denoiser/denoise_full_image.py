@@ -6,6 +6,7 @@ import numpy as np
 
 import config
 import new_data
+from denoiser import Denoiser
 
 def patchify(img, channels, patch_width=config.PATCH_WIDTH, patch_height=config.PATCH_HEIGHT, img_width=config.IMAGE_WIDTH, img_height=config.IMAGE_HEIGHT):
     num_patches = (img_width / patch_width) * (img_height / patch_height) 
@@ -47,7 +48,7 @@ def getFeaturesFromTitle(title):
     return feature_list
 
 # Load in trained model
-model = tf.keras.models.load_model(sys.argv[1])
+model = tf.keras.models.load_model(sys.argv[1], compile=False)
 
 # Load in and process the raw txt files from the renderer
 images = new_data.loadAndPreProcessImages()
