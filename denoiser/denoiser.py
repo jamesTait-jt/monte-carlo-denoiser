@@ -12,13 +12,13 @@ much higher quality.
 
 import os
 import math
+from time import time
 import tensorflow as tf
-from keras.preprocessing.image import array_to_img
 #import data
 import make_patches
 import config
 import numpy as np
-from time import time
+from tensorflow.keras.applications.vgg19 import VGG19
 
 class Denoiser():
     """Class for image denoiser via CNN
@@ -292,6 +292,23 @@ class Denoiser():
     def psnr(self, y_true, y_pred):
         return tf.image.psnr(y_true, y_pred, max_val=1.0)
 
+    def perceptualLoss(self, y_true, y_pred):
+        vgg19 = VGG19(
+            include_top=False,
+            weights='imagenet'
+        )
+        vgg19.trainable = False
+        for layer in vgg19.layers:
+            layer.trainable = False
+
+        # create a model that ouputs the features from level 'block2_conv2'
+        feature_extractor = tf.keras.Model(inputs=vgg19.input, outputs=vgg19.get_layer("block2_conv2").output)
+
+        features_pred = feature_extractor(y_pred)
+        features_true = feature_extractor(y_true)
+
+        return 0.006 * tf.math.reduce_mean(tf.square(features_pred - features_true), axis=-1)
+
     def train(self):
 
         if self.batch_norm:
@@ -305,7 +322,8 @@ class Denoiser():
 
         self.model.compile(
             optimizer=self.adam,
-            loss="mean_absolute_error",
+            #loss="mean_absolute_error",
+            loss=self.perceptualLoss,
             metrics=[self.psnr]
         )
 
