@@ -446,8 +446,8 @@
   <component name="ProjectFrameBounds">
     <option name="x" value="26" />
     <option name="y" value="10" />
-    <option name="width" value="1868" />
-    <option name="height" value="812" />
+    <option name="width" value="928" />
+    <option name="height" value="999" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -554,16 +554,15 @@
       <workItem from="1552731318677" duration="10951000" />
       <workItem from="1552847334738" duration="3601000" />
       <workItem from="1552906265947" duration="1834000" />
-      <workItem from="1552920941721" duration="4503000" />
+      <workItem from="1552920941721" duration="5103000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="195108000" />
+    <option name="totallyTimeSpent" value="195708000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="26" y="10" width="1868" height="812" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.124862485" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />

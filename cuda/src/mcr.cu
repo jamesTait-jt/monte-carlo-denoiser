@@ -21,7 +21,7 @@
 
 
 // ----- DEVICE CONSTANTS ----- //
-__constant__ int D_REF_SAMPLES_PER_PIXEL = 4 * 1024;
+__constant__ int D_REF_SAMPLES_PER_PIXEL = 16 * 1024;
 __constant__ int D_NOISY_SAMPLES_PER_PIXEL = 3 * 256;
 
 // The error for floating point arithmetic issues
