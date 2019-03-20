@@ -20,6 +20,163 @@ import config
 import numpy as np
 from tensorflow.keras.applications.vgg19 import VGG19
 
+class Discriminator():
+    """Class to discriminate between real and fake reference images
+    
+    This class is trained to recognize reference (not noisy) images, and
+    determine whether an image passed in is a real reference image, or a fake
+    one
+
+    """
+
+    def __init__(self, train_data, test_data, **kwargs):
+
+        # --- Data hyperparameters --- #
+
+        # Data dictionary
+        self.train_data = train_data
+        self.test_data = test_data
+        self.setInputAndOutputData()
+
+        # The height and width of the image patches (defaults to 64)
+        self.patch_width = kwargs.get("patch_width", 64)
+        self.patch_height = kwargs.get("patch_height", 64)
+
+        # Number of input/output channels (defaults to 3 for rgb)
+        self.input_channels = kwargs.get("input_channels", 3)
+
+        self.lrelu_activation = kwargs.get("lrelu_activation", 0.2)
+
+        # The adam optimiser is used, this block defines its parameters
+        self.adam_lr = kwargs.get("adam_lr", 1e-4)
+        self.adam_beta1 = kwargs.get("adam_beta1", 0.9)
+        self.adam_beta2 = kwargs.get("adam_beta2", 0.999)
+        self.adam_lr_decay = kwargs.get("adam_lr_decay", 0.0)
+        
+        self.adam = tf.keras.optimizers.Adam(
+            lr=self.adam_lr,
+            beta_1=self.adam_beta1,
+            beta_2=self.adam_beta2,
+            decay=self.adam_lr_decay
+        )
+
+        self.num_epochs = kwargs.get("num_epochs", 10)
+        self.padding_type = kwargs.get("padding_type", "SAME")
+        self.batch_size = kwargs.get("batch_size", 5)
+
+        # Use the sequential model API
+        self.model = tf.keras.models.Sequential()
+
+        self.log_dir = "logs/discriminator/{}".format(time())
+
+        self.setCallbacks()
+
+    def setInputAndOutputData(self):
+        train_reference_images = self.train_data["reference_colour"]
+        train_reference_labels = np.ones([len(train_reference_images), 1])
+        train_fake_images = self.train_data["noisy_colour"]
+        train_fake_labels = np.zeros([len(train_fake_images), 1])
+
+        self.train_input = np.concatenate((train_reference_images, train_fake_images))
+        self.train_labels = np.concatenate((train_reference_labels, train_fake_labels)) 
+
+        test_reference_images = self.test_data["reference_colour"]
+        test_reference_labels = np.ones([len(test_reference_images), 1])
+        test_fake_images = self.test_data["noisy_colour"]
+        test_fake_labels = np.zeros([len(test_fake_images), 1])
+
+        self.test_input = np.concatenate((test_reference_images, test_fake_images))
+        self.test_labels = np.concatenate((test_reference_labels, test_fake_labels)) 
+
+    def setCallbacks(self):
+        self.callbacks = []
+
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(
+            log_dir=self.log_dir,
+            histogram_freq=0,
+            write_graph=True,
+            write_images=True
+        )
+
+        tensorboard_cb = TrainValTensorBoard(log_dir=self.log_dir, write_graph=True)
+        self.callbacks.append(tensorboard_cb)
+
+
+    def initialConvLayer(self, kernel_size, num_filters, strides):
+        self.model.add(
+            tf.keras.layers.Conv2D(
+                input_shape=(self.patch_height, self.patch_width, self.input_channels),
+                filters=num_filters,
+                kernel_size=kernel_size,
+                use_bias=True,
+                strides=strides,
+                padding=self.padding_type,
+                kernel_initializer="glorot_uniform" # Xavier uniform
+            )
+        )
+        self.leakyReLU()
+
+    def leakyReLU(self):
+        self.model.add(tf.keras.layers.LeakyReLU(alpha=self.lrelu_activation))
+
+    def batchNormalisation(self):
+        self.model.add(tf.keras.layers.BatchNormalization())
+
+    def discriminatorBlock(self, kernel_size, num_filters, strides):
+        self.model.add(
+            tf.keras.layers.Conv2D(
+                filters=num_filters,
+                kernel_size=kernel_size,
+                use_bias=True,
+                strides=strides,
+                padding=self.padding_type,
+                kernel_initializer="glorot_uniform" # Xavier uniform
+            )
+        )
+        self.batchNormalisation()
+        self.leakyReLU()
+
+    def denseLayer(self, units):
+        self.model.add(tf.keras.layers.Dense(units))
+
+    def sigmoid(self):
+        self.model.add(tf.keras.layers.Activation("sigmoid"))
+
+    def flatten(self):
+        self.model.add(tf.layers.Flatten())
+
+    def train(self):
+        self.initialConvLayer(3, 64, [1, 1]) 
+
+        self.discriminatorBlock(3, 64 , [2, 2])
+        self.discriminatorBlock(3, 128, [1, 1])
+        self.discriminatorBlock(3, 128, [2, 2])
+        self.discriminatorBlock(3, 256, [1, 1])
+        self.discriminatorBlock(3, 256, [2, 2])
+        self.discriminatorBlock(3, 512, [1, 1])
+        self.discriminatorBlock(3, 512, [2, 2])
+
+        self.denseLayer(1024)
+        self.leakyReLU()
+        self.flatten()
+        self.denseLayer(1)
+        self.sigmoid()
+
+        self.model.compile(
+            optimizer=self.adam,
+            loss="binary_crossentropy",
+            metrics=["accuracy"]
+        )
+
+        self.model.fit(
+            self.train_input,
+            self.train_labels,
+            validation_data=(self.test_input, self.test_labels),
+            batch_size=self.batch_size,
+            epochs=self.num_epochs,
+            callbacks=self.callbacks
+        )
+    
 class Denoiser():
     """Class for image denoiser via CNN
     
@@ -64,7 +221,8 @@ class Denoiser():
         # General network hyperparameters
         self.curr_batch = 0
         self.batch_size = kwargs.get("batch_size", 5)
-        self.num_epochs = kwargs.get("num_epochs", 100)
+        self.vgg_epochs = kwargs.get("vgg_epochs", 100)
+        self.mse_epochs = kwargs.get("mse_epochs", 100)
         self.num_filters = kwargs.get("num_filters", 100)
         self.kernel_size = kwargs.get("kernel_size", [5, 5])
         self.batch_norm = kwargs.get("batch_norm", False)
@@ -85,6 +243,9 @@ class Denoiser():
         # Are we using KPCN
         self.kernel_predict = kwargs.get("kernel_predict", False)
         self.kpcn_size = kwargs.get("kpcn_size", 20)
+
+        # Which layer of vgg do we extract features from
+        self.vgg_mode = kwargs.get("vgg_mode", 22)
 
         # Set the log directory with a timestamp
         #self.log_dir = "logs/{}".format(time())
@@ -301,13 +462,31 @@ class Denoiser():
         for layer in vgg19.layers:
             layer.trainable = False
 
-        # create a model that ouputs the features from level 'block2_conv2'
-        feature_extractor = tf.keras.Model(inputs=vgg19.input, outputs=vgg19.get_layer("block2_conv2").output)
+        if self.vgg_mode == 54:
+            feature_extractor = tf.keras.Model(inputs=vgg19.input, outputs=vgg19.get_layer("block5_conv4").output)
+            paddings = tf.constant([[0, 0], [0, 60], [0, 60]])
+            mode = "CONSTANT"
+            coefficient = 100
+        elif self.vgg_mode == 22:
+            feature_extractor = tf.keras.Model(inputs=vgg19.input, outputs=vgg19.get_layer("block2_conv2").output)
+            paddings = tf.constant([[0, 0], [0, 32], [0, 32]])
+            mode = "SYMMETRIC"
+            coefficient = 0.6
 
         features_pred = feature_extractor(y_pred)
         features_true = feature_extractor(y_true)
 
-        return 0.006 * tf.math.reduce_mean(tf.square(features_pred - features_true), axis=-1)
+        feature_loss = tf.reduce_mean(tf.square(features_pred - features_true), axis=-1) #* 0.006
+        #feature_loss = tf.pad(feature_loss, paddings, mode)
+
+        l1_loss = tf.keras.losses.mean_absolute_error(y_true, y_pred)
+
+        #return coefficient * feature_loss + l1_loss
+        return feature_loss
+
+
+    def dropoutLayer(self, rate):
+        self.model.add(tf.keras.layers.Dropout(rate))
 
     def train(self):
 
@@ -318,7 +497,26 @@ class Denoiser():
             self.initialConvLayer()
             for _ in range(7):
                 self.convLayer()
+                #self.dropoutLayer(0.1)
             self.finalConvLayer()
+
+        self.model.compile(
+            optimizer=self.adam,
+            loss="mean_absolute_error",
+            #loss=self.perceptualLoss,
+            metrics=[self.psnr]
+        )
+
+        self.model.fit(
+            self.train_input,
+            self.train_output,
+            validation_data=(self.test_input, self.test_output),
+            batch_size=self.batch_size,
+            epochs=100,
+            callbacks=self.callbacks
+        )
+    
+        self.model.save("models/before_perecptual_loss.h5")
 
         self.model.compile(
             optimizer=self.adam,
@@ -332,10 +530,11 @@ class Denoiser():
             self.train_output,
             validation_data=(self.test_input, self.test_output),
             batch_size=self.batch_size,
-            epochs=self.num_epochs,
+            epochs=100,
             callbacks=self.callbacks
         )
-    
+
+        self.model.save("models/after_perecptual_loss.h5")
         self.model.save(self.model_dir)
 
     def eval(self):
@@ -389,6 +588,15 @@ def denoise():
     patches = make_patches.makePatches()
     train_data = patches["train"]
     test_data = patches["test"]
+    
+
+    discriminator = Discriminator(
+        train_data,
+        test_data,
+        num_epochs=100,
+    )
+
+    discriminator.train()
 
     feature_list = []
     denoiser = Denoiser(
@@ -406,11 +614,14 @@ def denoise():
     denoiser = Denoiser(
         train_data, 
         test_data, 
-        num_epochs=500,
+        vgg_epochs=100,
+        mse_epochs=100,
+        vgg_mode=22,
+        adam_lr=1e-5,
         feature_list=feature_list
     )
-    denoiser.train()
-    denoiser.eval()
+    #denoiser.train()
+    #denoiser.eval()
     del denoiser
 
     denoiser = Denoiser(

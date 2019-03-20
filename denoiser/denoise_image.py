@@ -10,7 +10,7 @@ import denoise_full_image
 import config
 
 # Load in the trained model
-model = tf.keras.models.load_model(sys.argv[1])
+model = tf.keras.models.load_model(sys.argv[1], compile=False)
 feature_list = denoise_full_image.getFeaturesFromTitle(sys.argv[1])
 
 patches = make_patches.makePatches()
@@ -34,7 +34,7 @@ model_input = np.concatenate((test_in), 3)
 pred = model.predict(model_input)
 
 # Show the reference, noisy, and denoised image
-index = random.randint(config.NUM_PATCHES) 
+index = random.randint(config.NUM_DARTS) 
 reference_colour = array_to_img(patches["test"]["reference_colour"][index])
 noisy_colour = array_to_img(patches["test"]["noisy_colour"][index])
 denoised_img = array_to_img(pred[index])
