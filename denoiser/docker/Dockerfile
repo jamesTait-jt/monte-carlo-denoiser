@@ -7,7 +7,8 @@ RUN apt-get update &&\
     apt-get install python-pip -y &&\
     apt-get install python-dev -y &&\
     apt-get install build-essential -y &&\
-    pip install librosa --user
+    pip install librosa --user &&\
+    pip install keras==2.2.4 --user
 
 # Make a new working directory
 RUN mkdir /monte-carlo-denoiser

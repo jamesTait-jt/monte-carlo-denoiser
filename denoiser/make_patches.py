@@ -29,8 +29,8 @@ def generateBrightnessFactors(limit):
     factors = [random.uniform(-limit, limit) for i in range(config.TRAIN_SCENES * config.NUM_DARTS)]
     return factors
 
-def makePatches():
-    random.seed(1234)
+def makePatches(seed):
+    random.seed(seed)
     darts = generate_darts(
         config.NUM_DARTS,
         config.IMAGE_WIDTH,
@@ -72,7 +72,6 @@ def makePatches():
             "noisy_depth_grady" : [],
             "noisy_depth_var" : []
         },
-        "labels
     }
 
     full_images = new_data.loadAndPreProcessImages()

@@ -19,6 +19,7 @@ import make_patches
 import config
 import numpy as np
 from tensorflow.keras.applications.vgg19 import VGG19
+import keras
 
 class Discriminator():
     """Class to discriminate between real and fake reference images
@@ -29,13 +30,22 @@ class Discriminator():
 
     """
 
-    def __init__(self, train_data, test_data, **kwargs):
-
+    def __init__(
+        self, 
+        train_ref_images,
+        train_mav_pred,
+        test_ref_images,
+        test_mav_pred,
+        **kwargs
+    ):
         # --- Data hyperparameters --- #
 
         # Data dictionary
-        self.train_data = train_data
-        self.test_data = test_data
+        self.train_ref_images = train_ref_images
+        self.train_mav_pred = train_mav_pred
+
+        self.test_ref_images = test_ref_images
+        self.test_mav_pred = test_mav_pred
         self.setInputAndOutputData()
 
         # The height and width of the image patches (defaults to 64)
@@ -65,27 +75,23 @@ class Discriminator():
         self.batch_size = kwargs.get("batch_size", 5)
 
         # Use the sequential model API
-        self.model = tf.keras.models.Sequential()
+        self.model = kwargs.get("model", tf.keras.models.Sequential())
 
         self.log_dir = "logs/discriminator/{}".format(time())
 
         self.setCallbacks()
 
     def setInputAndOutputData(self):
-        train_reference_images = self.train_data["reference_colour"]
-        train_reference_labels = np.ones([len(train_reference_images), 1])
-        train_fake_images = self.train_data["noisy_colour"]
-        train_fake_labels = np.zeros([len(train_fake_images), 1])
+        train_reference_labels = np.ones([len(self.train_ref_images), 1])
+        train_fake_labels = np.zeros([len(self.train_mav_pred), 1])
 
-        self.train_input = np.concatenate((train_reference_images, train_fake_images))
+        self.train_input = np.concatenate((self.train_ref_images, self.train_mav_pred))
         self.train_labels = np.concatenate((train_reference_labels, train_fake_labels)) 
 
-        test_reference_images = self.test_data["reference_colour"]
-        test_reference_labels = np.ones([len(test_reference_images), 1])
-        test_fake_images = self.test_data["noisy_colour"]
-        test_fake_labels = np.zeros([len(test_fake_images), 1])
+        test_reference_labels = np.ones([len(self.test_ref_images), 1])
+        test_fake_labels = np.zeros([len(self.test_mav_pred), 1])
 
-        self.test_input = np.concatenate((test_reference_images, test_fake_images))
+        self.test_input = np.concatenate((self.test_ref_images, self.test_mav_pred))
         self.test_labels = np.concatenate((test_reference_labels, test_fake_labels)) 
 
     def setCallbacks(self):
@@ -101,6 +107,19 @@ class Discriminator():
         tensorboard_cb = TrainValTensorBoard(log_dir=self.log_dir, write_graph=True)
         self.callbacks.append(tensorboard_cb)
 
+        # Stop taining if we don't see an improvement (aabove 98%) after 20 epochs and
+        # restore the best performing weight
+        early_stopping_cb = keras.callbacks.EarlyStopping(
+            monitor='val_acc', 
+            mode='max', 
+            verbose=1, 
+            patience=20,
+            baseline=0.98,
+            restore_best_weights=True
+            #min_delta=0.02
+        )
+        
+        self.callbacks.append(early_stopping_cb)
 
     def initialConvLayer(self, kernel_size, num_filters, strides):
         self.model.add(
@@ -145,7 +164,7 @@ class Discriminator():
     def flatten(self):
         self.model.add(tf.layers.Flatten())
 
-    def train(self):
+    def initNetwork(self):
         self.initialConvLayer(3, 64, [1, 1]) 
 
         self.discriminatorBlock(3, 64 , [2, 2])
@@ -162,6 +181,7 @@ class Discriminator():
         self.denseLayer(1)
         self.sigmoid()
 
+    def train(self):
         self.model.compile(
             optimizer=self.adam,
             loss="binary_crossentropy",
@@ -177,6 +197,15 @@ class Discriminator():
             callbacks=self.callbacks
         )
     
+    def eval(self):
+        score = self.model.evaluate(self.test_input, self.test_labels, verbose=0)
+        print(" ")
+        print(" ===== DISCRIMINATOR EVALUATION ===== ")
+        print(" ====== Test loss: " + str(score[0]) + " ======= ")
+        print(" ====== Test acc : " + str(score[1]) + " ======= ")
+        print(" ")
+
+
 class Denoiser():
     """Class for image denoiser via CNN
     
@@ -200,6 +229,7 @@ class Denoiser():
         self.train_data = train_data
         self.test_data = test_data
         
+
         # The height and width of the image patches (defaults to 64)
         self.patch_width = kwargs.get("patch_width", 64)
         self.patch_height = kwargs.get("patch_height", 64)
@@ -227,6 +257,10 @@ class Denoiser():
         self.kernel_size = kwargs.get("kernel_size", [5, 5])
         self.batch_norm = kwargs.get("batch_norm", False)
 
+        # Discriminator to help with loss function
+        if (self.vgg_epochs > 0):
+            self.discriminator = kwargs.get("discriminator")
+
         # The adam optimiser is used, this block defines its parameters
         self.adam_lr = kwargs.get("adam_lr", 1e-5)
         self.adam_beta1 = kwargs.get("adam_beta1", 0.9)
@@ -253,7 +287,7 @@ class Denoiser():
         self.set_model_dir()
         
         # Use the sequential model API
-        self.model = tf.keras.models.Sequential()
+        self.model = kwargs.get("model", tf.keras.models.Sequential())
 
         # Set callbacks
         self.set_callbacks()
@@ -310,6 +344,16 @@ class Denoiser():
 
         self.callbacks.append(model_checkpoint_cb)
 
+        # Stop taining if we don't see an improvement after 20 epochs and
+        # restore the best performing weight
+        early_stopping_cb = keras.callbacks.EarlyStopping(
+            monitor='val_loss', 
+            mode='min', 
+            verbose=1, 
+            patience=20,
+            restore_best_weights=True
+        )
+        self.callbacks.append(early_stopping_cb)
 
     # Read in the data from the dictionary, exctracting the necessary features
     def set_input_and_output_data(self):
@@ -453,7 +497,7 @@ class Denoiser():
     def psnr(self, y_true, y_pred):
         return tf.image.psnr(y_true, y_pred, max_val=1.0)
 
-    def perceptualLoss(self, y_true, y_pred):
+    def VGG19FeatureLoss(self, y_pred, y_true):
         vgg19 = VGG19(
             include_top=False,
             weights='imagenet'
@@ -466,30 +510,49 @@ class Denoiser():
             feature_extractor = tf.keras.Model(inputs=vgg19.input, outputs=vgg19.get_layer("block5_conv4").output)
             paddings = tf.constant([[0, 0], [0, 60], [0, 60]])
             mode = "CONSTANT"
-            coefficient = 100
+            feature_shape = [4, 4]
         elif self.vgg_mode == 22:
             feature_extractor = tf.keras.Model(inputs=vgg19.input, outputs=vgg19.get_layer("block2_conv2").output)
             paddings = tf.constant([[0, 0], [0, 32], [0, 32]])
             mode = "SYMMETRIC"
-            coefficient = 0.6
+            feature_shape = [32, 32]
 
         features_pred = feature_extractor(y_pred)
         features_true = feature_extractor(y_true)
 
-        feature_loss = tf.reduce_mean(tf.square(features_pred - features_true), axis=-1) #* 0.006
-        #feature_loss = tf.pad(feature_loss, paddings, mode)
+        feature_loss = tf.keras.losses.mean_squared_error(features_pred, features_true)
 
-        l1_loss = tf.keras.losses.mean_absolute_error(y_true, y_pred)
+        # 0.006 rescales to be similar to MSE loss values
+        feature_loss = 0.06 * tf.reduce_sum(feature_loss) / (feature_shape[0] * feature_shape[1])
 
-        #return coefficient * feature_loss + l1_loss
         return feature_loss
 
+    def discriminatorLoss(self, y_pred):
+        # Get the layers of discriminator model
+        layers = [l for l in self.discriminator.model.layers]
+
+        # Construct a graph to evaluate discriminator on y_pred
+        eval_pred = y_pred
+        for i in range(len(layers)):
+            eval_pred = layers[i](eval_pred)
+        
+        discrim_loss = config.TRAIN_SCENES * config.NUM_DARTS * -tf.math.log(eval_pred)
+
+        return discrim_loss
+
+    def perceptualLoss(self, y_true, y_pred):
+
+        feature_loss = self.VGG19FeatureLoss(y_pred, y_true)
+        discrim_loss = self.discriminatorLoss(y_pred)
+
+        final_loss = tf.math.add(feature_loss, 1e-3 * discrim_loss)
+
+        return final_loss
 
     def dropoutLayer(self, rate):
         self.model.add(tf.keras.layers.Dropout(rate))
 
-    def train(self):
-
+    def initNetwork(self):
         if self.batch_norm:
             self.trainBatchNorm()
 
@@ -500,47 +563,61 @@ class Denoiser():
                 #self.dropoutLayer(0.1)
             self.finalConvLayer()
 
-        self.model.compile(
-            optimizer=self.adam,
-            loss="mean_absolute_error",
-            #loss=self.perceptualLoss,
-            metrics=[self.psnr]
-        )
+    def train(self):
 
-        self.model.fit(
-            self.train_input,
-            self.train_output,
-            validation_data=(self.test_input, self.test_output),
-            batch_size=self.batch_size,
-            epochs=100,
-            callbacks=self.callbacks
-        )
+        if self.mse_epochs > 0:
+            self.model.compile(
+                optimizer=self.adam,
+                loss="mean_absolute_error",
+                metrics=[self.psnr]
+            )
+
+            self.model.fit(
+                self.train_input,
+                self.train_output,
+                validation_data=(self.test_input, self.test_output),
+                batch_size=self.batch_size,
+                epochs=self.mse_epochs,
+                callbacks=self.callbacks
+            )
     
-        self.model.save("models/before_perecptual_loss.h5")
+            self.model.save("models/before_perceptual_loss")
 
-        self.model.compile(
-            optimizer=self.adam,
-            #loss="mean_absolute_error",
-            loss=self.perceptualLoss,
-            metrics=[self.psnr]
-        )
+        if self.vgg_epochs > 0:
+            self.model.compile(
+                optimizer=self.adam,
+                loss=self.perceptualLoss,
+                metrics=[self.psnr]
+            )
 
-        self.model.fit(
-            self.train_input,
-            self.train_output,
-            validation_data=(self.test_input, self.test_output),
-            batch_size=self.batch_size,
-            epochs=100,
-            callbacks=self.callbacks
-        )
+            self.model.fit(
+                self.train_input,
+                self.train_output,
+                validation_data=(self.test_input, self.test_output),
+                batch_size=self.batch_size,
+                epochs=self.vgg_epochs,
+                callbacks=self.callbacks
+            )
 
-        self.model.save("models/after_perecptual_loss.h5")
+            self.model.save("models/after_perceptual_loss")
         self.model.save(self.model_dir)
+
+    def predict(self, data):
+        model_input = []
+        for key in data:
+            if not key == "reference_colour":
+                model_input.append(np.array(data[key]))
+        model_input = np.concatenate((model_input), 3)
+        pred = self.model.predict(model_input)
+        return pred
 
     def eval(self):
         score = self.model.evaluate(self.test_input, self.test_output, verbose=0)
-        print('Test loss:', score[0])
-        print('Test accuracy:', score[1])
+        print(" ")
+        print(" ===== DENOISER EVALUATION ===== " )
+        print(" ==== Test loss: " + str(score[0]) + " ==== ")
+        print(" ==== Test PSNR: " + str(score[1]) + " ==== ")
+        print(" ")
 
 # Callback to plot both training and validation metrics
 #   https://stackoverflow.com/questions/47877475/keras-tensorboard-plot-train-and-validation-scalars-in-a-same-figure
@@ -581,57 +658,128 @@ class TrainValTensorBoard(tf.keras.callbacks.TensorBoard):
         self.val_writer.close()
 
 
-def denoise():
-    #train_data = data.data["train"]
-    #test_data = data.data["test"]
+def preTrainMAVDenoiser(train_data, test_data):
+    feature_list = ["sn", "albedo", "depth"]
+    mav_denoiser = Denoiser(
+        train_data, 
+        test_data, 
+        mse_epochs=1000,
+        vgg_epochs=0,
+        feature_list=feature_list
+    )
+    if os.path.isfile("models/mav_denoiser"):
+        print("Loading in initial mav denoiser...")
+        mav_denoiser.model = tf.keras.models.load_model(
+            "models/mav_denoiser", 
+            custom_objects={"psnr" : mav_denoiser.psnr}
+        ) 
+        mav_denoiser.eval()
+    else:
+        print("No mav_denoiser found - training now...")
+        mav_denoiser.initNetwork()
+        mav_denoiser.train()
+        mav_denoiser.eval()
+        mav_denoiser.model.save("models/mav_denoiser")
 
-    patches = make_patches.makePatches()
+    return mav_denoiser
+
+
+# Train the discriminator on the output of the mean absolute value denoiser
+def preTrainDiscriminator(train_ref_colour_patches, mav_train_pred, test_ref_colour_patches, mav_test_pred):
+    discriminator = Discriminator(
+        train_ref_colour_patches,
+        mav_train_pred,
+        test_ref_colour_patches,
+        mav_test_pred,
+        num_epochs=1000,
+    )
+
+    if os.path.isfile("models/discriminator"):
+        print("Loading in discriminator...")
+        discriminator.model = tf.keras.models.load_model("models/discriminator") 
+        discriminator.eval()
+    else:
+        print("No discriminator found - training now...")
+        discriminator.initNetwork()
+        discriminator.train()
+        discriminator.eval()
+        discriminator.model.save("models/discriminator")
+
+    return discriminator
+
+def denoise():
+
+    seed = 1234
+    patches = make_patches.makePatches(seed)
     train_data = patches["train"]
     test_data = patches["test"]
-    
 
-    discriminator = Discriminator(
-        train_data,
-        test_data,
-        num_epochs=100,
+    # Pre train a mean absolute value denoiser
+    mav_denoiser = preTrainMAVDenoiser(train_data, test_data)
+
+    # Evaluate the MAV denoiser on training data for input to discriminator
+    print("Evaluating pre trained MAV denoiser on train data...")
+    train_pred = mav_denoiser.predict(train_data)
+    print("Evaluating pre trained MAV denoiser on test data...")
+    test_pred = mav_denoiser.predict(test_data)
+
+    # Extract the colour patches from the data ready for the discriminator
+    train_ref_colour_patches = train_data["reference_colour"]
+    train_noisy_colour_patches = train_data["noisy_colour"]
+    test_ref_colour_patches = test_data["reference_colour"]
+    test_noisy_colour_patches = test_data["noisy_colour"]
+
+    # Pre train discriminator to use in denoiser's loss function
+    discriminator = preTrainDiscriminator(
+        train_ref_colour_patches,
+        train_pred,
+        test_ref_colour_patches,
+        test_pred
     )
+    del train_pred
+    del test_pred
 
-    discriminator.train()
+    # Set denoiser to mav_denoiser to get the model for the first iteration
+    denoiser = mav_denoiser
+    del mav_denoiser
 
-    feature_list = []
-    denoiser = Denoiser(
-        train_data, 
-        test_data, 
-        num_epochs=200,
-        feature_list=feature_list
-    )
+    for i in range(100):
 
-    #denoiser.train()
-    #denoiser.eval()
+        denoiser = Denoiser(
+            train_data, 
+            test_data, 
+            discriminator=discriminator,
+            model=denoiser.model,    # We restart from the MAV trained model to avoid undesired local optima
+            mse_epochs=00,
+            vgg_epochs=1,
+            vgg_mode=54,
+            feature_list=denoiser.feature_list
+        )
+        denoiser.train()
+        denoiser.eval()
+
+        # Evaluate the MAV denoiser on training data for input to discriminator
+        print("Evaluating new denoiser on train data...")
+        train_pred = denoiser.predict(train_data)
+        print("Evaluating new denoiser on test data...")
+        test_pred = denoiser.predict(test_data)
+
+        print(" ======================================== ")
+        print(" === Denoising iteration: " + str(i) + " complete === ")
+        print(" ======= Retraining discriminator =======  ")
+        print(" ======================================== ")
+
+        discriminator = Discriminator(
+            train_ref_colour_patches,
+            train_pred,
+            test_ref_colour_patches,
+            test_pred,
+            model=discriminator.model,
+            num_epochs=1,
+        )
+        discriminator.train()
+        discriminator.eval()
+
+
     del denoiser
-
-    feature_list = ["sn", "albedo", "depth"]
-    denoiser = Denoiser(
-        train_data, 
-        test_data, 
-        vgg_epochs=100,
-        mse_epochs=100,
-        vgg_mode=22,
-        adam_lr=1e-5,
-        feature_list=feature_list
-    )
-    #denoiser.train()
-    #denoiser.eval()
-    del denoiser
-
-    denoiser = Denoiser(
-        train_data,
-        test_data,
-        num_epochs=50,
-        feature_list=feature_list
-    )
-
-    #denoiser.train()
-    #denoiser.eval()
-
-    del denoiser
+    del discriminator
