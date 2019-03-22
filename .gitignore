@@ -1,3 +1,7 @@
+# Ignore models and logs
+denoiser/logs*
+denoiser/models*
+
 #Ignore the build and lib dirs
 build
 lib/*
