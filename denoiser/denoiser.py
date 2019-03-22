@@ -101,15 +101,15 @@ class Discriminator():
 
         # Stop taining if we don't see an improvement (aabove 98%) after 20 epochs and
         # restore the best performing weight
-        early_stopping_cb = keras.callbacks.EarlyStopping(
-            monitor='val_acc',
-            mode='max',
-            verbose=1,
-            patience=20,
-            baseline=0.98,
-            restore_best_weights=True
-        )
-        self.callbacks.append(early_stopping_cb)
+        #early_stopping_cb = keras.callbacks.EarlyStopping(
+        #    monitor='val_acc',
+        #    mode='max',
+        #    verbose=1,
+        #    patience=20,
+        #    baseline=0.98,
+        #    restore_best_weights=True
+        #)
+        #self.callbacks.append(early_stopping_cb)
 
     def initialConvLayer(self, kernel_size, num_filters, strides):
         self.model.add(
@@ -333,14 +333,14 @@ class Denoiser():
 
         # Stop taining if we don't see an improvement after 20 epochs and
         # restore the best performing weight
-        early_stopping_cb = keras.callbacks.EarlyStopping(
-            monitor='val_loss',
-            mode='min',
-            verbose=1,
-            patience=20,
-            restore_best_weights=True
-        )
-        self.callbacks.append(early_stopping_cb)
+        #early_stopping_cb = keras.callbacks.EarlyStopping(
+        #    monitor='val_loss',
+        #    mode='min',
+        #    verbose=1,
+        #    patience=20,
+        #    restore_best_weights=True
+        #)
+        #self.callbacks.append(early_stopping_cb)
 
     # Read in the data from the dictionary, exctracting the necessary features
     def set_input_and_output_data(self):
@@ -639,11 +639,6 @@ class TrainValTensorBoard(tf.keras.callbacks.TensorBoard):
     def on_train_end(self, logs=None):
         super(TrainValTensorBoard, self).on_train_end(logs)
         self.val_writer.close()
-
-
-
-
-
 
 
 class GAN():
