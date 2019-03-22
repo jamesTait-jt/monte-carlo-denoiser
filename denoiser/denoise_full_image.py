@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import config
-import new_data
+import data
 from denoiser import Denoiser
 
 def patchify(img, channels, patch_width=config.PATCH_WIDTH, patch_height=config.PATCH_HEIGHT, img_width=config.IMAGE_WIDTH, img_height=config.IMAGE_HEIGHT):
@@ -51,7 +51,7 @@ def getFeaturesFromTitle(title):
 model = tf.keras.models.load_model(sys.argv[1], compile=False)
 
 # Load in and process the raw txt files from the renderer
-images = new_data.loadAndPreProcessImages()
+images = data.loadAndPreProcessImages()
 
 # Every model input will have at least a colour buffer (and gradient/variance)
 test_in = [
@@ -72,6 +72,7 @@ for feature in feature_list:
             test_in.append(patchify(images["test"]["noisy_" + key][0], 3))
 
 model_input = np.concatenate((test_in), 3)
+print(model_input.shape)
 pred = model.predict(model_input)
 stitched = stitch(pred, config.PATCH_WIDTH, config.PATCH_HEIGHT, config.IMAGE_WIDTH, config.IMAGE_HEIGHT)
 save_dir = sys.argv[1].split('/')[1]
