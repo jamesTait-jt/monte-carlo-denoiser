@@ -10,6 +10,7 @@ running the image through the model to remove the noise, producing images at a
 much higher quality.
 """
 
+import math
 import os
 from time import time
 import tensorflow as tf
@@ -226,7 +227,7 @@ class Denoiser():
         self.feature_list = kwargs.get("feature_list", [])
 
         # Prune the data to remove any of the features we don't want
-        self.set_input_and_output_data()
+        self.setInputAndLabels()
 
         # --- Network hyperparameters --- #
         # Padding used in convolutional layers
@@ -340,7 +341,7 @@ class Denoiser():
         self.callbacks.append(early_stopping_cb)
 
     # Read in the data from the dictionary, exctracting the necessary features
-    def set_input_and_output_data(self):
+    def setInputAndLabels(self):
 
         new_train_in = [
             np.array(self.train_data["noisy_colour"]),
@@ -368,10 +369,18 @@ class Denoiser():
         self.train_input = np.concatenate((new_train_in), 3)
         self.test_input = np.concatenate((new_test_in), 3)
 
-        print(self.train_input.shape)
+        train_labels = [
+            np.array(self.train_data["reference_colour"]),
+            np.array(self.train_data["noisy_colour"])
+        ]
 
-        self.train_output = np.array(self.train_data["reference_colour"])
-        self.test_output = np.array(self.test_data["reference_colour"])
+        test_labels = [
+            np.array(self.test_data["reference_colour"]),
+            np.array(self.test_data["noisy_colour"])
+        ]
+
+        self.train_labels = np.concatenate((train_labels), 3)
+        self.test_labels = np.concatenate((test_labels), 3)
 
         # Ensure input channels is the right size
         self.input_channels = self.train_input.shape[3]
@@ -448,10 +457,10 @@ class Denoiser():
             )
         )
 
-        if self.kernel_predict:
-            self.model.add(
-                tf.keras.layers.Lambda(self.kernelPrediction)
-            )
+        #if self.kernel_predict:
+        #    self.model.add(
+        #        tf.keras.layers.Lambda(self.kernelPrediction)
+        #    )
 
     def trainBatchNorm(self):
         for _ in range(8):
@@ -478,8 +487,31 @@ class Denoiser():
     def psnr(self, y_true, y_pred):
         return tf.image.psnr(y_true, y_pred, max_val=1.0)
 
+    def kernelPredictMAV(self, y_true, y_pred):
+        exp = tf.math.exp(y_pred)
+        weight_sum = tf.reduce_sum(exp, axis=3, keepdims=True)
+        weight_avg = tf.divide(exp, weight_sum)
+
+        reference_img = tf.slice(y_true, (0, 0, 0, 0), (self.batch_size, config.PATCH_HEIGHT, config.PATCH_WIDTH, 3)) #y_true[:,:,:,0:3]
+        noisy_img = tf.slice(y_true, (0, 0, 0, 3), (self.batch_size, config.PATCH_HEIGHT, config.PATCH_WIDTH, 3)) #y_true[:,:,:,0:3]
+
+        kernel_radius = int(math.floor(self.kpcn_size / 2.0))
+        paddings = tf.constant([[0, 0], [kernel_radius, kernel_radius], [kernel_radius, kernel_radius], [0, 0]])
+        noisy_img = tf.pad(noisy_img, paddings, mode="SYMMETRIC")
+    
+        y_pred = tf.reshape(y_pred, shape=[self.batch_size, config.PATCH_HEIGHT, config.PATCH_WIDTH, self.kpcn_size, self.kpcn_size])
+
+        print(reference_img)
+        print(noisy_img)
+        print(y_true)
+        print(y_pred)
+
+        return tf.keras.losses.mean_squared_error(reference_img, y_pred)
+
+
+
     # Compares the features from VGG19 of the prediction and ground truth
-    def VGG19FeatureLoss(self, y_pred, y_true):
+    def VGG19FeatureLoss(self, y_true, y_pred):
         vgg19 = VGG19(
             include_top=False,
             weights='imagenet',
@@ -552,14 +584,15 @@ class Denoiser():
         if self.mse_epochs > 0:
             self.model.compile(
                 optimizer=self.adam,
-                loss="mean_absolute_error",
+                #loss="mean_absolute_error",
+                loss=self.kernelPredictMAV,
                 metrics=[self.psnr]
             )
 
             self.model.fit(
                 self.train_input,
-                self.train_output,
-                validation_data=(self.test_input, self.test_output),
+                self.train_labels,
+                validation_data=(self.test_input, self.test_labels),
                 batch_size=self.batch_size,
                 epochs=self.mse_epochs,
                 callbacks=self.callbacks
@@ -576,8 +609,8 @@ class Denoiser():
 
             self.model.fit(
                 self.train_input,
-                self.train_output,
-                validation_data=(self.test_input, self.test_output),
+                self.train_labels,
+                validation_data=(self.test_input, self.test_labels),
                 batch_size=self.batch_size,
                 epochs=self.vgg_epochs,
                 callbacks=self.callbacks
@@ -597,7 +630,7 @@ class Denoiser():
         return pred
 
     def eval(self):
-        score = self.model.evaluate(self.test_input, self.test_output, verbose=0)
+        score = self.model.evaluate(self.test_input, self.test_labels, verbose=0)
         print(" ")
         print(" ===== DENOISER EVALUATION ===== ")
         print(" ==== Test loss: " + str(score[0]) + " ==== ")
@@ -699,6 +732,7 @@ class GAN():
             self.test_data,
             mse_epochs=1000,
             vgg_epochs=0,
+            kernel_predict=True,
             feature_list=feature_list
         )
         if os.path.isfile("models/mav_denoiser"):
@@ -777,7 +811,7 @@ class GAN():
 
                 # Get a batch and denoise
                 train_noisy_batch = self.denoiser.train_input[rand_indices]
-                train_reference_batch = self.denoiser.train_output[rand_indices]
+                train_reference_batch = self.denoiser.train_data["reference_colour"][rand_indices]
                 denoised_images = self.denoiser.model.predict(train_noisy_batch)
 
                 # Create labels for the discriminator
@@ -806,7 +840,7 @@ class GAN():
 
                 rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
                 train_noisy_batch = self.denoiser.train_input[rand_indices]
-                train_reference_batch = self.denoiser.train_output[rand_indices]
+                train_reference_batch = self.denoiser.train_data["reference_colour"][rand_indices]
 
                 # Create labels for the gan
                 gan_labels = np.ones(self.batch_size)
