@@ -5,15 +5,15 @@ import numpy as np
 import sys
 import random
 
-import make_patches
-import denoise_full_image
+import data
+from denoise_full_image import getFeaturesFromTitle
 import config
 
 # Load in the trained model
 model = tf.keras.models.load_model(sys.argv[1], compile=False)
-feature_list = denoise_full_image.getFeaturesFromTitle(sys.argv[1])
+feature_list = getFeaturesFromTitle(sys.argv[1])
 
-patches = make_patches.makePatches()
+patches = data.makePatches(1234)
 
 test_in = [
     np.array(patches["test"]["noisy_colour"]),
@@ -31,6 +31,9 @@ for feature in feature_list:
             test_in.append(patches["test"]["noisy_" + key])
 
 model_input = np.concatenate((test_in), 3)
+
+print(model_input.shape)
+
 pred = model.predict(model_input)
 
 # Show the reference, noisy, and denoised image

@@ -9,48 +9,8 @@ IMAGE_HEIGHT = 512
 PATCH_WIDTH = 64 
 PATCH_HEIGHT = 64
 
-# We differentiate all of the buffers to highlight features for the network.
-# This list contains the paths of the images that will be differentiated
-IMAGE_PATHS_TO_DIFFERENTIATE = [
-    "data/full/reference_colour.png",
-    "data/full/noisy_colour.png",
-
-    "data/full/reference_sn.png",
-    "data/full/noisy_sn.png",
-
-    "data/full/reference_albedo.png",
-    "data/full/noisy_albedo.png",
-
-    "data/full/reference_depth.png",
-    "data/full/noisy_depth.png"
-]
-
-# Save locations of the differentiated images
-DIFFERENTIATED_SAVE_DIRS = [
-    "data/full/reference_colour_gradx.png",
-    "data/full/reference_colour_grady.png",
-
-    "data/full/noisy_colour_gradx.png",
-    "data/full/noisy_colour_grady.png",
-
-    "data/full/reference_sn_gradx.png",
-    "data/full/reference_sn_grady.png",
-
-    "data/full/noisy_sn_gradx.png",
-    "data/full/noisy_sn_grady.png",
-
-    "data/full/reference_albedo_gradx.png",
-    "data/full/reference_albedo_grady.png",
-
-    "data/full/noisy_albedo_gradx.png",
-    "data/full/noisy_albedo_grady.png",
-
-    "data/full/reference_depth_gradx.png",
-    "data/full/reference_depth_grady.png",
-
-    "data/full/noisy_depth_gradx.png",
-    "data/full/noisy_depth_grady.png",
-]
+# Do we need to generate new patches?
+MAKE_NEW_PATCHES = False
 
 # The image paths containing the full buffers. Colour, features and gradients as
 # well as their corresponding variances

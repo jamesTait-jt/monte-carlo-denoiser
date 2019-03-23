@@ -27,4 +27,3 @@ def _weighted_average_grad(op, grad):
 
 
 weighted_average = _module.weighted_average
-

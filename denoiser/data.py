@@ -409,56 +409,78 @@ def throwDart(
 
 
 def makePatches(seed):
-    random.seed(seed)
-    darts = generate_darts(
-        config.NUM_DARTS,
-        config.IMAGE_WIDTH,
-        config.IMAGE_HEIGHT,
-        config.PATCH_WIDTH,
-        config.PATCH_HEIGHT
-    )
 
     patches = initialisePatchDict()
+    
+    if config.MAKE_NEW_PATCHES:
+        random.seed(seed)
+        darts = generate_darts(
+            config.NUM_DARTS,
+            config.IMAGE_WIDTH,
+            config.IMAGE_HEIGHT,
+            config.PATCH_WIDTH,
+            config.PATCH_HEIGHT
+        )
 
-    full_images = loadAndPreProcessImages()
-    brightness_factors = generateBrightnessFactors(0.3)
 
-    print("Generating patches...")
-    for test_or_train in full_images:
-        augmentation = True
-        if test_or_train == "train":
-            train_dir = "train/"
-            num_scenes = config.TRAIN_SCENES
-        else:
-            train_dir = "test/"
-            num_scenes = config.TEST_SCENES
-            augmentation = False
+        full_images = loadAndPreProcessImages()
+        brightness_factors = generateBrightnessFactors(0.3)
 
-        full_img_num = 0 
-        for key in full_images[test_or_train]:
+        print("Generating patches...")
+        for test_or_train in full_images:
+            augmentation = True
+            if test_or_train == "train":
+                train_dir = "train/"
+                num_scenes = config.TRAIN_SCENES
+            else:
+                train_dir = "test/"
+                num_scenes = config.TEST_SCENES
+                augmentation = False
 
-            new_patches = []
-            for i in range(num_scenes):
-                img_array = full_images[test_or_train][key][i]
-                channels = setNumChannels(key)
+            full_img_num = 0 
+            for key in full_images[test_or_train]:
 
-                # Each dart throw is the top left corner of the patch
-                ctr = 0
-                for dart in darts:
-                    throwDart(
-                        dart,
-                        key,
-                        img_array,
-                        channels,
-                        ctr,
-                        train_dir,
-                        test_or_train,
-                        i,
-                        patches,
-                        brightness_factors
-                    )
-                    ctr += 1
+                new_patches = []
+                for i in range(num_scenes):
+                    img_array = full_images[test_or_train][key][i]
+                    channels = setNumChannels(key)
 
-            full_img_num += 1
-    print("Done!")
+                    # Each dart throw is the top left corner of the patch
+                    ctr = 0
+                    for dart in darts:
+                        throwDart(
+                            dart,
+                            key,
+                            img_array,
+                            channels,
+                            ctr,
+                            train_dir,
+                            test_or_train,
+                            i,
+                            patches,
+                            brightness_factors
+                        )
+                        ctr += 1
+
+                full_img_num += 1
+        print("Done!")
+
+    else:
+        print("Not generating new patches. Loading in patches...")
+        for test_or_train in patches:
+
+            if test_or_train == "train":
+                num_scenes = config.TRAIN_SCENES
+            else:
+                num_scenes = config.TEST_SCENES
+
+            for key in patches[test_or_train]:
+                for i in range(num_scenes * config.NUM_DARTS):
+                    img_path = "data/patches/" + test_or_train + "/" + key + "/" + str(i) + ".png"
+                    img = load_img(img_path)
+                    img = img_to_array(img) / 255.0
+                    if "var" in key or "depth" in key:
+                        img = np.mean(img, axis=2, keepdims=True)
+                    patches[test_or_train][key].append(img)
+
     return patches
