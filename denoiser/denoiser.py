@@ -522,10 +522,14 @@ class Denoiser():
         paddings = tf.constant([[0, 0], [kernel_radius, kernel_radius], [kernel_radius, kernel_radius], [0, 0]])
         noisy_img = tf.pad(noisy_img, paddings, mode="SYMMETRIC")
         
-        print(noisy_img)
-        print(weights)
+        prediction = weighted_average_module.weighted_average(noisy_img, weights)
+        prediction = tf.slice(
+            prediction,
+            [0, kernel_radius, kernel_radius, 0],
+            [self.batch_size, config.PATCH_HEIGHT, config.PATCH_WIDTH, 3]
+        )
 
-        return weight_avg
+        return prediction
 
     # Calculates the Peak Signal-to-noise value between two images
     def psnr(self, y_true, y_pred):
@@ -650,15 +654,15 @@ class Denoiser():
             x = self.returnConvLayer(x) 
             x = self.returnConvLayer(x) 
             x = self.returnConvLayer(x) 
-            x = self.returnFinalConvLayer(x)
+            pred = self.returnFinalConvLayer(x)
 
             if self.kernel_predict:
                 pred = tf.keras.layers.Lambda(
                     self.kernelPrediction, 
                     arguments={"noisy_img":conv_input}
-                )(x)
+                )(pred)
 
-            self.model = tf.keras.models.Model(inputs=conv_input, outputs=x)
+            self.model = tf.keras.models.Model(inputs=conv_input, outputs=pred)
             self.model.compile(
                 optimizer=self.adam,
                 loss=self.VGG19FeatureLoss,
@@ -852,6 +856,7 @@ class GAN():
             mse_epochs=0,
             vgg_epochs=0,
             kernel_predict=True,
+            batch_size=self.batch_size,
             feature_list=feature_list
         )
         denoiser.buildNetwork()
@@ -862,6 +867,7 @@ class GAN():
         discriminator = Discriminator(
             self.train_data,
             self.test_data,
+            batch_size=self.batch_size
         )
         discriminator.buildNetwork()
         self.discriminator = discriminator
