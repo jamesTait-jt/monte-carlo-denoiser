@@ -21,6 +21,7 @@ from tqdm import tqdm
 
 import data
 import config
+#import weighted_average
 
 class Discriminator():
     """Class to discriminate between real and fake reference images
@@ -126,6 +127,9 @@ class Discriminator():
     def leakyReLU(self):
         self.model.add(tf.keras.layers.LeakyReLU(alpha=self.lrelu_activation))
 
+    def dropoutLayer(self, rate):
+        self.model.add(tf.keras.layers.Dropout(rate))
+
     def batchNormalisation(self):
         self.model.add(tf.keras.layers.BatchNormalization())
 
@@ -142,6 +146,7 @@ class Discriminator():
         )
         self.batchNormalisation()
         self.leakyReLU()
+        self.dropoutLayer(0.6)
 
     def denseLayer(self, units):
         self.model.add(tf.keras.layers.Dense(units))
@@ -165,6 +170,7 @@ class Discriminator():
 
         self.denseLayer(1024)
         self.leakyReLU()
+        self.dropoutLayer(0.6)
         self.flatten()
         self.denseLayer(1)
         self.sigmoid()
@@ -261,7 +267,7 @@ class Denoiser():
 
         # Are we using KPCN
         self.kernel_predict = kwargs.get("kernel_predict", False)
-        self.kpcn_size = kwargs.get("kpcn_size", 20)
+        self.kpcn_size = kwargs.get("kpcn_size", 21)
 
         # Which layer of vgg do we extract features from
         self.vgg_mode = kwargs.get("vgg_mode", 22)
@@ -379,8 +385,11 @@ class Denoiser():
             np.array(self.test_data["noisy_colour"])
         ]
 
-        self.train_labels = np.concatenate((train_labels), 3)
-        self.test_labels = np.concatenate((test_labels), 3)
+        #self.train_labels = np.concatenate((train_labels), 3)
+        #self.test_labels = np.concatenate((test_labels), 3)
+
+        self.train_labels = np.array(self.train_data["reference_colour"])
+        self.test_labels = np.array(self.test_data["reference_colour"])
 
         # Ensure input channels is the right size
         self.input_channels = self.train_input.shape[3]
@@ -414,6 +423,19 @@ class Denoiser():
                 kernel_initializer="glorot_uniform" # Xavier uniform
             )
         )
+    
+    def returnConvLayer(self, prev_layer):
+        new_layer = tf.keras.layers.Conv2D(
+                filters=self.num_filters,
+                kernel_size=self.kernel_size,
+                use_bias=True,
+                strides=[1, 1],
+                padding=self.padding_type,
+                activation="relu",
+                kernel_initializer="glorot_uniform" # Xavier uniform
+        )(prev_layer)
+        
+        return new_layer
 
     def convWithBatchNorm(self):
         # We don't need to add bias if we use batch normalisation
@@ -462,24 +484,45 @@ class Denoiser():
         #        tf.keras.layers.Lambda(self.kernelPrediction)
         #    )
 
+    def returnFinalConvLayer(self, prev_layer):
+        if self.kernel_predict:
+            output_size = pow(self.kpcn_size, 2)
+        else:
+            output_size = self.output_channels
+
+        new_layer = tf.keras.layers.Conv2D(
+            filters=output_size,
+            kernel_size=self.kernel_size,
+            use_bias=True,
+            strides=(1, 1),
+            padding=self.padding_type,
+            activation=None,
+            kernel_initializer="glorot_uniform" # Xavier uniform
+        )(prev_layer)
+
+        return new_layer
+        
+
     def trainBatchNorm(self):
         for _ in range(8):
             self.convWithBatchNorm()
         self.finalConvLayer()
 
-    def kernelPrediction(self, x):
+    def kernelPrediction(self, x, noisy_img):
         exp = tf.math.exp(x)
-        weight_sum = tf.math.reduce_sum(exp, axis=3, keepdims=True)
-        weight_avg = tf.math.divide(exp, weight_sum)
+        weight_sum = tf.reduce_sum(exp, axis=3, keepdims=True)
+        weight_avg = tf.divide(exp, weight_sum)
+        weights = tf.reshape(weight_avg, shape=[self.batch_size, config.PATCH_HEIGHT, config.PATCH_WIDTH, self.kpcn_size, self.kpcn_size])
 
-        #kernel_radius = int(math.floor(self.kpcn_size / 2.0))
+        # Slice the noisy image out of the input
+        noisy_img = noisy_img[:, :, :, 0:3]
 
-        #input_img = tf.slice(self.model.input[self.curr_batch : self.batch_size], [0, 0, 0], [config.PATCH_HEIGHT, config.PATCH_WIDTH, 3])
-
-        # Symmetric padding means border pixels will just have their inside
-        # neighbours mirrored onto the outside
-        #paddings = tf.constant([[kernel_radius, kernel_radius], [kernel_radius, kernel_radius], [0,0]])
-        #input_img = tf.pad(input_img, paddings, mode="SYMMETRIC")
+        kernel_radius = int(math.floor(self.kpcn_size / 2.0))
+        paddings = tf.constant([[0, 0], [kernel_radius, kernel_radius], [kernel_radius, kernel_radius], [0, 0]])
+        noisy_img = tf.pad(noisy_img, paddings, mode="SYMMETRIC")
+        
+        print(noisy_img)
+        print(weights)
 
         return weight_avg
 
@@ -501,14 +544,27 @@ class Denoiser():
     
         y_pred = tf.reshape(y_pred, shape=[self.batch_size, config.PATCH_HEIGHT, config.PATCH_WIDTH, self.kpcn_size, self.kpcn_size])
 
+        new_noisy_img = tf.zeros((self.batch_size, config.PATCH_HEIGHT, config.PATCH_WIDTH, 3))
+
+        #pred = weighted_average
+
+        for pixel_x in range(config.PATCH_WIDTH):
+            for pixel_y in range(config.PATCH_HEIGHT):
+                accum = [0] * self.batch_size
+                for kernel_x in range(-kernel_radius, kernel_radius):
+                    for kernel_y in range(-kernel_radius, kernel_radius):
+                        accum += noisy_img[:, pixel_x + kernel_x, pixel_y + kernel_y, 0] * \
+                                 y_pred[:, pixel_x, pixel_y, kernel_x + kernel_radius, kernel_y + kernel_radius, 0]
+                print(accum)
+                #new_noisy_img[:, pixel_x, pixel_y, 0] =  0
+
+
         print(reference_img)
         print(noisy_img)
         print(y_true)
         print(y_pred)
 
         return tf.keras.losses.mean_squared_error(reference_img, y_pred)
-
-
 
     # Compares the features from VGG19 of the prediction and ground truth
     def VGG19FeatureLoss(self, y_true, y_pred):
@@ -538,11 +594,10 @@ class Denoiser():
         features_pred = feature_extractor(y_pred)
         features_true = feature_extractor(y_true)
 
-        # 0.006 rescale to be closer to MSE
-        feature_loss = 0.006 * tf.keras.losses.mean_squared_error(features_pred, features_true)
+        feature_loss = tf.keras.losses.mean_squared_error(features_pred, features_true)
 
-        # 0.006 rescales to be similar to MSE loss values
-        #feature_loss = 0.06 * tf.reduce_sum(feature_loss) / (feature_shape[0] * feature_shape[1])
+        # 0.2 rescales to be similar to MSE loss values
+        feature_loss = 0.03 * tf.reduce_sum(feature_loss) / (feature_shape[0] * feature_shape[1])
 
         return feature_loss
 
@@ -561,9 +616,11 @@ class Denoiser():
 
     def perceptualLoss(self, y_true, y_pred):
         feature_loss = self.VGG19FeatureLoss(y_pred, y_true)
-        discrim_loss = self.discriminatorLoss(y_pred)
+        mse_loss = tf.reduce_sum(tf.keras.losses.mean_squared_error(y_pred, y_true))
 
-        final_loss = tf.math.add(feature_loss, 1e-3 * discrim_loss)
+        mse_loss = tf.divide(mse_loss, config.PATCH_WIDTH * config.PATCH_HEIGHT)
+
+        final_loss = tf.math.add(feature_loss, mse_loss)
 
         return final_loss
 
@@ -574,18 +631,49 @@ class Denoiser():
         if self.batch_norm:
             self.trainBatchNorm()
         else:
-            self.initialConvLayer()
-            for _ in range(7):
-                self.convLayer()
+            #self.initialConvLayer()
+            #for _ in range(7):
+            #    self.convLayer()
                 #self.dropoutLayer(0.1)
-            self.finalConvLayer()
+            #self.finalConvLayer()
+
+            conv_input = tf.keras.layers.Input(
+                shape=(self.patch_height, self.patch_width, self.input_channels)
+            )
+            
+            x = self.returnConvLayer(conv_input) 
+            x = self.returnConvLayer(x) 
+            x = self.returnConvLayer(x) 
+            x = self.returnConvLayer(x) 
+            x = self.returnConvLayer(x) 
+            x = self.returnConvLayer(x) 
+            x = self.returnConvLayer(x) 
+            x = self.returnConvLayer(x) 
+            x = self.returnFinalConvLayer(x)
+
+            if self.kernel_predict:
+                pred = tf.keras.layers.Lambda(
+                    self.kernelPrediction, 
+                    arguments={"noisy_img":conv_input}
+                )(x)
+
+            self.model = tf.keras.models.Model(inputs=conv_input, outputs=x)
+            self.model.compile(
+                optimizer=self.adam,
+                loss=self.VGG19FeatureLoss,
+                metrics=[self.psnr]
+            )
 
     def train(self):
         if self.mse_epochs > 0:
+            if self.kernel_predict:
+                loss = self.kernelPredictMAV
+            else:
+                loss = "mean_absolute_error"
+
             self.model.compile(
                 optimizer=self.adam,
-                #loss="mean_absolute_error",
-                loss=self.kernelPredictMAV,
+                loss=loss,
                 metrics=[self.psnr]
             )
 
@@ -629,13 +717,15 @@ class Denoiser():
         pred = self.model.predict(model_input)
         return pred
 
-    def eval(self):
+    def eval(self, verbose):
         score = self.model.evaluate(self.test_input, self.test_labels, verbose=0)
-        print(" ")
-        print(" ===== DENOISER EVALUATION ===== ")
-        print(" ==== Test loss: " + str(score[0]) + " ==== ")
-        print(" ==== Test PSNR: " + str(score[1]) + " ==== ")
-        print(" ")
+        if verbose:
+            print(" ")
+            print(" ===== DENOISER EVALUATION ===== ")
+            print(" ==== Test loss: " + str(score[0]) + " ==== ")
+            print(" ==== Test PSNR: " + str(score[1]) + " ==== ")
+            print(" ")
+        return score
 
 # Callback to plot both training and validation metrics
 #   https://stackoverflow.com/questions/47877475/keras-tensorboard-plot-train-and-validation-scalars-in-a-same-figure
@@ -717,9 +807,10 @@ class GAN():
         discrim_output = self.discriminator.model(denoiser_output)
         self.model = tf.keras.models.Model(inputs=gan_input, outputs=[denoiser_output, discrim_output])
         self.model.compile(
-            loss=[self.denoiser.VGG19FeatureLoss, "binary_crossentropy"],
+            loss=[self.denoiser.perceptualLoss, "binary_crossentropy"],
             #loss_weights=[1.0, 1e-3],
-            loss_weights=[0, 1],
+            loss_weights=[1.0, 1e-2],
+            #loss_weights=[0, 1],
             optimizer=self.adam
             #metrics=[self.psnr]
         )
@@ -730,7 +821,7 @@ class GAN():
         mav_denoiser = Denoiser(
             self.train_data,
             self.test_data,
-            mse_epochs=1000,
+            mse_epochs=20,
             vgg_epochs=0,
             kernel_predict=True,
             feature_list=feature_list
@@ -741,16 +832,30 @@ class GAN():
                 "models/mav_denoiser",
                 custom_objects={"psnr" : mav_denoiser.psnr}
             )
-            mav_denoiser.eval()
+            mav_denoiser.eval(True)
         else:
             print("No mav_denoiser found - training now...")
             mav_denoiser.buildNetwork()
             mav_denoiser.train()
-            mav_denoiser.eval()
+            mav_denoiser.eval(True)
             mav_denoiser.model.save("models/mav_denoiser")
 
         self.mav_denoiser = mav_denoiser
         self.denoiser = mav_denoiser
+
+    def buildDenoiser(self):
+        feature_list = ["sn", "albedo", "depth"]
+        denoiser = Denoiser(
+            self.train_data,
+            self.test_data,
+            mse_epochs=0,
+            vgg_epochs=0,
+            kernel_predict=True,
+            feature_list=feature_list
+        )
+        denoiser.buildNetwork()
+        self.denoiser = denoiser
+
 
     def buildDiscriminator(self):
         discriminator = Discriminator(
@@ -794,7 +899,9 @@ class GAN():
         #self.denoiser.discriminator = self.discriminator
         
         gan_writer = tf.summary.FileWriter("logs/gan-{}".format(time()))
-        discrim_writer = tf.summary.FileWriter("logs/discriminator-{}".format(time()))
+        gan_val_writer = tf.summary.FileWriter("logs/gan_val-{}".format(time()), max_queue=1)
+        adversarial_writer = tf.summary.FileWriter("logs/adversarial-{}".format(time()))
+        #discrim_writer = tf.summary.FileWriter("logs/discriminator-{}".format(time()))
 
         self.denoiser.mse_epochs = 0
         self.denoiser.vgg_epochs = 1
@@ -811,7 +918,8 @@ class GAN():
 
                 # Get a batch and denoise
                 train_noisy_batch = self.denoiser.train_input[rand_indices]
-                train_reference_batch = self.denoiser.train_data["reference_colour"][rand_indices]
+                train_reference_batch = np.array(self.denoiser.train_data["reference_colour"])[rand_indices]
+
                 denoised_images = self.denoiser.model.predict(train_noisy_batch)
 
                 # Create labels for the discriminator
@@ -819,8 +927,8 @@ class GAN():
                 train_noisy_labels = np.zeros(self.batch_size)
 
                 # Label smoothing
-                #train_reference_labels = train_reference_labels - np.random.random_sample(self.batch_size) * 0.2
-                #train_noisy_labels = train_noisy_labels + np.random.random_sample(self.batch_size) * 0.2
+                train_reference_labels = train_reference_labels - np.random.random_sample(self.batch_size) * 0.2
+                train_noisy_labels = train_noisy_labels + np.random.random_sample(self.batch_size) * 0.2
 
                 # Unfreeze the discriminator so that we can train it
                 self.discriminator.model.trainable = True
@@ -840,13 +948,13 @@ class GAN():
 
                 rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
                 train_noisy_batch = self.denoiser.train_input[rand_indices]
-                train_reference_batch = self.denoiser.train_data["reference_colour"][rand_indices]
+                train_reference_batch = np.array(self.denoiser.train_data["reference_colour"])[rand_indices]
 
                 # Create labels for the gan
                 gan_labels = np.ones(self.batch_size)
 
                 # Label smoothing
-                #gan_labels = gan_labels - np.random.random_sample(self.batch_size) * 0.2
+                gan_labels = gan_labels - np.random.random_sample(self.batch_size) * 0.2
 
                 # Freeze the weights so the discriminator isn't trained with the denoiser in the gan network
                 self.discriminator.model.trainable = False
@@ -873,18 +981,50 @@ class GAN():
                 gan_summary = tf.Summary(
                     value=[tf.Summary.Value(tag="gan_loss", simple_value=gan_loss[0]),]
                 )
-                discrim_writer.add_summary(discrim_acc_real_summary, global_step)
-                discrim_writer.add_summary(discrim_acc_fake_summary, global_step)
-                discrim_writer.add_summary(discrim_loss_real_summary, global_step)
-                discrim_writer.add_summary(discrim_loss_fake_summary, global_step)
+
+                # Add the adversarial loss to tensorboard sumamry
+                adversarial_summary = tf.Summary(
+                    value=[tf.Summary.Value(tag="adversarial_loss", simple_value=gan_loss[2]),]
+                )
+                    
+                #discrim_writer.add_summary(discrim_acc_real_summary, global_step)
+                #discrim_writer.add_summary(discrim_acc_fake_summary, global_step)
+                #discrim_writer.add_summary(discrim_loss_real_summary, global_step)
+                #discrim_writer.add_summary(discrim_loss_fake_summary, global_step)
                 gan_writer.add_summary(gan_summary, global_step)
+                adversarial_writer.add_summary(adversarial_summary, global_step)
                 global_step += 1
 
             print("discriminator_loss_real :" + str(discrim_loss_real[0]))
             print("discriminator_loss_fake :" + str(discrim_loss_fake[0]))
             print("gan_loss :" + str(gan_loss[0]))
-            if (epoch % 10) == 0:
+            if (epoch % 50) == 0:
                 self.denoiser.model.save(self.denoiser.model_dir + "epoch:" + str(epoch))
+
+            score = self.eval()
+            gan_test_summary = tf.Summary(
+                value=[tf.Summary.Value(tag="gan_loss", simple_value=score),]
+            )
+            gan_val_writer.add_summary(gan_test_summary, global_step)
+
+            psnr = self.denoiser.eval(False)[1]
+            psnr_summary = tf.Summary(
+                value=[tf.Summary.Value(tag="psnr", simple_value=psnr),]
+            )
+            gan_writer.add_summary(psnr_summary, global_step)
+
+            print("psnr :" + str(psnr))
+
+
+    def eval(self):
+        reference_test_images = np.array(self.test_data["reference_colour"])
+        reference_test_labels = np.ones(len(reference_test_images))
+        score = self.model.evaluate(self.denoiser.test_input, [reference_test_images, reference_test_labels], verbose=0)
+        #print(" ")
+        #print(" ===== GAN EVALUATION ===== ")
+        print("gan_val_loss: " + str(score[0]))
+        #print(" ")
+        return score[0]
 
 
 def denoise():
@@ -893,8 +1033,9 @@ def denoise():
     train_data = patches["train"]
     test_data = patches["test"]
 
-    gan = GAN(train_data, test_data, num_epochs=100)
-    gan.preTrainMAVDenoiser()
+    gan = GAN(train_data, test_data, num_epochs=1000)
+    #gan.preTrainMAVDenoiser()
+    gan.buildDenoiser()
     gan.buildDiscriminator()
     gan.buildNetwork()
     gan.train()

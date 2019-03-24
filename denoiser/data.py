@@ -359,16 +359,16 @@ def setNumChannels(key):
         return 3
 
 def throwDart(
-        dart,
-        key,
-        img_array,
-        channels,
-        ctr,
-        train_dir,
-        test_or_train,
-        scene_num,
-        patches,
-        brightness_factors
+    dart,
+    key,
+    img_array,
+    channels,
+    ctr,
+    train_dir,
+    test_or_train,
+    scene_num,
+    patches,
+    brightness_factors
 ):
     not_altered_patch = np.zeros((config.PATCH_WIDTH, config.PATCH_HEIGHT, channels))
     altered_patch = np.zeros((config.PATCH_WIDTH, config.PATCH_HEIGHT, channels))
@@ -482,5 +482,14 @@ def makePatches(seed):
                     if "var" in key or "depth" in key:
                         img = np.mean(img, axis=2, keepdims=True)
                     patches[test_or_train][key].append(img)
+
+                    if config.AUGMENTATION:
+                        if test_or_train == "train":
+                            augmented_img_path = "data/patches/" + test_or_train + "/augmented/" + key + "/" + str(i) + ".png"
+                            img = load_img(img_path)
+                            img = img_to_array(img) / 255.0
+                            if "var" in key or "depth" in key:
+                                img = np.mean(img, axis=2, keepdims=True)
+                            patches[test_or_train][key].append(img)
 
     return patches

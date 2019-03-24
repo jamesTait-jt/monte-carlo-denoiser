@@ -12,6 +12,8 @@ PATCH_HEIGHT = 64
 # Do we need to generate new patches?
 MAKE_NEW_PATCHES = False
 
+AUGMENTATION = False
+
 # The image paths containing the full buffers. Colour, features and gradients as
 # well as their corresponding variances
 FULL_IMAGE_PATHS = [

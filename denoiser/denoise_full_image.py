@@ -63,6 +63,7 @@ test_in = [
 
 # Extract the features that the model has been trained on 
 feature_list = getFeaturesFromTitle(sys.argv[1])
+feature_list = ["sn", "albedo", "depth"]
 for feature in feature_list:
     feature_keys = [feature + "_gradx", feature + "_grady", feature + "_var"]
     for key in feature_keys:
