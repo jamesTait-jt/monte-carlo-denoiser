@@ -21,7 +21,8 @@ from tqdm import tqdm
 
 import data
 import config
-#import weighted_average
+
+weighted_average_module = tf.load_op_library("./custom_ops/weighted_average.so")
 
 class Discriminator():
     """Class to discriminate between real and fake reference images
