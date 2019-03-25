@@ -16,7 +16,6 @@ def toColourVal(x):
     return x
 
 def preProcessReferenceColour(is_train):
-
     if is_train:
         train_dir = "train/"
         num_scenes = config.TRAIN_SCENES
@@ -42,7 +41,6 @@ def preProcessReferenceColour(is_train):
     return colour_data_arr
 
 def preProcessNoisyColour(is_train):
-
     if is_train:
         train_dir = "train/"
         num_scenes = config.TRAIN_SCENES
@@ -80,7 +78,6 @@ def preProcessNoisyColour(is_train):
     return colour_data_arr, gradx_arr, grady_arr, var_arr
 
 def preProcessAlbedo(is_train):
-
     if is_train:
         train_dir = "train/"
         num_scenes = config.TRAIN_SCENES
@@ -103,7 +100,7 @@ def preProcessAlbedo(is_train):
             data = np.array([[float(x.split(' ')[0]), float(x.split(' ')[1]), float(x.split(' ')[2])] for x in (f.read().split(',')[:-1])])
             data = np.reshape(data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3))
 
-            img = array_to_img(data)        
+            img = array_to_img(data)
             gradx = ndimage.sobel(img, axis=0, mode='constant') / 255.0
             grady = ndimage.sobel(img, axis=1, mode='constant') / 255.0
             gradx_arr.append(gradx)
@@ -120,7 +117,6 @@ def preProcessAlbedo(is_train):
 
 # The depths are normalised between 0 and 1
 def preProcessDepth(is_train):
-
     if is_train:
         train_dir = "train/"
         num_scenes = config.TRAIN_SCENES
@@ -164,7 +160,6 @@ def preProcessDepth(is_train):
 
 # Nothing special is done to the surface normals
 def preProcessSurfaceNormal(is_train):
-
     if is_train:
         train_dir = "train/"
         num_scenes = config.TRAIN_SCENES
@@ -187,7 +182,7 @@ def preProcessSurfaceNormal(is_train):
             data = np.array([[float(x.split(' ')[0]), float(x.split(' ')[1]), float(x.split(' ')[2])] for x in (f.read().split(',')[:-1])])
             data = np.reshape(data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3))
 
-            img = array_to_img(data)        
+            img = array_to_img(data)
             gradx = ndimage.sobel(img, axis=0, mode='constant') / 255.0
             grady = ndimage.sobel(img, axis=1, mode='constant') / 255.0
             gradx_arr.append(gradx)
@@ -219,7 +214,7 @@ def saveImages(images):
                 img = array_to_img(images[test_or_train][key][i])
                 img.save("data/full/" + train_dir + key + "_" + str(i) +  ".png")
 
-def loadAndPreProcessImages(): 
+def loadAndPreProcessImages():
     train_noisy_colour, \
     train_noisy_colour_gradx, \
     train_noisy_colour_grady, \
@@ -228,7 +223,7 @@ def loadAndPreProcessImages():
     train_sn_gradx, \
     train_sn_grady, \
     train_sn_var = preProcessSurfaceNormal(is_train=True)
-    
+
     train_albedo_gradx, \
     train_albedo_grady, \
     train_albedo_var = preProcessAlbedo(is_train=True)
@@ -236,7 +231,7 @@ def loadAndPreProcessImages():
     train_depth_gradx, \
     train_depth_grady, \
     train_depth_var = preProcessDepth(is_train=True)
-    
+
     test_noisy_colour, \
     test_noisy_colour_gradx, \
     test_noisy_colour_grady, \
@@ -282,10 +277,10 @@ def loadAndPreProcessImages():
             "noisy_sn_grady" : test_sn_gradx,
             "noisy_sn_var" : test_sn_var,
             "noisy_albedo_gradx" : test_albedo_gradx,
-            "noisy_albedo_grady" : test_albedo_gradx,
+            "noisy_albedo_grady" : test_albedo_grady,
             "noisy_albedo_var" : test_albedo_var,
             "noisy_depth_gradx" : test_depth_gradx,
-            "noisy_depth_grady" : test_depth_gradx,
+            "noisy_depth_grady" : test_depth_grady,
             "noisy_depth_var" : test_depth_var
         }
     }
@@ -428,19 +423,15 @@ def makePatches(seed):
 
         print("Generating patches...")
         for test_or_train in full_images:
-            augmentation = True
             if test_or_train == "train":
                 train_dir = "train/"
                 num_scenes = config.TRAIN_SCENES
             else:
                 train_dir = "test/"
                 num_scenes = config.TEST_SCENES
-                augmentation = False
 
-            full_img_num = 0 
+            full_img_num = 0
             for key in full_images[test_or_train]:
-
-                new_patches = []
                 for i in range(num_scenes):
                     img_array = full_images[test_or_train][key][i]
                     channels = setNumChannels(key)
@@ -486,7 +477,7 @@ def makePatches(seed):
                     if config.AUGMENTATION:
                         if test_or_train == "train":
                             augmented_img_path = "data/patches/" + test_or_train + "/augmented/" + key + "/" + str(i) + ".png"
-                            img = load_img(img_path)
+                            img = load_img(augmented_img_path)
                             img = img_to_array(img) / 255.0
                             if "var" in key or "depth" in key:
                                 img = np.mean(img, axis=2, keepdims=True)

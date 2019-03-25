@@ -1,6 +1,5 @@
 import tensorflow as tf
 from math import sqrt
-import numpy as np
 from os import path
 from tensorflow.python.framework import ops
 
