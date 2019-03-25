@@ -1,6 +1,6 @@
 # Ignore models and logs
 denoiser/logs*
-denoiser/models*
+#denoiser/models*
 
 #Ignore the build and lib dirs
 build
