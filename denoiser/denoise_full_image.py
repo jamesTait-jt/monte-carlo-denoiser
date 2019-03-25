@@ -3,9 +3,11 @@ import tensorflow as tf
 from keras.preprocessing.image import array_to_img, img_to_array, load_img
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 import config
 import data
+import weighted_average
 from denoiser import Denoiser
 
 def patchify(img, channels, patch_width=config.PATCH_WIDTH, patch_height=config.PATCH_HEIGHT, img_width=config.IMAGE_WIDTH, img_height=config.IMAGE_HEIGHT):
@@ -27,6 +29,7 @@ def stitch(img, patch_width, patch_height, img_width, img_height):
     patches_per_row = int(img_width / patch_width)
     patches_per_col = int(img_height / patch_height)
     img2d = np.zeros((img_height, img_width, 3))
+    print(img.shape)
     for i in range(img.shape[0]):
         x = patch_height * (i % patches_per_row)
         y = patch_width * (i // patches_per_row) #integer division
@@ -46,6 +49,24 @@ def getFeaturesFromTitle(title):
     # contained
     feature_list = list(filter(lambda x : x in all_features, title_list))
     return feature_list
+
+# Apply the kernel to the noisy test input
+def applyKernel(noisy_img, weights):
+    kernel_size = math.sqrt(weights.shape[3])
+    kernel_radius = int(math.floor(kernel_size / 2.0))
+    paddings = tf.constant([[0, 0], [kernel_radius, kernel_radius], [kernel_radius, kernel_radius], [0, 0]])
+    noisy_img = tf.pad(noisy_img, paddings, mode="SYMMETRIC")
+    noisy_img = tf.cast(noisy_img, dtype="float32")
+
+    # Normalise weights
+    exp = tf.math.exp(weights)
+    weights_sum = tf.reduce_sum(exp, axis=3, keepdims=True)
+    weights = tf.divide(exp, weights_sum)
+
+    with tf.Session(""):
+        pred = weighted_average.weighted_average(noisy_img, weights).eval()
+        return pred
+
 
 # Load in trained model
 model = tf.keras.models.load_model(sys.argv[1], compile=False)
@@ -73,8 +94,10 @@ for feature in feature_list:
             test_in.append(patchify(images["test"]["noisy_" + key][0], 3))
 
 model_input = np.concatenate((test_in), 3)
-print(model_input.shape)
-pred = model.predict(model_input)
+weights = model.predict(model_input)
+
+pred = applyKernel(test_in[0], weights)
+
 stitched = stitch(pred, config.PATCH_WIDTH, config.PATCH_HEIGHT, config.IMAGE_WIDTH, config.IMAGE_HEIGHT)
 save_dir = sys.argv[1].split('/')[1]
 stitched.save("data/output/" + save_dir + "denoised.png")

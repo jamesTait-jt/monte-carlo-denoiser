@@ -8,8 +8,14 @@ REGISTER_OP("WeightedAverage")
     .Input("noisy_img: float32")
     .Input("weights: float32")
     .Output("averaged: float32")
-    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext * c) {
-        c->set_output(0, c->input(0));
+    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+        ::tensorflow::shape_inference::ShapeHandle input;
+        ::tensorflow::shape_inference::ShapeHandle output;
+
+        // Set the output to img_w x img_h x 3 (RGB)
+        TF_RETURN_IF_ERROR(c->ReplaceDim(c->input(1), 3, c->MakeDim(3), &output));
+
+        c->set_output(0, output);
         return Status::OK();
     });
 
@@ -19,101 +25,71 @@ class WeightedAverageOp : public OpKernel {
         explicit WeightedAverageOp(OpKernelConstruction * context) : OpKernel(context) {}
 
         void Compute(OpKernelContext * context) override {
+            
             // Get the noisy image tensor
-            const Tensor & noisy_img = context->input(0);
+            const Tensor & noisy_img_tensor = context->input(0);
+            OP_REQUIRES(context, noisy_img_tensor.shape().dims() == 4,
+                    errors::InvalidArgument("Image should be a 4D tensor"));
+            auto noisy_img = noisy_img_tensor.tensor<float, 4>();
+
+            // Get the image dimensions
+            const int batch_size = noisy_img.dimension(0);
+            const int noisy_img_width = noisy_img.dimension(1);
+            const int noisy_img_height = noisy_img.dimension(2);
+
+            OP_REQUIRES(context, noisy_img.dimension(3) == 3,
+		    errors::InvalidArgument("Images should be RGB (have 3 dimensions)."));
 
             // Get the weights tensor
-            const Tensor & weights = context->input(1);
+            const Tensor & weights_tensor = context->input(1);
+            OP_REQUIRES(context, weights_tensor.shape().dims() == 4,
+                    errors::InvalidArgument("Weights should be a 4D tensor"));
+            auto weights = weights_tensor.tensor<float, 4>();
+
+            // Get the information about the kernel
+            const int kernel_area = weights.dimension(3);
+            const int kernel_size = std::sqrt(kernel_area);
+            const int padding = (kernel_size - 1) / 2;
+            const int weights_width = noisy_img_width - 2 * padding;
+            const int weights_height = noisy_img_height - 2 * padding;
+
+	    OP_REQUIRES(context, weights.dimension(0) == batch_size,
+		    errors::InvalidArgument("Images and weights should have the same number of batches."));
+
+	    OP_REQUIRES(context, kernel_size % 2 == 1,
+		    errors::InvalidArgument("Kernel size must be odd."));
+
+	    OP_REQUIRES(context, kernel_area == kernel_size * kernel_size,
+		    errors::InvalidArgument("Kernel area must be the square of an odd number."));
+
+            OP_REQUIRES(context, weights.dimension(1) == weights_width && weights.dimension(2) == weights_height,
+		    errors::InvalidArgument("Images and weights should have the same image size minus the chop-off-border."));
 
             // Create the output (prediction) tensor
-            Tensor * prediction_img = NULL;
+            Tensor * prediction_img_tensor = NULL;
             OP_REQUIRES_OK(
                 context, 
                 context->allocate_output(
                     0, 
-                    noisy_img.shape(),
-                    &prediction_img
+                    {batch_size, weights_width, weights_height, 3},
+                    &prediction_img_tensor
                 )
             );
 
-            // Get the shapes of the input tensors
-            TensorShape weights_shape = weights.shape();
-            TensorShape img_shape_with_padding = noisy_img.shape();
+            auto prediction_img = prediction_img_tensor->tensor<float, 4>().setConstant(0);
 
-            // Get the batch size and ensure it's the same for each one
-            const int batch_size_weights = weights_shape.dim_size(0);
-            const int batch_size_img = weights_shape.dim_size(0);
-            DCHECK_EQ(batch_size_weights, batch_size_img);
-            const int batch_size = batch_size_img;
-
-            // Ensure it's an RGB image
-            DCHECK_EQ(img_shape_with_padding.dim_size(3), 3);
-
-            // Ensure the kernel is square
-            DCHECK_EQ(
-                weights_shape.dim_size(3), 
-                weights_shape.dim_size(4)
-            );
-    
-            // Ensure the kernel has odd dimension
-            DCHECK_EQ(weights_shape.dim_size(3) % 2, 1);
-
-            // Get the image/weights dimensions
-            const int padded_img_width = img_shape_with_padding.dim_size(1);
-            const int padded_img_height = img_shape_with_padding.dim_size(2);
-            const int kernel_width = weights_shape.dim_size(3);
-            const int kernel_height = weights_shape.dim_size(4);
-
-            // Ensure the image is square
-            DCHECK_EQ(padded_img_width, padded_img_height);
-
-            // Ensure the kernel is smaller than the padded image
-            DCHECK(weights_shape.dim_size(3) < padded_img_width);
-
-            // Ensure the kernel is square
-            DCHECK_EQ(kernel_width, kernel_height);
-
-            // Get the radius of the kernel
-            const int kernel_radius = std::floor(kernel_width / 2);
-
-            // Get the accessible version of the noisy image tensor
-            auto noisy_tensor = noisy_img.tensor<float, 4>();
-
-            // Get the accessible version of the output tensor
-            auto prediction_tensor = prediction_img->tensor<float, 4>();
-
-            // Get the accessible version of the weights tensor
-            auto weights_tensor = weights.tensor<float, 5>();
-
+            #pragma omp parallel for
             for (int batch = 0 ; batch < batch_size ; batch++) {
-                for (int i = 0 ; i < padded_img_height ; i++) {
-                    for (int j = 0 ; j < padded_img_width ; j++) {
-                        // If we are in the padding - just set it to zero
-                        if ((i < kernel_radius) || (i + kernel_radius >= padded_img_height) ||
-                           (j < kernel_radius) || (j + kernel_radius >= padded_img_width)) {
-                            prediction_tensor(batch, i, j, 0) = 0;
-                            prediction_tensor(batch, i, j, 1) = 0;
-                            prediction_tensor(batch, i, j, 2) = 0;
-                        // Otherwise, calculate the weighted average of the noisy
-                        // neighbourhood
-                        } else {
-                            float sum_r = 0;
-                            float sum_g = 0;
-                            float sum_b = 0;
-                            for (int k1 = -kernel_radius ; k1 <= kernel_radius ; k1++) {
-                                for (int k2 = -kernel_radius ; k2 <= kernel_radius ; k2++) {
-                                    float weight_value = weights_tensor(batch, i, j, k1, k2);
-                                    float neighbour_value_r = noisy_tensor(batch, k1 + i, k2 + j, 0);
-                                    float neighbour_value_g = noisy_tensor(batch, k1 + i, k2 + j, 1);
-                                    float neighbour_value_b = noisy_tensor(batch, k1 + i, k2 + j, 2);
-                                    sum_r += neighbour_value_r * weight_value;
-                                    sum_g += neighbour_value_g * weight_value;
-                                    sum_b += neighbour_value_b * weight_value;
-                                    }
+                for (int i = 0 ; i < weights_width ; i++) {
+                    for (int j = 0 ; j < weights_height ; j++) {
+                        for (int k1 = 0 ; k1 < kernel_size ; k1++) {
+                            for (int k2 = 0 ; k2 < kernel_size ; k2++) {
+                                const int index_in_patch = kernel_size * k1 + k2; 
+                                const float weight = weights(batch, i, j, index_in_patch);
+                                prediction_img(batch, i, j, 0) += weight * noisy_img(batch, i + k1, j + k2, 0);
+                                prediction_img(batch, i, j, 1) += weight * noisy_img(batch, i + k1, j + k2, 1);
+                                prediction_img(batch, i, j, 2) += weight * noisy_img(batch, i + k1, j + k2, 2);
                             }
-                            prediction_tensor(batch, i, j, 0) = sum_r;
-                            prediction_tensor(batch, i, j, 1) = sum_g;
-                            prediction_tensor(batch, i, j, 2) = sum_b;
                         }
                     }
                 }   
@@ -141,15 +117,10 @@ class WeightedAverageGradientsOp : public OpKernel {
 
             // Get the weights
             const Tensor & weights_tensor = context->input(0);
-
-            // Ensure weights is a 5d tensor
-            OP_REQUIRES(
-                context, 
-                weights_tensor.shape().dims() == 5,
-                errors::InvalidArgument("Weights should be a 5D tensor")
+            OP_REQUIRES(context, weights_tensor.shape().dims() == 4,
+                errors::InvalidArgument("Weights should be a 4D tensor")
             );
-
-            auto weights = weights_tensor.tensor<float, 5>();
+            auto weights = weights_tensor.tensor<float, 4>();
 
             // Get the gradients
             const Tensor & grads_tensor = context->input(1);
@@ -168,22 +139,24 @@ class WeightedAverageGradientsOp : public OpKernel {
                     &output_tensor
                 )
             );
-            auto output = output_tensor->tensor<float, 5>();
+            auto output = output_tensor->tensor<float, 4>();
 
             const int batch_size = weights.dimension(0);
             const int img_width = weights.dimension(1);
             const int img_height = weights.dimension(2);
-            const int kernel_width = weights.dimension(3);
-            const int kernel_height = weights.dimension(4);
+            const int kernel_area = weights.dimension(3);
+            const int kernel_size = std::sqrt(kernel_area);
 
+            #pragma omp parallel for
             for (int batch = 0 ; batch < batch_size ; batch++) {
                 for (int i = 0 ; i < img_width ; i++) {
                     for (int j = 0 ; j < img_height ; j++) {
-                        for (int k1 = 0 ; k1 < kernel_width ; k1++) {
-                            for (int k2 = 0 ; k2 < kernel_height ; k2++) {
-				output(batch, i, j, k1, k2) = grads(batch, i, j, 0) * colours(batch, i + k1, j + k2, 0) +
-                						 grads(batch, i, j, 1) * colours(batch, i + k1, j + k2, 1) +
-                						 grads(batch, i, j, 2) * colours(batch, i + k1, j + k2, 2);
+                        for (int k1 = 0 ; k1 < kernel_size ; k1++) {
+                            for (int k2 = 0 ; k2 < kernel_size ; k2++) {
+				const int patch_id = kernel_size * k1 + k2;
+				output(batch, i, j, patch_id) = grads(batch, i, j, 0) * colours(batch, i + k1, j + k2, 0) +
+                					        grads(batch, i, j, 1) * colours(batch, i + k1, j + k2, 1) +
+                					        grads(batch, i, j, 2) * colours(batch, i + k1, j + k2, 2);
                             }
                         }
                     }

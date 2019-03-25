@@ -7,9 +7,11 @@ RUN apt-get update &&\
     apt-get install python-pip -y &&\
     apt-get install python-dev -y &&\
     apt-get install build-essential -y &&\
+    apt-get install python-tk &&\
     pip install librosa --user &&\
     pip install keras==2.2.4 --user &&\
-    pip install tqdm	
+    pip install tqdm &&\
+    pip install python-tk
 
 
 # Make a new working directory
