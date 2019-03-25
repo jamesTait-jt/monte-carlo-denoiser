@@ -4,14 +4,6 @@
 
 using namespace tensorflow;
 
-REGISTER_OP("ZeroOut")
-    .Input("to_zero: int32")
-    .Output("zeroed: int32")
-    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
-        c->set_output(0, c->input(0));
-        return Status::OK();
-    });
-
 REGISTER_OP("WeightedAverage")
     .Input("noisy_img: float32")
     .Input("weights: float32")
@@ -129,33 +121,78 @@ class WeightedAverageOp : public OpKernel {
         }
 };
 
-REGISTER_KERNEL_BUILDER(Name("WeightedAverage").Device(DEVICE_CPU), WeightedAverageOp);
+REGISTER_KERNEL_BUILDER(
+    Name("WeightedAverage").Device(DEVICE_CPU), 
+    WeightedAverageOp
+);
 
-class ZeroOutOp : public OpKernel {
- public:
-  explicit ZeroOutOp(OpKernelConstruction* context) : OpKernel(context) {}
+REGISTER_OP("WeightedAverageGradients")
+    .Input("weights: float32")
+    .Input("input_grads: float32")
+    .Input("input_colours: float32")
+    .Output("output_grads: float32");
 
-  void Compute(OpKernelContext* context) override {
-    // Grab the input tensor
-    const Tensor& input_tensor = context->input(0);
-    auto input = input_tensor.flat<int32>();
+class WeightedAverageGradientsOp : public OpKernel {
 
-    // Create an output tensor
-    Tensor* output_tensor = NULL;
-    OP_REQUIRES_OK(context, context->allocate_output(0, input_tensor.shape(),
-                                                     &output_tensor));
-    auto output_flat = output_tensor->flat<int32>();
+    public:
+        explicit WeightedAverageGradientsOp(OpKernelConstruction * context) : OpKernel(context) {}
+        
+        void Compute(OpKernelContext * context) override {
 
-    // Set all but the first element of the output tensor to 0.
-    const int N = input.size();
-    for (int i = 1; i < N; i++) {
-      output_flat(i) = 0;
-    }
+            // Get the weights
+            const Tensor & weights_tensor = context->input(0);
 
-    // Preserve the first input value if possible.
-    if (N > 0) output_flat(0) = input(0);
-  }
+            // Ensure weights is a 5d tensor
+            OP_REQUIRES(
+                context, 
+                weights_tensor.shape().dims() == 5,
+                errors::InvalidArgument("Weights should be a 5D tensor")
+            );
+
+            auto weights = weights_tensor.tensor<float, 5>();
+
+            // Get the gradients
+            const Tensor & grads_tensor = context->input(1);
+            auto grads = grads_tensor.tensor<float, 4>();
+
+            // Get the input colours
+            const Tensor & colours_tensor = context->input(2);
+            auto colours = colours_tensor.tensor<float, 4>();
+
+            Tensor * output_tensor = NULL;
+            OP_REQUIRES_OK(
+                context,
+                context->allocate_output(
+                    0,
+                    weights_tensor.shape(),
+                    &output_tensor
+                )
+            );
+            auto output = output_tensor->tensor<float, 5>();
+
+            const int batch_size = weights.dimension(0);
+            const int img_width = weights.dimension(1);
+            const int img_height = weights.dimension(2);
+            const int kernel_width = weights.dimension(3);
+            const int kernel_height = weights.dimension(4);
+
+            for (int batch = 0 ; batch < batch_size ; batch++) {
+                for (int i = 0 ; i < img_width ; i++) {
+                    for (int j = 0 ; j < img_height ; j++) {
+                        for (int k1 = 0 ; k1 < kernel_width ; k1++) {
+                            for (int k2 = 0 ; k2 < kernel_height ; k2++) {
+				output(batch, i, j, k1, k2) = grads(batch, i, j, 0) * colours(batch, i + k1, j + k2, 0) +
+                						 grads(batch, i, j, 1) * colours(batch, i + k1, j + k2, 1) +
+                						 grads(batch, i, j, 2) * colours(batch, i + k1, j + k2, 2);
+                            }
+                        }
+                    }
+                }
+            }
+        }
 };
 
-
-REGISTER_KERNEL_BUILDER(Name("ZeroOut").Device(DEVICE_CPU), ZeroOutOp);
+REGISTER_KERNEL_BUILDER(
+    Name("WeightedAverageGradients").Device(DEVICE_CPU),
+    WeightedAverageGradientsOp
+);

@@ -24,6 +24,15 @@ import config
 
 weighted_average_module = tf.load_op_library("./custom_ops/weighted_average.so")
 
+@tf.RegisterGradient("WeightedAverage")
+def _weighted_average_grad(op, grad):
+    images = op.inputs[0]
+    weights = op.inputs[1]
+    grads = weighted_average_module.weighted_average_gradients(weights, grad, images)
+    grads = tf.clip_by_value(grads, -1000000, .1000000)
+    return [None, grads]
+
+
 class Discriminator():
     """Class to discriminate between real and fake reference images
 
@@ -535,6 +544,30 @@ class Denoiser():
     def psnr(self, y_true, y_pred):
         return tf.image.psnr(y_true, y_pred, max_val=1.0)
 
+    def MAVKernelPredict(self, noisy_img):
+        # Slice the noisy image out of the input
+        noisy_img = noisy_img[:, :, :, 0:3]
+
+        kernel_radius = int(math.floor(self.kpcn_size / 2.0))
+        paddings = tf.constant([[0, 0], [kernel_radius, kernel_radius], [kernel_radius, kernel_radius], [0, 0]])
+        noisy_img = tf.pad(noisy_img, paddings, mode="SYMMETRIC")
+ 
+        def loss(y_true, y_pred):
+            exp = tf.math.exp(y_pred)
+            weight_sum = tf.reduce_sum(exp, axis=3, keepdims=True)
+            weight_avg = tf.divide(exp, weight_sum)
+            weights = tf.reshape(weight_avg, shape=[self.batch_size, config.PATCH_HEIGHT, config.PATCH_WIDTH, self.kpcn_size, self.kpcn_size])
+ 
+            prediction = weighted_average_module.weighted_average(noisy_img, weights)
+            prediction = tf.slice(
+                prediction,
+                [0, kernel_radius, kernel_radius, 0],
+                [self.batch_size, config.PATCH_HEIGHT, config.PATCH_WIDTH, 3]
+            )
+            return tf.keras.losses.mean_absolute_error(y_true, prediction)
+ 
+        return loss
+
     def kernelPredictMAV(self, y_true, y_pred):
         exp = tf.math.exp(y_pred)
         weight_sum = tf.reduce_sum(exp, axis=3, keepdims=True)
@@ -550,18 +583,6 @@ class Denoiser():
         y_pred = tf.reshape(y_pred, shape=[self.batch_size, config.PATCH_HEIGHT, config.PATCH_WIDTH, self.kpcn_size, self.kpcn_size])
 
         new_noisy_img = tf.zeros((self.batch_size, config.PATCH_HEIGHT, config.PATCH_WIDTH, 3))
-
-        #pred = weighted_average
-
-        for pixel_x in range(config.PATCH_WIDTH):
-            for pixel_y in range(config.PATCH_HEIGHT):
-                accum = [0] * self.batch_size
-                for kernel_x in range(-kernel_radius, kernel_radius):
-                    for kernel_y in range(-kernel_radius, kernel_radius):
-                        accum += noisy_img[:, pixel_x + kernel_x, pixel_y + kernel_y, 0] * \
-                                 y_pred[:, pixel_x, pixel_y, kernel_x + kernel_radius, kernel_y + kernel_radius, 0]
-                print(accum)
-                #new_noisy_img[:, pixel_x, pixel_y, 0] =  0
 
 
         print(reference_img)
@@ -646,70 +667,41 @@ class Denoiser():
                 shape=(self.patch_height, self.patch_width, self.input_channels)
             )
             
-            x = self.returnConvLayer(conv_input) 
-            x = self.returnConvLayer(x) 
-            x = self.returnConvLayer(x) 
-            x = self.returnConvLayer(x) 
-            x = self.returnConvLayer(x) 
-            x = self.returnConvLayer(x) 
-            x = self.returnConvLayer(x) 
-            x = self.returnConvLayer(x) 
+            x = self.returnConvLayer(conv_input)
+            x = self.returnConvLayer(x)
+            x = self.returnConvLayer(x)
+            x = self.returnConvLayer(x)
+            x = self.returnConvLayer(x)
+            x = self.returnConvLayer(x)
+            x = self.returnConvLayer(x)
+            x = self.returnConvLayer(x)
             pred = self.returnFinalConvLayer(x)
 
-            if self.kernel_predict:
-                pred = tf.keras.layers.Lambda(
-                    self.kernelPrediction, 
-                    arguments={"noisy_img":conv_input}
-                )(pred)
+            #if self.kernel_predict:
+            #    pred = tf.keras.layers.Lambda(
+            #        self.kernelPrediction, 
+            #        arguments={"noisy_img":conv_input}
+            #    )(pred)
 
             self.model = tf.keras.models.Model(inputs=conv_input, outputs=pred)
             self.model.compile(
                 optimizer=self.adam,
-                loss=self.VGG19FeatureLoss,
-                metrics=[self.psnr]
+                #loss=self.VGG19FeatureLoss,
+                loss=self.MAVKernelPredict(conv_input),
+                #metrics=[self.psnr]
             )
 
     def train(self):
-        if self.mse_epochs > 0:
-            if self.kernel_predict:
-                loss = self.kernelPredictMAV
-            else:
-                loss = "mean_absolute_error"
+        
+        self.model.fit(
+            self.train_input,
+            self.train_labels,
+            validation_data=(self.test_input, self.test_labels),
+            batch_size=self.batch_size,
+            epochs=self.vgg_epochs,
+            callbacks=self.callbacks
+        )
 
-            self.model.compile(
-                optimizer=self.adam,
-                loss=loss,
-                metrics=[self.psnr]
-            )
-
-            self.model.fit(
-                self.train_input,
-                self.train_labels,
-                validation_data=(self.test_input, self.test_labels),
-                batch_size=self.batch_size,
-                epochs=self.mse_epochs,
-                callbacks=self.callbacks
-            )
-
-            self.model.save("models/before_perceptual_loss")
-
-        if self.vgg_epochs > 0:
-            self.model.compile(
-                optimizer=self.adam,
-                loss=self.perceptualLoss,
-                metrics=[self.psnr]
-            )
-
-            self.model.fit(
-                self.train_input,
-                self.train_labels,
-                validation_data=(self.test_input, self.test_labels),
-                batch_size=self.batch_size,
-                epochs=self.vgg_epochs,
-                callbacks=self.callbacks
-            )
-
-            self.model.save("models/after_perceptual_loss")
         self.model.save(self.model_dir)
 
     # Makes a prediction given a noisy image
@@ -1040,9 +1032,20 @@ def denoise():
     train_data = patches["train"]
     test_data = patches["test"]
 
-    gan = GAN(train_data, test_data, num_epochs=1000)
+    feature_list = ["sn", "albedo", "depth"]
+    denoiser = Denoiser(
+        train_data,
+        test_data,
+        mse_epochs=20,
+        vgg_epochs=10,
+        kernel_predict=True,
+        feature_list=feature_list
+    )
+    denoiser.buildNetwork()
+    denoiser.train()
+    #gan = GAN(train_data, test_data, num_epochs=1000)
     #gan.preTrainMAVDenoiser()
-    gan.buildDenoiser()
-    gan.buildDiscriminator()
-    gan.buildNetwork()
-    gan.train()
+    #gan.buildDenoiser()
+    #gan.buildDiscriminator()
+    #gan.buildNetwork()
+    #gan.train()
