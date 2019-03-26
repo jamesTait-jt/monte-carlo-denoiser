@@ -1,13 +1,13 @@
 FROM tensorflow/tensorflow:latest-gpu
 
 # Install packages
-RUN apt-get update &&\
-    apt-get install vim -y &&\
-    apt-get install git -y &&\
-    apt-get install python-pip -y &&\
-    apt-get install python-dev -y &&\
-    apt-get install build-essential -y &&\
-    apt-get install python-tk &&\
+RUN apt-get -y update &&\
+    apt-get -y install vim -y &&\
+    apt-get -y install git -y &&\
+    apt-get -y install python-pip -y &&\
+    apt-get -y install python-dev -y &&\
+    apt-get -y install build-essential -y &&\
+    apt-get -y install python-tk &&\
     pip install librosa --user &&\
     pip install keras==2.2.4 --user &&\
     pip install tqdm &&\
