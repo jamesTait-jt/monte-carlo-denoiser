@@ -99,12 +99,23 @@ for feature in feature_list:
         else:
             test_in.append(patchify(images["test"]["noisy_" + key][0], 3))
 
-model_input = np.concatenate((test_in), 3)
-weights = model.predict(model_input)
 
-pred = applyKernel(test_in[0], weights)
-noisy_albedo = patchify(np.array(images["test"]["noisy_albedo"][0], 3))
-pred = multiplyAlbedo(pred, )
+del images
+
+model_input = np.concatenate((test_in), 3)
+#noisy_img_patches = test_in[0]
+del test_in
+
+weights = model.predict(model_input)
+del model_input
+
+pred = applyKernel(noisy_img_patches, weights)
+
+#with open("data/full/test/noisy_albedo_4.txt") as f:
+#    noisy_albedo = data.parseFileRGB(f)
+
+#noisy_albedo = patchify(noisy_albedo, 3)
+#pred = multiplyAlbedo(pred, noisy_albedo)
 
 stitched = stitch(pred, config.PATCH_WIDTH, config.PATCH_HEIGHT, config.IMAGE_WIDTH, config.IMAGE_HEIGHT)
 save_dir = sys.argv[1].split('/')[1]

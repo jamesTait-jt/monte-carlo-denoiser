@@ -68,8 +68,9 @@ def preProcessReferenceColour(is_train):
         with open("data/full/" + train_dir + "reference_albedo_" + str(j) +".txt") as f:
             albedo_data = parseFileRGB(f)
 
-            factored_colour = np.clip(np.divide(data, albedo_data + 0.00316), 0, 1)
-            colour_data_arr.append(factored_colour)
+            #factored_colour = np.divide(data, albedo_data + 0.00316)
+            #factored_colour = np.clip(factored_colour, 0, 1)
+            colour_data_arr.append(data)
 
     print("Done!")
     return colour_data_arr
@@ -100,21 +101,21 @@ def preProcessNoisyColour(is_train):
         with open("data/full/" + train_dir + "noisy_colour_vars_" + str(j) + ".txt") as f:
             var_data = parseFileRGB(f)
 
-        with open("data/full/" + train_dir + "noisy_albedo_" + str(j) +".txt") as f2:
-            albedo_data = parseFileRGB(f2)
+        #with open("data/full/" + train_dir + "noisy_albedo_" + str(j) +".txt") as f:
+        #    albedo_data = parseFileRGB(f)
 
-            factored_colour = np.clip(np.divide(colour_data, albedo_data + 0.00316), 0, 1)
-            factored_var = np.divide(var_data, pow(albedo_data + 0.00316, 2))
-            factored_var = luminance_img(factored_var)
-            factored_var = factored_var / np.amax(factored_var)
+            #factored_colour = np.divide(colour_data, albedo_data + 0.00316)
+            #factored_colour = np.clip(factored_colour, 0, 1)
+            #factored_var = np.divide(var_data, pow(albedo_data + 0.00316, 2))
+            var_data = luminance_img(var_data)
+            var_data = var_data / np.amax(var_data)
 
-            colour_data_arr.append(factored_colour)
-            var_arr.append(factored_var)
-            img = array_to_img(factored_colour)
+            colour_data_arr.append(colour_data)
+            var_arr.append(var_data)
+            img = array_to_img(colour_data)
 
         gradx_arr.append(ndimage.sobel(img, axis=0, mode='constant') / 255.0)
         grady_arr.append(ndimage.sobel(img, axis=1, mode='constant') / 255.0)
-
 
     print("Done!")
     return colour_data_arr, gradx_arr, grady_arr, var_arr
@@ -406,6 +407,7 @@ def throwDart(
     not_altered_patch = np.zeros((config.PATCH_WIDTH, config.PATCH_HEIGHT, channels))
     altered_patch = np.zeros((config.PATCH_WIDTH, config.PATCH_HEIGHT, channels))
 
+    print(key)
     for x in range(0, config.PATCH_HEIGHT):
         for y in range(0, config.PATCH_WIDTH):
 

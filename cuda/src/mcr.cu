@@ -105,19 +105,19 @@ int main(int argc, char *argv[]) {
             // ----- VARIANCES ----- //
 
             // Pointer to the colour variances on host
-            float *h_colour_variances = new float[SCREEN_WIDTH * SCREEN_HEIGHT];
+            vec3 *h_colour_variances = new vec3[SCREEN_WIDTH * SCREEN_HEIGHT];
             // Pointer to the colour variances on device
-            float *d_colour_variances;
+            vec3 *d_colour_variances;
 
             // Pointer to the surface normals on host
-            float *h_surface_normal_variances = new float[SCREEN_WIDTH * SCREEN_HEIGHT];
+            vec3 *h_surface_normal_variances = new vec3[SCREEN_WIDTH * SCREEN_HEIGHT];
             // Pointer to the surface normals on device
-            float *d_surface_normal_variances;
+            vec3 *d_surface_normal_variances;
 
             // Pointer to the albedo buffer on host
-            float *h_albedo_variances = new float[SCREEN_WIDTH * SCREEN_HEIGHT];
+            vec3 *h_albedo_variances = new vec3[SCREEN_WIDTH * SCREEN_HEIGHT];
             // Pointer to the albedo buffer on the device
-            float *d_albedo_variances;
+            vec3 *d_albedo_variances;
 
             // Pointer to the depth buffer on host
             float *h_depth_variances = new float[SCREEN_WIDTH * SCREEN_HEIGHT];
@@ -130,9 +130,9 @@ int main(int argc, char *argv[]) {
             checkCudaErrors(cudaMalloc(&d_albedos, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(vec3)));
             checkCudaErrors(cudaMalloc(&d_depths, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(float)));
 
-            checkCudaErrors(cudaMalloc(&d_colour_variances, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(float)));
-            checkCudaErrors(cudaMalloc(&d_surface_normal_variances, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(float)));
-            checkCudaErrors(cudaMalloc(&d_albedo_variances, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(float)));
+            checkCudaErrors(cudaMalloc(&d_colour_variances, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(vec3)));
+            checkCudaErrors(cudaMalloc(&d_surface_normal_variances, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(vec3)));
+            checkCudaErrors(cudaMalloc(&d_albedo_variances, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(vec3)));
             checkCudaErrors(cudaMalloc(&d_depth_variances, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(float)));
 
             // Specify the block and grid dimensions to schedule CUDA threads
@@ -232,7 +232,7 @@ int main(int argc, char *argv[]) {
             checkCudaErrors(cudaMemcpy(
                     h_colour_variances,
                     d_colour_variances,
-                    SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(float),
+                    SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(vec3),
                     cudaMemcpyDeviceToHost
             ));
 
@@ -246,7 +246,7 @@ int main(int argc, char *argv[]) {
             checkCudaErrors(cudaMemcpy(
                     h_surface_normal_variances,
                     d_surface_normal_variances,
-                    SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(float),
+                    SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(vec3),
                     cudaMemcpyDeviceToHost
             ));
 
@@ -260,7 +260,7 @@ int main(int argc, char *argv[]) {
             checkCudaErrors(cudaMemcpy(
                     h_albedo_variances,
                     d_albedo_variances,
-                    SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(float),
+                    SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(vec3),
                     cudaMemcpyDeviceToHost
             ));
 
@@ -438,9 +438,9 @@ void render_kernel(
     vec3 *surface_normals,
     vec3 *albedos,
     float *depths,
-    float *colour_variances,
-    float *surface_normal_variances,
-    float *albedo_variances,
+    vec3 *colour_variances,
+    vec3  *surface_normal_variances,
+    vec3 *albedo_variances,
     float *depth_variances,
     Camera camera,
     Triangle *triangles,
@@ -534,9 +534,9 @@ void render_kernel(
     vec3 albedo_var = albedo_square_accum / (float) num_samples - albedos[pixel_index] * albedos[pixel_index];
     float depth_var = depth_square_accum / (float) num_samples - depths[pixel_index] * depths[pixel_index];
 
-    colour_variances[pixel_index] = luminance(colour_var);
-    surface_normal_variances[pixel_index] = luminance(surface_normal_var);
-    albedo_variances[pixel_index] = luminance(albedo_var);
+    colour_variances[pixel_index] = colour_var;
+    surface_normal_variances[pixel_index] = surface_normal_var;
+    albedo_variances[pixel_index] = albedo_var;
     depth_variances[pixel_index] = depth_var;
 }
 
