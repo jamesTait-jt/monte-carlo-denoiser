@@ -59,9 +59,8 @@ def applyKernel(noisy_img, weights):
     noisy_img = tf.cast(noisy_img, dtype="float32")
 
     # Normalise weights
-    exp = tf.math.exp(weights)
-    weights_sum = tf.reduce_sum(exp, axis=3, keepdims=True)
-    weights = tf.divide(exp, weights_sum)
+    weights = tf.math.exp(weights)
+    weights = tf.divide(weights, (tf.reduce_sum(weights, axis=3, keepdims=True)))
 
     with tf.Session(""):
         pred = weighted_average.weighted_average(noisy_img, weights).eval()
@@ -102,14 +101,26 @@ for feature in feature_list:
 
 del images
 
+print("deleted images")
+
 model_input = np.concatenate((test_in), 3)
-#noisy_img_patches = test_in[0]
+noisy_img_patches = test_in[0]
 del test_in
+print("deleted test in")
 
 weights = model.predict(model_input)
 del model_input
+print("deleted model input")
 
-pred = applyKernel(noisy_img_patches, weights)
+pred = np.zeros(noisy_img_patches.shape)
+for i in range(0, pred.shape[0], 2):
+    preds = applyKernel(noisy_img_patches[i:i+2], weights[i:i+2])
+    pred[i] = preds[0]
+    pred[i+1] = preds[1]
+
+del noisy_img_patches
+del weights
+print("deleted noisy img patches and weights")
 
 #with open("data/full/test/noisy_albedo_4.txt") as f:
 #    noisy_albedo = data.parseFileRGB(f)
