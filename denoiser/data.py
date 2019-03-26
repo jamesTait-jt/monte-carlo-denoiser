@@ -27,6 +27,23 @@ def luminance(rgb):
            0.587 * pow(rgb[1], 2) + \
            0.144 * pow(rgb[2], 2)
 
+# Parses a .txt file of vec3 to an rgb numpy array
+def parseFileRGB(f):
+    data = np.array(
+        [[toColourVal(x.split(' ')[0]),
+          toColourVal(x.split(' ')[1]),
+          toColourVal(x.split(' ')[2])] for x in f.read().split(',')[:-1]]
+    )
+    data = np.reshape(data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3))
+    return data
+
+# Parses a .txt file of greyscale colour values to a greyscale numpy array
+def parseFileGreyscale(f):
+    data = np.array([float(x) for x in f.read().split(',')[:-1]])
+    data = np.reshape(data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 1))
+    return data
+
+
 def preProcessReferenceColour(is_train):
     if is_train:
         train_dir = "train/"
@@ -45,9 +62,14 @@ def preProcessReferenceColour(is_train):
             j = i
 
         with open("data/full/" + train_dir + "reference_colour_" + str(j) + ".txt") as f:
-            data = np.array([[toColourVal(x.split(' ')[0]), toColourVal(x.split(' ')[1]), toColourVal(x.split(' ')[2])] for x in f.read().split(',')[:-1]])
-            data = np.reshape(data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3))
-            colour_data_arr.append(data)
+            data = parseFileRGB(f)
+            array_to_img(data).save("data/full/reference_images/" + str(j) + ".png")
+
+        with open("data/full/" + train_dir + "reference_albedo_" + str(j) +".txt") as f:
+            albedo_data = parseFileRGB(f)
+
+            factored_colour = np.clip(np.divide(data, albedo_data + 0.00316), 0, 1)
+            colour_data_arr.append(factored_colour)
 
     print("Done!")
     return colour_data_arr
@@ -73,19 +95,13 @@ def preProcessNoisyColour(is_train):
             j = i
 
         with open("data/full/" + train_dir + "noisy_colour_" + str(j) + ".txt") as f:
-            colour_data = np.array([[toColourVal(x.split(' ')[0]), toColourVal(x.split(' ')[1]), toColourVal(x.split(' ')[2])] for x in f.read().split(',')[:-1]])
-            colour_data = np.reshape(colour_data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3))
-            #colour_data_arr.append(colour_data)
-            #img = array_to_img(colour_data)
+            colour_data = parseFileRGB(f)
 
         with open("data/full/" + train_dir + "noisy_colour_vars_" + str(j) + ".txt") as f:
-            var_data = np.array([[toColourVal(x.split(' ')[0]), toColourVal(x.split(' ')[1]), toColourVal(x.split(' ')[2])] for x in f.read().split(',')[:-1]])
-            var_data = np.reshape(colour_data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3))
+            var_data = parseFileRGB(f)
 
         with open("data/full/" + train_dir + "noisy_albedo_" + str(j) +".txt") as f2:
-            albedo_data = np.array([[float(x.split(' ')[0]), float(x.split(' ')[1]), float(x.split(' ')[2])] for x in (f2.read().split(',')[:-1])])
-            albedo_data = np.reshape(albedo_data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3))
-            albedo_img = array_to_img(albedo_data)        
+            albedo_data = parseFileRGB(f2)
 
             factored_colour = np.clip(np.divide(colour_data, albedo_data + 0.00316), 0, 1)
             factored_var = np.divide(var_data, pow(albedo_data + 0.00316, 2))
@@ -95,7 +111,7 @@ def preProcessNoisyColour(is_train):
             colour_data_arr.append(factored_colour)
             var_arr.append(factored_var)
             img = array_to_img(factored_colour)
-            
+
         gradx_arr.append(ndimage.sobel(img, axis=0, mode='constant') / 255.0)
         grady_arr.append(ndimage.sobel(img, axis=1, mode='constant') / 255.0)
 
@@ -123,8 +139,7 @@ def preProcessAlbedo(is_train):
             j = i
 
         with open("data/full/" + train_dir + "noisy_albedo_" + str(j) + ".txt") as f:
-            data = np.array([[float(x.split(' ')[0]), float(x.split(' ')[1]), float(x.split(' ')[2])] for x in (f.read().split(',')[:-1])])
-            data = np.reshape(data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3))
+            data = parseFileRGB(f)
 
             img = array_to_img(data)
             gradx = ndimage.sobel(img, axis=0, mode='constant') / 255.0
@@ -133,8 +148,7 @@ def preProcessAlbedo(is_train):
             grady_arr.append(grady)
 
         with open("data/full/" + train_dir + "noisy_albedo_vars_" + str(j) + ".txt") as f:
-            var_data = np.array([float(x) for x in f.read().split(',')[:-1]])
-            var_data = np.reshape(var_data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 1))
+            var_data = parseFileRGB(f)
             var_data = luminance_img(var_data)
             var_data = var_data / np.amax(var_data)
             var_arr.append(var_data)
@@ -163,9 +177,8 @@ def preProcessDepth(is_train):
             j = i
 
         with open("data/full/" + train_dir + "noisy_depth_" + str(j) + ".txt") as f:
-            data = np.array([float(x) for x in f.read().split(',')[:-1]])
-            data /= np.max(data)
-            data = np.reshape(data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 1))
+            data = parseFileGreyscale(f)
+            data /= np.amax(data)
 
             img = array_to_img(data)
             gradx = ndimage.sobel(img, axis=0, mode='constant')
@@ -177,8 +190,7 @@ def preProcessDepth(is_train):
             grady_arr.append(grady)
 
         with open("data/full/" + train_dir + "noisy_depth_vars_" + str(j) + ".txt") as f:
-            var_data = np.array([float(x) for x in f.read().split(',')[:-1]])
-            var_data = np.reshape(var_data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 1))
+            var_data = parseFileGreyscale(f)
             var_data = var_data / np.amax(var_data)
             var_arr.append(var_data)
 
@@ -206,8 +218,7 @@ def preProcessSurfaceNormal(is_train):
             j = i
 
         with open("data/full/" + train_dir + "noisy_sn_" + str(j) + ".txt") as f:
-            data = np.array([[float(x.split(' ')[0]), float(x.split(' ')[1]), float(x.split(' ')[2])] for x in (f.read().split(',')[:-1])])
-            data = np.reshape(data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3))
+            data = parseFileRGB(f)
 
             img = array_to_img(data)
             gradx = ndimage.sobel(img, axis=0, mode='constant') / 255.0
@@ -216,8 +227,7 @@ def preProcessSurfaceNormal(is_train):
             grady_arr.append(grady)
 
         with open("data/full/" + train_dir + "noisy_sn_vars_" + str(j) + ".txt") as f:
-            var_data = np.array([float(x) for x in f.read().split(',')[:-1]])
-            var_data = np.reshape(var_data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 1))
+            var_data = parseFileRGB(f)
             var_data = luminance_img(var_data)
             var_data = var_data / np.amax(var_data)
             var_arr.append(var_data)

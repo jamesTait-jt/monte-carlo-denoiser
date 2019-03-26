@@ -67,6 +67,12 @@ def applyKernel(noisy_img, weights):
         pred = weighted_average.weighted_average(noisy_img, weights).eval()
         return pred
 
+def multiplyAlbedo(predicted_img_patches, noisy_albedo_patches):
+    for i in range(len(predicted_img_patches)):
+        predicted_img_patches[i] = np.multiply(
+            predicted_img_patches[i], noisy_albedo_patches[i] + 0.00316
+        )
+    return predicted_img_patches
 
 # Load in trained model
 model = tf.keras.models.load_model(sys.argv[1], compile=False)
@@ -97,6 +103,8 @@ model_input = np.concatenate((test_in), 3)
 weights = model.predict(model_input)
 
 pred = applyKernel(test_in[0], weights)
+noisy_albedo = patchify(np.array(images["test"]["noisy_albedo"][0], 3))
+pred = multiplyAlbedo(pred, )
 
 stitched = stitch(pred, config.PATCH_WIDTH, config.PATCH_HEIGHT, config.IMAGE_WIDTH, config.IMAGE_HEIGHT)
 save_dir = sys.argv[1].split('/')[1]
