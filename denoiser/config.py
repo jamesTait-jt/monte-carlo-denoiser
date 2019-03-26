@@ -10,7 +10,7 @@ PATCH_WIDTH = 64
 PATCH_HEIGHT = 64
 
 # Do we need to generate new patches?
-MAKE_NEW_PATCHES = False
+MAKE_NEW_PATCHES = True
 
 AUGMENTATION = False
 
