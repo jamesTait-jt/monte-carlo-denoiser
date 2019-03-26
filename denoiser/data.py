@@ -15,6 +15,18 @@ def toColourVal(x):
         x = 1
     return x
 
+def luminance_img(img):
+    luminance_img = np.zeros((img.shape[0], img.shape[1], 1))
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            luminance_img[i][j][0] = luminance(img[i][j])
+    return luminance_img
+
+def luminance(rgb):
+    return 0.299 * pow(rgb[0], 2) + \
+           0.587 * pow(rgb[1], 2) + \
+           0.144 * pow(rgb[2], 2)
+
 def preProcessReferenceColour(is_train):
     if is_train:
         train_dir = "train/"
@@ -67,8 +79,8 @@ def preProcessNoisyColour(is_train):
             #img = array_to_img(colour_data)
 
         with open("data/full/" + train_dir + "noisy_colour_vars_" + str(j) + ".txt") as f:
-            var_data = np.array([float(x) for x in f.read().split(',')[:-1]])
-            var_data = np.reshape(var_data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 1))
+            var_data = np.array([[toColourVal(x.split(' ')[0]), toColourVal(x.split(' ')[1]), toColourVal(x.split(' ')[2])] for x in f.read().split(',')[:-1]])
+            var_data = np.reshape(colour_data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 3))
 
         with open("data/full/" + train_dir + "noisy_albedo_" + str(j) +".txt") as f2:
             albedo_data = np.array([[float(x.split(' ')[0]), float(x.split(' ')[1]), float(x.split(' ')[2])] for x in (f2.read().split(',')[:-1])])
@@ -77,15 +89,12 @@ def preProcessNoisyColour(is_train):
 
             factored_colour = np.clip(np.divide(colour_data, albedo_data + 0.00316), 0, 1)
             factored_var = np.divide(var_data, pow(albedo_data + 0.00316, 2))
+            factored_var = luminance_img(factored_var)
             factored_var = factored_var / np.amax(factored_var)
-            print(np.amax(factored_var))
-            print(np.amin(factored_var))
+
             colour_data_arr.append(factored_colour)
             var_arr.append(factored_var)
             img = array_to_img(factored_colour)
-            #img.save(str(j) + "boop1.png")
-            #albedo_img.save(str(j) + "boop2.png")
-            #factored_colour.save(str(j) + "boop3.png")
             
         gradx_arr.append(ndimage.sobel(img, axis=0, mode='constant') / 255.0)
         grady_arr.append(ndimage.sobel(img, axis=1, mode='constant') / 255.0)
@@ -126,6 +135,7 @@ def preProcessAlbedo(is_train):
         with open("data/full/" + train_dir + "noisy_albedo_vars_" + str(j) + ".txt") as f:
             var_data = np.array([float(x) for x in f.read().split(',')[:-1]])
             var_data = np.reshape(var_data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 1))
+            var_data = luminance_img(var_data)
             var_data = var_data / np.amax(var_data)
             var_arr.append(var_data)
 
@@ -208,6 +218,7 @@ def preProcessSurfaceNormal(is_train):
         with open("data/full/" + train_dir + "noisy_sn_vars_" + str(j) + ".txt") as f:
             var_data = np.array([float(x) for x in f.read().split(',')[:-1]])
             var_data = np.reshape(var_data, (config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 1))
+            var_data = luminance_img(var_data)
             var_data = var_data / np.amax(var_data)
             var_arr.append(var_data)
 
