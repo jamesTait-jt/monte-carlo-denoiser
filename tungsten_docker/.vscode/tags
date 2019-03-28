@@ -1,0 +1,22 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+TUNGSTEN	../tungsten.py	/^TUNGSTEN = os.getenv('TUNGSTEN_BINARY', "tungsten")$/;"	kind:variable	line:13
+_make_files_absolute	../tungsten.py	/^def _make_files_absolute(root, basepath):$/;"	kind:function	line:146
+cli	../tungsten.py	/^def cli(*args, **kwargs):$/;"	kind:function	line:30
+click	../tungsten.py	/^import click$/;"	kind:namespace	line:11
+json	../tungsten.py	/^import json$/;"	kind:namespace	line:3
+makeabs	../tungsten.py	/^  def makeabs(data, keys=[]):$/;"	kind:function	line:147
+os	../tungsten.py	/^import os, sys$/;"	kind:namespace	line:7
+pyexr	../tungsten.py	/^import pyexr$/;"	kind:namespace	line:9
+random	../tungsten.py	/^import random$/;"	kind:namespace	line:10
+render	../tungsten.py	/^def render(scene,$/;"	kind:function	line:33
+shutil	../tungsten.py	/^import shutil$/;"	kind:namespace	line:6
+subprocess	../tungsten.py	/^import subprocess$/;"	kind:namespace	line:5
+sys	../tungsten.py	/^import os, sys$/;"	kind:namespace	line:7
+tempfile	../tungsten.py	/^import tempfile$/;"	kind:namespace	line:4
+time	../tungsten.py	/^from time import time$/;"	kind:namespace	line:8
+tungsten.py	../tungsten.py	1;"	kind:file	line:1
