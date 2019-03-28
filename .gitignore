@@ -1,3 +1,6 @@
+# non rendered scenes
+tungsten_docker/data/*
+
 # Renders
 *.exr
 
