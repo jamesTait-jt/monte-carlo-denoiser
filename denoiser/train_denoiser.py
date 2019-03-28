@@ -18,11 +18,11 @@ def main():
     denoiser = Denoiser(
         train_data,
         test_data,
-        num_epochs=100,
+        num_epochs=200,
         kernel_predict=True,
         feature_list=feature_list
     )
-    denoiser.buildNetwork()
+    #denoiser.buildNetwork()
     #denoiser.train()
 
     gan = GAN(train_data, test_data, num_epochs=1000)
