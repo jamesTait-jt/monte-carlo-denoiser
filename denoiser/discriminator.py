@@ -43,11 +43,15 @@ class Discriminator():
         self.adam_beta2 = kwargs.get("adam_beta2", 0.999)
         self.adam_lr_decay = kwargs.get("adam_lr_decay", 0.0)
 
+        self.initialiser_seed = kwargs.get("initialiser_seed", 91011)
+        self.kernel_initialiser = tf.keras.initializers.glorot_normal(seed=self.initialiser_seed)
+
         self.adam = tf.keras.optimizers.Adam(
             lr=self.adam_lr,
             beta_1=self.adam_beta1,
             beta_2=self.adam_beta2,
             decay=self.adam_lr_decay,
+            clipnorm=1,
             clipvalue=0.05
         )
 
@@ -102,8 +106,8 @@ class Discriminator():
                 use_bias=True,
                 strides=strides,
                 padding=self.padding_type,
-                kernel_initializer="glorot_uniform", # Xavier uniform
-                kernel_regularizer=tf.keras.regularizers.l2(0.01)
+                kernel_initializer=self.kernel_initialiser, # Xavier uniform
+                #kernel_regularizer=tf.keras.regularizers.l2(0.01)
             )
         )
         self.leakyReLU()
@@ -125,13 +129,13 @@ class Discriminator():
                 use_bias=True,
                 strides=strides,
                 padding=self.padding_type,
-                kernel_initializer="glorot_uniform", # Xavier uniform
-                kernel_regularizer=tf.keras.regularizers.l2(0.01)
+                kernel_initializer=self.kernel_initialiser, # Xavier uniform
+                #kernel_regularizer=tf.keras.regularizers.l2(0.01)
             )
         )
         self.batchNormalisation()
         self.leakyReLU()
-        self.dropoutLayer(0.6)
+        #self.dropoutLayer(0.6)
 
     def denseLayer(self, units):
         self.model.add(tf.keras.layers.Dense(units))
@@ -155,11 +159,12 @@ class Discriminator():
 
         self.denseLayer(1024)
         self.leakyReLU()
-        self.dropoutLayer(0.6)
+        #self.dropoutLayer(0.6)
         self.flatten()
         self.denseLayer(1)
         self.sigmoid()
 
+    def compile(self):
         self.model.compile(
             optimizer=self.adam,
             loss="binary_crossentropy",

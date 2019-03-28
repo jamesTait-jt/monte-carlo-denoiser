@@ -3,14 +3,15 @@ TRAIN_SCENES = 4
 TEST_SCENES = 1
 
 # Parameters to go into the patching function
-NUM_DARTS = 100
+NUM_DARTS = 128
 IMAGE_WIDTH = 512
 IMAGE_HEIGHT = 512
 PATCH_WIDTH = 64 
 PATCH_HEIGHT = 64
 
 # Do we need to generate new patches?
-MAKE_NEW_PATCHES = True
+MAKE_NEW_PATCHES = False
+PATCHES_PATH = "./data/patches/patches_data.pkl"
 
 AUGMENTATION = False
 

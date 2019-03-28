@@ -1,6 +1,8 @@
 import random
 import numpy as np
+import os
 from scipy import ndimage
+import pickle
 
 from keras.preprocessing.image import array_to_img, img_to_array, load_img
 
@@ -69,8 +71,10 @@ def preProcessReferenceColour(is_train):
             albedo_data = parseFileRGB(f)
 
             #factored_colour = np.divide(data, albedo_data + 0.00316)
+            #factored_colour /= np.amax(factored_colour)
             #factored_colour = np.clip(factored_colour, 0, 1)
             colour_data_arr.append(data)
+            #colour_data_arr.append(factored_colour)
 
     print("Done!")
     return colour_data_arr
@@ -101,18 +105,24 @@ def preProcessNoisyColour(is_train):
         with open("data/full/" + train_dir + "noisy_colour_vars_" + str(j) + ".txt") as f:
             var_data = parseFileRGB(f)
 
-        #with open("data/full/" + train_dir + "noisy_albedo_" + str(j) +".txt") as f:
-        #    albedo_data = parseFileRGB(f)
+        with open("data/full/" + train_dir + "noisy_albedo_" + str(j) +".txt") as f:
+            albedo_data = parseFileRGB(f)
 
             #factored_colour = np.divide(colour_data, albedo_data + 0.00316)
+            #factored_colour /= np.amax(factored_colour)
             #factored_colour = np.clip(factored_colour, 0, 1)
             #factored_var = np.divide(var_data, pow(albedo_data + 0.00316, 2))
             var_data = luminance_img(var_data)
             var_data = var_data / np.amax(var_data)
+            #factored_var = luminance_img(factored_var)
+            #factored_var = factored_var / np.amax(factored_var)
 
             colour_data_arr.append(colour_data)
+            #colour_data_arr.append(factored_colour)
             var_arr.append(var_data)
+            #var_arr.append(factored_var)
             img = array_to_img(colour_data)
+            #img = array_to_img(factored_colour)
 
         gradx_arr.append(ndimage.sobel(img, axis=0, mode='constant') / 255.0)
         grady_arr.append(ndimage.sobel(img, axis=1, mode='constant') / 255.0)
@@ -407,7 +417,6 @@ def throwDart(
     not_altered_patch = np.zeros((config.PATCH_WIDTH, config.PATCH_HEIGHT, channels))
     altered_patch = np.zeros((config.PATCH_WIDTH, config.PATCH_HEIGHT, channels))
 
-    print(key)
     for x in range(0, config.PATCH_HEIGHT):
         for y in range(0, config.PATCH_WIDTH):
 
@@ -431,16 +440,17 @@ def throwDart(
     # Add the new patch to the array of patches for this key
     patches[test_or_train][key].append(np.array(not_altered_patch))
     not_altered_patch = array_to_img(not_altered_patch)
-    not_altered_patch.save(
-        "data/patches/" + train_dir + key  + '/' + str(scene_num * config.NUM_DARTS + ctr) + ".png"
-    )
+    #not_altered_patch.save(
+    #    "data/patches/" + train_dir + key  + '/' + str(scene_num * config.NUM_DARTS + ctr) + ".png"
+    #)
 
     if test_or_train == "train":
-        patches[test_or_train][key].append(np.array(altered_patch))
-        altered_patch = array_to_img(altered_patch)
-        altered_patch.save(
-            "data/patches/" + train_dir + "augmented/" + key + '/' + str(scene_num * config.NUM_DARTS + ctr) + ".png"
-        )
+        if config.AUGMENTATION:
+            patches[test_or_train][key].append(np.array(altered_patch))
+            altered_patch = array_to_img(altered_patch)
+            #altered_patch.save(
+            #    "data/patches/" + train_dir + "augmented/" + key + '/' + str(scene_num * config.NUM_DARTS + ctr) + ".png"
+            #)
 
 
 def makePatches(seed):
@@ -456,7 +466,6 @@ def makePatches(seed):
             config.PATCH_WIDTH,
             config.PATCH_HEIGHT
         )
-
 
         full_images = loadAndPreProcessImages()
         brightness_factors = generateBrightnessFactors(0.3)
@@ -495,9 +504,22 @@ def makePatches(seed):
 
                 full_img_num += 1
         print("Done!")
+        with open(config.PATCHES_PATH, "wb") as f:
+            print("Dumping data...")
+            pickle.dump(patches, f)
+            filesize = os.path.getsize(config.PATCHES_PATH)
+            filesize = int(filesize) / 1000000
+            print("Done! - data size is: " + str(filesize) + "MB")
 
     else:
         print("Not generating new patches. Loading in patches...")
+        with open(config.PATCHES_PATH, "rb") as f:
+            patches = pickle.load(f)
+            filesize = os.path.getsize(config.PATCHES_PATH)
+            filesize = int(filesize) / 1000000
+            print("Done! - data size is: " + str(filesize) + "MB")
+
+        """
         for test_or_train in patches:
 
             if test_or_train == "train":
@@ -522,5 +544,6 @@ def makePatches(seed):
                             if "var" in key or "depth" in key:
                                 img = np.mean(img, axis=2, keepdims=True)
                             patches[test_or_train][key].append(img)
+        """
 
     return patches

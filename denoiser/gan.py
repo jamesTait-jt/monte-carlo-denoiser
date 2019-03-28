@@ -34,8 +34,13 @@ class GAN():
             beta_1=self.adam_beta1,
             beta_2=self.adam_beta2,
             decay=self.adam_lr_decay,
-            clipvalue=0.1
+            clipnorm=1,
+            clipvalue=0.05,
+            #amsgrad=True
         )
+
+        self.batch_seed = kwargs.get("batch_seed", 1357)
+        np.random.seed(self.batch_seed)
 
         self.batch_size = kwargs.get("batch_size", 32)
 
@@ -77,6 +82,7 @@ class GAN():
         self.model.compile(
             loss=[loss, "binary_crossentropy"],
             loss_weights=[1.0, 1e-2],
+            #loss_weights=[1.0, 0],
             optimizer=self.adam
         )
         
@@ -113,8 +119,6 @@ class GAN():
         denoiser = Denoiser(
             self.train_data,
             self.test_data,
-            mse_epochs=0,
-            vgg_epochs=0,
             kernel_predict=True,
             batch_size=self.batch_size,
             feature_list=feature_list
@@ -130,6 +134,7 @@ class GAN():
             batch_size=self.batch_size
         )
         discriminator.buildNetwork()
+        discriminator.compile()
         self.discriminator = discriminator
 
 
@@ -165,9 +170,10 @@ class GAN():
     def train(self):
         #self.denoiser.discriminator = self.discriminator
         
-        gan_writer = tf.summary.FileWriter("logs/gan-{}".format(time()))
-        gan_val_writer = tf.summary.FileWriter("logs/gan_val-{}".format(time()), max_queue=1)
-        adversarial_writer = tf.summary.FileWriter("logs/adversarial-{}".format(time()))
+        now = time()
+        gan_writer = tf.summary.FileWriter("logs/gan-{}".format(now))
+        gan_val_writer = tf.summary.FileWriter("logs/gan_val-{}".format(now), max_queue=1)
+        adversarial_writer = tf.summary.FileWriter("logs/adversarial-{}".format(now))
         #discrim_writer = tf.summary.FileWriter("logs/discriminator-{}".format(time()))
 
         self.denoiser.vgg_mode = 54
@@ -188,12 +194,8 @@ class GAN():
                 denoised_images = self.denoiser.model.predict(train_noisy_batch)
 
                 # Create labels for the discriminator
-                train_reference_labels = np.ones(self.batch_size)
+                train_reference_labels = np.ones(self.batch_size) * 0.9 # One sided label smoothing
                 train_noisy_labels = np.zeros(self.batch_size)
-
-                # Label smoothing
-                train_reference_labels = train_reference_labels - np.random.random_sample(self.batch_size) * 0.2
-                train_noisy_labels = train_noisy_labels + np.random.random_sample(self.batch_size) * 0.2
 
                 # Unfreeze the discriminator so that we can train it
                 self.discriminator.model.trainable = True
@@ -217,9 +219,6 @@ class GAN():
 
                 # Create labels for the gan
                 gan_labels = np.ones(self.batch_size)
-
-                # Label smoothing
-                gan_labels = gan_labels - np.random.random_sample(self.batch_size) * 0.2
 
                 # Freeze the weights so the discriminator isn't trained with the denoiser in the gan network
                 self.discriminator.model.trainable = False
@@ -260,12 +259,6 @@ class GAN():
                 adversarial_writer.add_summary(adversarial_summary, global_step)
                 global_step += 1
 
-            print("discriminator_loss_real :" + str(discrim_loss_real[0]))
-            print("discriminator_loss_fake :" + str(discrim_loss_fake[0]))
-            print("gan_loss :" + str(gan_loss[0]))
-            if (epoch % 50) == 0:
-                self.denoiser.model.save(self.denoiser.model_dir + "epoch:" + str(epoch))
-
             score = self.eval()
             gan_test_summary = tf.Summary(
                 value=[tf.Summary.Value(tag="gan_loss", simple_value=score),]
@@ -278,7 +271,28 @@ class GAN():
             )
             gan_writer.add_summary(psnr_summary, global_step)
 
+            print("discriminator_loss_real :" + str(discrim_loss_real[0]))
+            print("discriminator_loss_fake :" + str(discrim_loss_fake[0]))
+            print("gan_loss :" + str(gan_loss[0]))
             print("psnr :" + str(psnr))
+
+            self.denoiser.model.save("models/gan-{}".format(now))
+            if (epoch % 50) == 0:
+                self.denoiser.model.save(self.denoiser.model_dir + "epoch:" + str(epoch))
+
+            # Drop the LR after 200 epochs
+            if (epoch == 200):
+                self.adam_lr = 1e-5
+                self.adam = tf.keras.optimizers.Adam(
+                    lr=self.adam_lr,
+                    beta_1=self.adam_beta1,
+                    beta_2=self.adam_beta2,
+                    decay=self.adam_lr_decay,
+                    clipnorm=1,
+                    #amsgrad=True
+                )
+                # Need to recompile with the new LR
+                self.buildModel()
 
 
     def eval(self):

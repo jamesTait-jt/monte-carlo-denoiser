@@ -74,13 +74,17 @@ class Denoiser():
         self.adam_beta1 = kwargs.get("adam_beta1", 0.9)
         self.adam_beta2 = kwargs.get("adam_beta2", 0.999)
         self.adam_lr_decay = kwargs.get("adam_lr_decay", 0.0)
-
+        
+        self.initialiser_seed = kwargs.get("initialiser_seed", 5678)
+        self.kernel_initialiser = tf.keras.initializers.glorot_normal(seed=self.initialiser_seed)
         self.adam = tf.keras.optimizers.Adam(
             lr=self.adam_lr,
             beta_1=self.adam_beta1,
             beta_2=self.adam_beta2,
             decay=self.adam_lr_decay,
-            clipnorm=1
+            clipnorm=1,
+            clipvalue=0.05
+            #amsgrad=True
         )
 
         # Are we using KPCN
@@ -162,7 +166,7 @@ class Denoiser():
             patience=20,
             restore_best_weights=True
         )
-        self.callbacks.append(early_stopping_cb)
+        #self.callbacks.append(early_stopping_cb)
 
     # Read in the data from the dictionary, exctracting the necessary features
     def setInputAndLabels(self):
@@ -224,7 +228,7 @@ class Denoiser():
                 strides=(1, 1),
                 padding=self.padding_type,
                 activation="relu",
-                kernel_initializer="glorot_uniform" # Xavier uniform
+                kernel_initializer=self.kernel_initialiser # Xavier uniform
             )
         )
 
@@ -238,7 +242,7 @@ class Denoiser():
                 strides=[1, 1],
                 padding=self.padding_type,
                 activation="relu",
-                kernel_initializer="glorot_uniform" # Xavier uniform
+                kernel_initializer=self.kernel_initialiser # Xavier uniform
             )
         )
     
@@ -250,8 +254,8 @@ class Denoiser():
                 strides=[1, 1],
                 padding=self.padding_type,
                 activation="relu",
-                kernel_initializer="glorot_uniform", # Xavier uniform
-                kernel_regularizer=tf.keras.regularizers.l2(0.01)
+                kernel_initializer=self.kernel_initialiser, # Xavier uniform
+                #kernel_regularizer=tf.keras.regularizers.l2(0.01)
         )(prev_layer)
         
         return new_layer
@@ -267,7 +271,7 @@ class Denoiser():
                 strides=(1, 1),
                 padding=self.padding_type,
                 activation=None,
-                kernel_initializer="glorot_uniform" # Xavier uniform
+                kernel_initializer=self.kernel_initialiser # Xavier uniform
             )
         )
 
@@ -294,8 +298,8 @@ class Denoiser():
                 strides=(1, 1),
                 padding=self.padding_type,
                 activation=None,
-                kernel_initializer="glorot_uniform", # Xavier uniform
-                kernel_regularizer=tf.keras.regularizers.l2(0.01)
+                kernel_initializer=self.kernel_initialiser, # Xavier uniform
+                #kernel_regularizer=tf.keras.regularizers.l2(0.01)
             )
         )
 
@@ -313,8 +317,8 @@ class Denoiser():
             strides=(1, 1),
             padding=self.padding_type,
             activation=None,
-            kernel_initializer="glorot_uniform", # Xavier uniform
-            kernel_regularizer=tf.keras.regularizers.l2(0.01)
+            kernel_initializer=self.kernel_initialiser, # Xavier uniform
+            #kernel_regularizer=tf.keras.regularizers.l2(0.01)
         )(prev_layer)
 
         return new_layer

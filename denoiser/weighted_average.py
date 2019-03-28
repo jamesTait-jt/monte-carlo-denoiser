@@ -6,6 +6,7 @@ from tensorflow.python.framework import ops
 # weighted_average.py: Calls library that efficiently computes the weighted average
 
 _module = tf.load_op_library(path.join(path.dirname(__file__), "./custom_ops/weighted_average.so"))
+#_module = tf.load_op_library(path.join(path.dirname(__file__), "./custom_ops/weighted_average_gpu.so"))
 
 @tf.RegisterGradient("WeightedAverage")
 def _weighted_average_grad(op, grad):
