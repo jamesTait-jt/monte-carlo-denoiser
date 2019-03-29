@@ -2,6 +2,7 @@
 from denoiser import Denoiser
 from discriminator import Discriminator
 from gan import GAN
+import tungsten_data
 
 # data helpers
 import data
@@ -9,12 +10,15 @@ import data
 def main():
 
     seed = 1234
-    patches = data.makePatches(seed)
+    #patches = data.makePatches(seed)
+    patches = tungsten_data.getPatches()
 
     train_data = patches["train"]
     test_data = patches["test"]
 
-    feature_list = ["sn", "albedo", "depth"]
+    
+
+    feature_list = ["normal", "albedo", "depth"]
     denoiser = Denoiser(
         train_data,
         test_data,

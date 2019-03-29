@@ -4,6 +4,7 @@ import tensorflow as tf
 from time import time
 
 from callbacks import TrainValTensorBoard
+import config
 
 class Discriminator():
     """Class to discriminate between real and fake reference images
@@ -29,8 +30,8 @@ class Discriminator():
         #self.setInputAndOutputData()
 
         # The height and width of the image patches (defaults to 64)
-        self.patch_width = kwargs.get("patch_width", 64)
-        self.patch_height = kwargs.get("patch_height", 64)
+        self.patch_width = kwargs.get("patch_width", config.PATCH_WIDTH)
+        self.patch_height = kwargs.get("patch_height", config.PATCH_HEIGHT)
 
         # Number of input/output channels (defaults to 3 for rgb)
         self.input_channels = kwargs.get("input_channels", 3)

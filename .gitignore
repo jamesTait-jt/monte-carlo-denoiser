@@ -1,3 +1,6 @@
+# pkl data
+*.pkl
+
 # non rendered scenes
 tungsten_docker/data/*
 

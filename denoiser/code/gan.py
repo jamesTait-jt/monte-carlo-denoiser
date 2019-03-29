@@ -88,7 +88,7 @@ class GAN():
         
 
     def preTrainMAVDenoiser(self):
-        feature_list = ["sn", "albedo", "depth"]
+        feature_list = ["normal", "albedo", "depth"]
         mav_denoiser = Denoiser(
             self.train_data,
             self.test_data,
@@ -115,7 +115,7 @@ class GAN():
         self.denoiser = mav_denoiser
 
     def buildDenoiser(self):
-        feature_list = ["sn", "albedo", "depth"]
+        feature_list = ["normal", "albedo", "depth"]
         denoiser = Denoiser(
             self.train_data,
             self.test_data,
@@ -189,7 +189,9 @@ class GAN():
 
                 # Get a batch and denoise
                 train_noisy_batch = self.denoiser.train_input[rand_indices]
-                train_reference_batch = np.array(self.denoiser.train_data["reference_colour"])[rand_indices]
+                train_reference_batch = np.array(
+                    self.denoiser.train_data["reference"]["diffuse"]
+                )[rand_indices]
 
                 denoised_images = self.denoiser.model.predict(train_noisy_batch)
 
@@ -215,7 +217,9 @@ class GAN():
 
                 rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
                 train_noisy_batch = self.denoiser.train_input[rand_indices]
-                train_reference_batch = np.array(self.denoiser.train_data["reference_colour"])[rand_indices]
+                train_reference_batch = np.array(
+                    self.denoiser.train_data["reference"]["diffuse"]
+                )[rand_indices]
 
                 # Create labels for the gan
                 gan_labels = np.ones(self.batch_size)

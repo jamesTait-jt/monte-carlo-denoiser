@@ -44,8 +44,8 @@ class Denoiser():
         self.test_data = test_data
 
         # The height and width of the image patches (defaults to 64)
-        self.patch_width = kwargs.get("patch_width", 64)
-        self.patch_height = kwargs.get("patch_height", 64)
+        self.patch_width = kwargs.get("patch_width", config.PATCH_WIDTH)
+        self.patch_height = kwargs.get("patch_height", config.PATCH_HEIGHT)
 
         # Number of input/output channels (defaults to 3 for rgb)
         self.input_channels = kwargs.get("input_channels", 3)
@@ -172,46 +172,46 @@ class Denoiser():
     def setInputAndLabels(self):
 
         new_train_in = [
-            np.array(self.train_data["noisy_colour"]),
-            np.array(self.train_data["noisy_colour_gradx"]),
-            np.array(self.train_data["noisy_colour_grady"]),
-            np.array(self.train_data["noisy_colour_var"])
+            np.array(self.train_data["noisy"]["diffuse"]),
+            np.array(self.train_data["noisy"]["diffuse_gx"]),
+            np.array(self.train_data["noisy"]["diffuse_gy"]),
+            np.array(self.train_data["noisy"]["diffuse_var"])
         ]
 
         new_test_in = [
-            np.array(self.test_data["noisy_colour"]),
-            np.array(self.test_data["noisy_colour_gradx"]),
-            np.array(self.test_data["noisy_colour_grady"]),
-            np.array(self.test_data["noisy_colour_var"])
+            np.array(self.test_data["noisy"]["diffuse"]),
+            np.array(self.test_data["noisy"]["diffuse_gx"]),
+            np.array(self.test_data["noisy"]["diffuse_gy"]),
+            np.array(self.test_data["noisy"]["diffuse_var"])
         ]
 
         for feature in self.feature_list:
-            feature = "noisy_" + feature
+            feature = feature
             # Each feature is split into gradient in X and Y direction, and its
             # corresponding variance
-            feature_keys = [feature + "_gradx", feature + "_grady", feature + "_var"]
+            feature_keys = [feature + "_gx", feature + "_gy", feature + "_var"]
             for key in feature_keys:
-                new_train_in.append(np.array(self.train_data[key]))
-                new_test_in.append(np.array(self.test_data[key]))
+                new_train_in.append(np.array(self.train_data["noisy"][key]))
+                new_test_in.append(np.array(self.test_data["noisy"][key]))
 
         self.train_input = np.concatenate((new_train_in), 3)
         self.test_input = np.concatenate((new_test_in), 3)
 
-        train_labels = [
-            np.array(self.train_data["reference_colour"]),
-            np.array(self.train_data["noisy_colour"])
-        ]
+        #train_labels = [
+        #    np.array(self.train_data["reference_colour"]),
+        #    np.array(self.train_data["noisy_colour"])
+        #]
 
-        test_labels = [
-            np.array(self.test_data["reference_colour"]),
-            np.array(self.test_data["noisy_colour"])
-        ]
+        #test_labels = [
+        #    np.array(self.test_data["reference_colour"]),
+        #    np.array(self.test_data["noisy_colour"])
+        #]
 
         #self.train_labels = np.concatenate((train_labels), 3)
         #self.test_labels = np.concatenate((test_labels), 3)
 
-        self.train_labels = np.array(self.train_data["reference_colour"])
-        self.test_labels = np.array(self.test_data["reference_colour"])
+        self.train_labels = np.array(self.train_data["reference"]["diffuse"])
+        self.test_labels = np.array(self.test_data["reference"]["diffuse"])
 
         # Ensure input channels is the right size
         self.input_channels = self.train_input.shape[3]
