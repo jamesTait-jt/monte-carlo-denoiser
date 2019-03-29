@@ -5,7 +5,7 @@ tungsten_docker/data/*
 *.exr
 
 # Ignore models and logs
-denoiser/logs*
+#denoiser/logs*
 #denoiser/models*
 
 #Ignore the build and lib dirs
