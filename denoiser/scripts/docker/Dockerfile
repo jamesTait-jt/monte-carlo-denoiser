@@ -1,16 +1,19 @@
-FROM tensorflow/tensorflow:latest-gpu
+FROM tensorflow/tensorflow:latest-gpu-py3
 
 # Install packages
 RUN apt-get -y update &&\
     apt-get -y install vim &&\
     apt-get -y install git &&\
-    apt-get -y install python-pip &&\
-    apt-get -y install python-dev &&\
+    apt-get -y install python3-pip &&\
+    apt-get -y install python3-dev &&\
     apt-get -y install build-essential &&\
     apt-get -y install python-tk &&\
-    pip install librosa --user &&\
-    pip install keras==2.2.4 --user &&\
-    pip install tqdm
+    apt-get -y install libopenexr-dev &&\
+    pip3 install librosa --user &&\
+    pip3 install keras==2.2.4 --user &&\
+    pip3 install tqdm &&\
+    pip3 install OpenEXR &&\
+    pip3 install Imath
 
 
 # Make a new working directory

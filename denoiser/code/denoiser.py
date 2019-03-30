@@ -108,7 +108,7 @@ class Denoiser():
     # Set the directory where logs will be store, using hyperparameters and a
     # timestamp to make them distinct
     def set_log_dir(self):
-        log_dir = "logs/"
+        log_dir = "../logs/"
         for feature in self.feature_list:
             log_dir += (feature + "+")
 
@@ -121,7 +121,7 @@ class Denoiser():
     # Set the directory where the models will be stored. (Taken from the
     # hyperparameters)
     def set_model_dir(self):
-        model_dir = "models/"
+        model_dir = "../models/"
         for feature in self.feature_list:
             model_dir += (feature + "+")
 

@@ -97,10 +97,10 @@ class GAN():
             kernel_predict=True,
             feature_list=feature_list
         )
-        if os.path.isfile("models/mav_denoiser"):
+        if os.path.isfile("../models/mav_denoiser"):
             print("Loading in initial mav denoiser...")
             mav_denoiser.model = tf.keras.models.load_model(
-                "models/mav_denoiser",
+                "../models/mav_denoiser",
                 custom_objects={"psnr" : mav_denoiser.psnr}
             )
             mav_denoiser.eval(True)
@@ -109,7 +109,7 @@ class GAN():
             mav_denoiser.buildNetwork()
             mav_denoiser.train()
             mav_denoiser.eval(True)
-            mav_denoiser.model.save("models/mav_denoiser")
+            mav_denoiser.model.save("../models/mav_denoiser")
 
         self.mav_denoiser = mav_denoiser
         self.denoiser = mav_denoiser
@@ -147,16 +147,16 @@ class GAN():
             num_epochs=1000,
         )
 
-        if os.path.isfile("models/discriminator"):
+        if os.path.isfile("../models/discriminator"):
             print("Loading in discriminator...")
-            discriminator.model = tf.keras.models.load_model("models/discriminator") 
+            discriminator.model = tf.keras.models.load_model("../models/discriminator") 
             discriminator.eval()
         else:
             print("No discriminator found - training now...")
             discriminator.buildNetwork()
             #discriminator.train()
             discriminator.eval()
-            discriminator.model.save("models/discriminator")
+            discriminator.model.save("../models/discriminator")
 
         self.discriminator = discriminator
 
@@ -171,10 +171,10 @@ class GAN():
         #self.denoiser.discriminator = self.discriminator
         
         now = time()
-        gan_writer = tf.summary.FileWriter("logs/gan-{}".format(now))
-        gan_val_writer = tf.summary.FileWriter("logs/gan_val-{}".format(now), max_queue=1)
-        adversarial_writer = tf.summary.FileWriter("logs/adversarial-{}".format(now))
-        #discrim_writer = tf.summary.FileWriter("logs/discriminator-{}".format(time()))
+        gan_writer = tf.summary.FileWriter("../logs/gan-{}".format(now))
+        gan_val_writer = tf.summary.FileWriter("../logs/gan_val-{}".format(now), max_queue=1)
+        adversarial_writer = tf.summary.FileWriter("../logs/adversarial-{}".format(now))
+        #discrim_writer = tf.summary.FileWriter("../logs/discriminator-{}".format(time()))
 
         self.denoiser.vgg_mode = 54
         self.discriminator.num_epochs = 1
@@ -280,7 +280,7 @@ class GAN():
             print("gan_loss :" + str(gan_loss[0]))
             print("psnr :" + str(psnr))
 
-            self.denoiser.model.save("models/gan-{}".format(now))
+            self.denoiser.model.save("../models/gan-{}".format(now))
             if (epoch % 50) == 0:
                 self.denoiser.model.save(self.denoiser.model_dir + "epoch:" + str(epoch))
 
@@ -300,7 +300,7 @@ class GAN():
 
 
     def eval(self):
-        reference_test_images = np.array(self.test_data["reference_colour"])
+        reference_test_images = np.array(self.test_data["reference"]["diffuse"])
         reference_test_labels = np.ones(len(reference_test_images))
         score = self.model.evaluate(self.denoiser.test_input, [reference_test_images, reference_test_labels], verbose=0)
         #print(" ")

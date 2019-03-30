@@ -37,8 +37,8 @@
  #   scene.json /out/spaceship_32.exr --threads 4 --spp 32
 
 # Spaceship 1024 spp
-#sudo docker run -v /home/james/git-repos/monte-carlo-raytracer/tungsten_docker/data/train/spaceship:/scene -v /home/james/git-repos/monte-carlo-raytracer/data/scenes:/out --rm -it tungsten \
-#    scene.json /out/spaceship_1024exr --threads 4 --spp 1024
+sudo docker run -v /home/james/git-repos/monte-carlo-raytracer/tungsten_docker/data/train/spaceship:/scene -v /home/james/git-repos/monte-carlo-raytracer/data/scenes:/out --rm -it tungsten \
+    scene.json /out/spaceship_1024exr --threads 4 --spp 1024
 
 # Staircase 32 spp
 #sudo docker run -v /home/james/git-repos/monte-carlo-raytracer/tungsten_docker/data/train/staircase:/scene -v /home/james/git-repos/monte-carlo-raytracer/data/scenes:/out --rm -it tungsten \
@@ -61,8 +61,8 @@
 #    scene.json /out/dining-room_32.exr --threads 4 --spp 32
 
 # Dining room 1024 spp
-#sudo docker run -v /home/james/git-repos/monte-carlo-raytracer/tungsten_docker/data/train/dining-room:/scene -v /home/james/git-repos/monte-carlo-raytracer/data/scenes:/out --rm -it tungsten \
-#    scene.json /out/dining-room_1024exr --threads 4 --spp 1024
+sudo docker run -v /home/james/git-repos/monte-carlo-raytracer/tungsten_docker/data/train/dining-room:/scene -v /home/james/git-repos/monte-carlo-raytracer/data/scenes:/out --rm -it tungsten \
+    scene.json /out/dining-room_1024exr --threads 4 --spp 1024
 
 
 ### ------ TEST ------ ###

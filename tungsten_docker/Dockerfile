@@ -17,7 +17,7 @@ ADD tungsten /tungsten
 WORKDIR /tungsten
 RUN ./setup_builds.sh
 WORKDIR /tungsten/build/release
-RUN make -j
+RUN make -j 10
 
 ENV TUNGSTEN_BINARY /tungsten/build/release/tungsten
 
