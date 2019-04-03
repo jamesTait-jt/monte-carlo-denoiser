@@ -136,7 +136,7 @@ class Discriminator():
         )
         self.batchNormalisation()
         self.leakyReLU()
-        #self.dropoutLayer(0.6)
+        #self.dropoutLayer(0.2)
 
     def denseLayer(self, units):
         self.model.add(tf.keras.layers.Dense(units))
@@ -160,7 +160,7 @@ class Discriminator():
 
         self.denseLayer(1024)
         self.leakyReLU()
-        #self.dropoutLayer(0.6)
+        #self.dropoutLayer(0.2)
         self.flatten()
         self.denseLayer(1)
         self.sigmoid()

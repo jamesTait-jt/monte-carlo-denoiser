@@ -30,8 +30,14 @@ def getScenes(input_dir, image_dict, reference_or_noisy, test_or_train):
 
         # --- DIFFUSE --- #
         diffuse = exr.getBuffer(exr_file, "diffuse")
-        diffuse = diffuse.clip(0, 1) # Clip the diffuse colour values between 0 and 1
+        #diffuse_clipped = diffuse.clip(0, 1) # Clip the diffuse colour values between 0 and 1
         image_dict[test_or_train][reference_or_noisy]["diffuse"].append(diffuse)
+
+        # --- ALBEDO DIVIDE --- # 
+        albedo = exr.getBuffer(exr_file, "albedo")
+        albedo_divided_diffuse = np.divide(diffuse, albedo + 0.00316)
+
+        image_dict[test_or_train][reference_or_noisy]["albedo_divided"].append(albedo_divided_diffuse)
 
         if reference_or_noisy == "noisy":
 
@@ -39,12 +45,27 @@ def getScenes(input_dir, image_dict, reference_or_noisy, test_or_train):
             image_dict[test_or_train][reference_or_noisy]["diffuse_gx"].append(diffuse_gradx)
             image_dict[test_or_train][reference_or_noisy]["diffuse_gy"].append(diffuse_grady)
 
+            albedo_divided_gradx, albedo_divided_grady = getGrads(albedo_divided_diffuse)
+            image_dict[test_or_train][reference_or_noisy]["albedo_divided_gx"].append(albedo_divided_gradx)
+            image_dict[test_or_train][reference_or_noisy]["albedo_divided_gy"].append(albedo_divided_grady)
+
             diffuse_variance = exr.getBuffer(exr_file, "diffuseVariance")
             diffuse_variance = np.reshape(
                 diffuse_variance,
                 (diffuse_variance.shape[0], diffuse_variance.shape[1], 1)
             )
             image_dict[test_or_train][reference_or_noisy]["diffuse_var"].append(diffuse_variance)
+
+            # --- ALBEDO DIVIDE ON VARIANCE --- #
+            albedo_divided_variance = np.mean(
+                np.divide(diffuse_variance, (albedo + 0.00316) ** 2), 
+                axis=2
+            )
+            albedo_divided_variance = np.reshape(
+                albedo_divided_variance,
+                (albedo_divided_variance.shape[0], albedo_divided_variance.shape[1], 1)
+            )
+            image_dict[test_or_train][reference_or_noisy]["albedo_divided_var"].append(albedo_divided_variance)
 
             # --- NORMAL --- #
             normal = exr.getBuffer(exr_file, "normal")
@@ -62,7 +83,6 @@ def getScenes(input_dir, image_dict, reference_or_noisy, test_or_train):
             image_dict[test_or_train][reference_or_noisy]["normal_var"].append(normal_variance)
 
             # --- ALBEDO --- #
-            albedo = exr.getBuffer(exr_file, "albedo")
             image_dict[test_or_train][reference_or_noisy]["albedo"].append(albedo)
 
             albedo_gradx, albedo_grady = getGrads(albedo)
@@ -101,12 +121,17 @@ def initialiseDict():
         "train" : {
             "reference" : {
                 "diffuse" : [],
+                "albedo_divided" : []
             },
             "noisy" : {
                 "diffuse" : [],
                 "diffuse_gx" : [],
                 "diffuse_gy" : [],
                 "diffuse_var" : [],
+                "albedo_divided" : [],
+                "albedo_divided_gx" : [],
+                "albedo_divided_gy" : [],
+                "albedo_divided_var" : [],
                 "normal" : [],
                 "normal_gx" : [],
                 "normal_gy" : [],
@@ -124,12 +149,17 @@ def initialiseDict():
         "test" : {
             "reference" : {
                 "diffuse" : [],
+                "albedo_divided" : []
             },
             "noisy" : {
                 "diffuse" : [],
                 "diffuse_gx" : [],
                 "diffuse_gy" : [],
                 "diffuse_var" : [],
+                "albedo_divided" : [],
+                "albedo_divided_gx" : [],
+                "albedo_divided_gy" : [],
+                "albedo_divided_var" : [],
                 "normal" : [],
                 "normal_gx" : [],
                 "normal_gy" : [],

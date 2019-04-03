@@ -17,17 +17,12 @@ def applyKernel(noisy_img, weights):
     noisy_img = tf.pad(noisy_img, paddings, mode="SYMMETRIC")
     noisy_img = tf.cast(noisy_img, dtype="float32")
 
-    print(noisy_img)
-
     # Normalise weights
     weights = tf.math.exp(weights)
     weights = tf.divide(weights, (tf.reduce_sum(weights, axis=3, keepdims=True)))
 
-    print(weights)
-
     with tf.Session(""):
         pred = weighted_average.weighted_average(noisy_img, weights).eval()
-        print(pred)
         return pred
 
 
@@ -45,6 +40,14 @@ test_in = [
     np.array(patches["test"]["noisy"]["diffuse_var"])
 ]
 
+if config.ALBEDO_DIVIDE:
+    test_in = [
+        np.array(patches["test"]["noisy"]["albedo_divided"]),
+        np.array(patches["test"]["noisy"]["albedo_divided_gx"]),
+        np.array(patches["test"]["noisy"]["albedo_divided_gy"]),
+        np.array(patches["test"]["noisy"]["albedo_divided_var"])
+    ]
+
 feature_list = ["normal", "albedo", "depth"]
 for feature in feature_list:
     feature = feature
@@ -59,17 +62,35 @@ print(model_input.shape)
 
 print("Making prediction... ")
 index = random.randint(0, config.NUM_DARTS * config.TEST_SCENES) 
+index = 100
 weights = model.predict(model_input[index - 1 : index])
 
 noisy_colour = np.array(patches["test"]["noisy"]["diffuse"][index-1 : index])
-print(noisy_colour.shape)
+if config.ALBEDO_DIVIDE:
+    noisy_colour = np.array(patches["test"]["noisy"]["albedo_divided"][index-1 : index])
+
 pred = np.zeros(noisy_colour.shape)
 preds = applyKernel(np.array(noisy_colour), weights)
-print(np.array(preds).shape)
 
 # Show the reference, noisy, and denoised image
-reference_colour = array_to_img(patches["test"]["reference"]["diffuse"][index - 1 : index][0])
-denoised_img = array_to_img(preds[0])
+reference_colour = array_to_img(patches["test"]["reference"]["diffuse"][index - 1 : index][0].clip(0,1))
+if config.ALBEDO_DIVIDE:
+    reference_colour_albd = array_to_img(patches["test"]["reference"]["albedo_divided"][index - 1 : index][0].clip(0,1))
+
+    albedo = patches["test"]["noisy"]["albedo"][index - 1 : index][0]
+    pred = preds[0] * (albedo + 0.00316)
+
+    noisy_colour = noisy_colour[0] * (albedo + 0.00316)
+
+else:
+    pred = preds[0]
+    noisy_colour = noisy_colour[0]
+    print(noisy_colour.shape)
+
+
+denoised_img = array_to_img(pred.clip(0,1))
+
+print (index)
 
 fig = plt.figure()
 
@@ -77,10 +98,11 @@ fig.add_subplot(1, 3, 1)
 plt.imshow(reference_colour)
 
 fig.add_subplot(1, 3, 2)
-plt.imshow(array_to_img(noisy_colour[0]))
+plt.imshow(array_to_img(noisy_colour.clip(0,1)))
 
 fig.add_subplot(1, 3, 3)
 plt.imshow(denoised_img)
+
 
 plt.show()
 

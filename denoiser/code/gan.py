@@ -42,7 +42,7 @@ class GAN():
         self.batch_seed = kwargs.get("batch_seed", 1357)
         np.random.seed(self.batch_seed)
 
-        self.batch_size = kwargs.get("batch_size", 32)
+        self.batch_size = kwargs.get("batch_size", 64)
 
         self.buildDenoiser()
         self.buildDiscriminator()
@@ -171,14 +171,32 @@ class GAN():
         #self.denoiser.discriminator = self.discriminator
         
         now = time()
-        gan_writer = tf.summary.FileWriter("../logs/gan-{}".format(now))
-        gan_val_writer = tf.summary.FileWriter("../logs/gan_val-{}".format(now), max_queue=1)
-        adversarial_writer = tf.summary.FileWriter("../logs/adversarial-{}".format(now))
-        #discrim_writer = tf.summary.FileWriter("../logs/discriminator-{}".format(time()))
+        gan_writer = tf.summary.FileWriter(
+            "../logs/gan-{}".format(now),
+            max_queue=1,
+            flush_secs=10
+        )
+        gan_val_writer = tf.summary.FileWriter(
+            "../logs/gan_val-{}".format(now), 
+            max_queue=1,
+            flush_secs=10
+        )
+        adversarial_writer = tf.summary.FileWriter(
+            "../logs/adversarial-{}".format(now), 
+            max_queue=1,
+            flush_secs=10
+        )
 
         self.denoiser.vgg_mode = 54
-        self.discriminator.num_epochs = 1
-        train_data_size = config.TRAIN_SCENES * config.NUM_DARTS
+
+        train_data_size = np.array(self.train_data["noisy"]["diffuse"]).shape[0]
+        test_data_size = np.array(self.test_data["noisy"]["diffuse"]).shape[0]
+
+        print("  ========================================== ")
+        print(" || Training on %d Patches                 ||" % train_data_size)
+        print(" || Testing on %d Patches                  ||" % test_data_size)
+        print("  ========================================== ")
+
         global_step = 0
         for epoch in range(self.num_epochs):
             print("="*15, "Epoch %d" % epoch, "="*15)
@@ -285,7 +303,7 @@ class GAN():
                 self.denoiser.model.save(self.denoiser.model_dir + "epoch:" + str(epoch))
 
             # Drop the LR after 200 epochs
-            if (epoch == 200):
+            if (epoch == 100):
                 self.adam_lr = 1e-5
                 self.adam = tf.keras.optimizers.Adam(
                     lr=self.adam_lr,

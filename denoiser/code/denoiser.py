@@ -70,7 +70,7 @@ class Denoiser():
         self.num_epochs = kwargs.get("num_epochs", 100)
 
         # The adam optimiser is used, this block defines its parameters
-        self.adam_lr = kwargs.get("adam_lr", 1e-5)
+        self.adam_lr = kwargs.get("adam_lr", 1e-4)
         self.adam_beta1 = kwargs.get("adam_beta1", 0.9)
         self.adam_beta2 = kwargs.get("adam_beta2", 0.999)
         self.adam_lr_decay = kwargs.get("adam_lr_decay", 0.0)
@@ -185,6 +185,22 @@ class Denoiser():
             np.array(self.test_data["noisy"]["diffuse_var"])
         ]
 
+        if config.ALBEDO_DIVIDE:
+            new_train_in = [
+                np.array(self.train_data["noisy"]["albedo_divided"]),
+                np.array(self.train_data["noisy"]["albedo_divided_gx"]),
+                np.array(self.train_data["noisy"]["albedo_divided_gy"]),
+                np.array(self.train_data["noisy"]["albedo_divided_var"])
+            ]
+
+            new_test_in = [
+                np.array(self.test_data["noisy"]["albedo_divided"]),
+                np.array(self.test_data["noisy"]["albedo_divided_gx"]),
+                np.array(self.test_data["noisy"]["albedo_divided_gy"]),
+                np.array(self.test_data["noisy"]["albedo_divided_var"])
+            ]
+
+
         for feature in self.feature_list:
             feature = feature
             # Each feature is split into gradient in X and Y direction, and its
@@ -212,6 +228,10 @@ class Denoiser():
 
         self.train_labels = np.array(self.train_data["reference"]["diffuse"])
         self.test_labels = np.array(self.test_data["reference"]["diffuse"])
+
+        if config.ALBEDO_DIVIDE:
+            self.train_labels = np.array(self.train_data["reference"]["albedo_divided"])
+            self.test_labels = np.array(self.test_data["reference"]["albedo_divided"])
 
         # Ensure input channels is the right size
         self.input_channels = self.train_input.shape[3]
