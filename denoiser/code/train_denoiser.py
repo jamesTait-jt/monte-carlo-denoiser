@@ -24,7 +24,8 @@ def main():
         test_data,
         num_epochs=200,
         kernel_predict=True,
-        feature_list=feature_list
+        feature_list=feature_list,
+        num_layers=4
     )
     denoiser.buildNetwork()
     denoiser.train()

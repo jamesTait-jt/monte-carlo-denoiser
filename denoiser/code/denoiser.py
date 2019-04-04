@@ -68,6 +68,7 @@ class Denoiser():
         self.kernel_size = kwargs.get("kernel_size", [5, 5])
         self.batch_norm = kwargs.get("batch_norm", False)
         self.num_epochs = kwargs.get("num_epochs", 100)
+        self.num_layers = kwargs.get("num_layers", 8)
 
         # The adam optimiser is used, this block defines its parameters
         self.adam_lr = kwargs.get("adam_lr", 1e-4)
@@ -75,6 +76,10 @@ class Denoiser():
         self.adam_beta2 = kwargs.get("adam_beta2", 0.999)
         self.adam_lr_decay = kwargs.get("adam_lr_decay", 0.0)
         
+        #self.activation = tf.keras.layers.PReLU()
+        self.activation = tf.keras.layers.LeakyReLU(alpha=0.05)
+        self.activation = tf.keras.layers.ReLU()
+
         self.initialiser_seed = kwargs.get("initialiser_seed", 5678)
         self.kernel_initialiser = tf.keras.initializers.glorot_normal(seed=self.initialiser_seed)
         self.adam = tf.keras.optimizers.Adam(
@@ -247,10 +252,10 @@ class Denoiser():
                 use_bias=True,
                 strides=(1, 1),
                 padding=self.padding_type,
-                activation="relu",
                 kernel_initializer=self.kernel_initialiser # Xavier uniform
             )
         )
+        self.model.add(self.activation)
 
     # Convolutional layer (not final)
     def convLayer(self):
@@ -261,10 +266,10 @@ class Denoiser():
                 use_bias=True,
                 strides=[1, 1],
                 padding=self.padding_type,
-                activation="relu",
                 kernel_initializer=self.kernel_initialiser # Xavier uniform
             )
         )
+        self.model.add(self.activation)
     
     def returnConvLayer(self, prev_layer):
         new_layer = tf.keras.layers.Conv2D(
@@ -273,10 +278,11 @@ class Denoiser():
                 use_bias=True,
                 strides=[1, 1],
                 padding=self.padding_type,
-                activation="relu",
                 kernel_initializer=self.kernel_initialiser, # Xavier uniform
                 #kernel_regularizer=tf.keras.regularizers.l2(0.01)
         )(prev_layer)
+        
+        new_layer = self.activation(new_layer)
         
         return new_layer
 
@@ -299,7 +305,7 @@ class Denoiser():
         self.model.add(tf.keras.layers.BatchNormalization())
 
         # Apply the relu activation function
-        self.model.add(tf.keras.layers.Activation("relu"))
+        self.model.add(self.activation)
 
 
     # Final convolutional layer - no activation function
@@ -440,13 +446,14 @@ class Denoiser():
             )
             
             x = self.returnConvLayer(conv_input)
-            x = self.returnConvLayer(x)
-            x = self.returnConvLayer(x)
-            x = self.returnConvLayer(x)
-            x = self.returnConvLayer(x)
-            x = self.returnConvLayer(x)
-            x = self.returnConvLayer(x)
-            x = self.returnConvLayer(x)
+            for _ in range(self.num_layers):
+                x = self.returnConvLayer(x)
+            #x = self.returnConvLayer(x)
+            #x = self.returnConvLayer(x)
+            #x = self.returnConvLayer(x)
+            #x = self.returnConvLayer(x)
+            #x = self.returnConvLayer(x)
+            #x = self.returnConvLayer(x)
             pred = self.returnFinalConvLayer(x)
 
             self.model = tf.keras.models.Model(inputs=conv_input, outputs=pred)
@@ -464,6 +471,7 @@ class Denoiser():
                 loss=loss,
                 metrics=metrics
             )
+            print(self.model.count_params())
 
     def train(self):
         self.model.fit(
