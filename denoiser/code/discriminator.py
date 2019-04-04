@@ -155,8 +155,8 @@ class Discriminator():
         self.discriminatorBlock(3, 128, [2, 2])
         self.discriminatorBlock(3, 256, [1, 1])
         self.discriminatorBlock(3, 256, [2, 2])
-        self.discriminatorBlock(3, 512, [1, 1])
-        self.discriminatorBlock(3, 512, [2, 2])
+        #self.discriminatorBlock(3, 512, [1, 1])
+        #self.discriminatorBlock(3, 512, [2, 2])
 
         self.denseLayer(1024)
         self.leakyReLU()

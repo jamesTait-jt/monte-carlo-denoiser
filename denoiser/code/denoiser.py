@@ -77,7 +77,7 @@ class Denoiser():
         self.adam_lr_decay = kwargs.get("adam_lr_decay", 0.0)
         
         #self.activation = tf.keras.layers.PReLU()
-        self.activation = tf.keras.layers.LeakyReLU(alpha=0.05)
+        #self.activation = tf.keras.layers.LeakyReLU(alpha=0.05)
         self.activation = tf.keras.layers.ReLU()
 
         self.initialiser_seed = kwargs.get("initialiser_seed", 5678)
