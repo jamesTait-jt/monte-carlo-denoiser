@@ -82,6 +82,7 @@ class GAN():
         self.model.compile(
             loss=[loss, "binary_crossentropy"],
             loss_weights=[1.0, 1e-2],
+            metrics=["accuracy"],
             #loss_weights=[1.0, 0],
             optimizer=self.adam
         )
@@ -266,6 +267,10 @@ class GAN():
                 # Add the gan's loss to tensorboard summary
                 gan_summary = tf.Summary(
                     value=[tf.Summary.Value(tag="gan_loss", simple_value=gan_loss[0]),]
+                )
+
+                gan_acc_summary = tf.Summary(
+                    value=[tf.Summary.Value(tag="gan_acc", simple_value=gan_loss[1]),]
                 )
 
                 # Add the adversarial loss to tensorboard sumamry
