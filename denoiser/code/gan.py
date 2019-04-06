@@ -211,6 +211,11 @@ class GAN():
                     self.denoiser.train_data["reference"]["diffuse"]
                 )[rand_indices]
 
+                if config.ALBEDO_DIVIDE:
+                    train_reference_batch = np.array(
+                        self.denoiser.train_data["reference"]["albedo_divided"]
+                    )[rand_indices]
+
                 denoised_images = self.denoiser.model.predict(train_noisy_batch)
 
                 # Create labels for the discriminator
@@ -238,6 +243,11 @@ class GAN():
                 train_reference_batch = np.array(
                     self.denoiser.train_data["reference"]["diffuse"]
                 )[rand_indices]
+
+                if config.ALBEDO_DIVIDE:
+                    train_reference_batch = np.array(
+                        self.denoiser.train_data["reference"]["albedo_divided"]
+                    )[rand_indices]
 
                 # Create labels for the gan
                 gan_labels = np.ones(self.batch_size)
@@ -314,12 +324,15 @@ class GAN():
                     #amsgrad=True
                 )
                 # Need to recompile with the new LR
-                self.buildModel()
+                #self.buildNetwork()
 
 
     def eval(self):
         reference_test_images = np.array(self.test_data["reference"]["diffuse"])
         reference_test_labels = np.ones(len(reference_test_images))
+        if config.ALBEDO_DIVIDE:
+            reference_test_images = np.array(self.test_data["reference"]["albedo_divided"])
+
         score = self.model.evaluate(self.denoiser.test_input, [reference_test_images, reference_test_labels], verbose=0)
         #print(" ")
         #print(" ===== GAN EVALUATION ===== ")

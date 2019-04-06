@@ -62,7 +62,7 @@ print(model_input.shape)
 
 print("Making prediction... ")
 index = random.randint(0, config.NUM_DARTS * config.TEST_SCENES) 
-index = 100
+#index = 100
 weights = model.predict(model_input[index - 1 : index])
 
 noisy_colour = np.array(patches["test"]["noisy"]["diffuse"][index-1 : index])

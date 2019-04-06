@@ -27,16 +27,16 @@ def main():
         feature_list=feature_list,
         num_layers=4
     )
-    denoiser.buildNetwork()
-    denoiser.train()
+denoiser.buildNetwork()
+#denoiser.train()
 
-    gan = GAN(
-        train_data, 
-        test_data, 
-        num_epochs=1000,
-        batch_size=16
-    )
-    #gan.train()
+gan = GAN(
+    train_data, 
+    test_data, 
+    num_epochs=1000,
+    batch_size=16
+)
+gan.train()
 
 if __name__ == "__main__":
     main()
