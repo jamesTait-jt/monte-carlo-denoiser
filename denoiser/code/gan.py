@@ -35,12 +35,11 @@ class GAN():
             beta_2=self.adam_beta2,
             decay=self.adam_lr_decay,
             clipnorm=1,
-            clipvalue=0.05,
-            #amsgrad=True
+            clipvalue=0.05
         )
 
         self.batch_seed = kwargs.get("batch_seed", 1357)
-        np.random.seed(self.batch_seed)
+        #np.random.seed(self.batch_seed)
 
         self.batch_size = kwargs.get("batch_size", 64)
 
@@ -70,18 +69,17 @@ class GAN():
             predicted_img = tf.keras.layers.Lambda(self.applyKernel(gan_input))(denoiser_output)
 
         discrim_output = self.discriminator.model(predicted_img)
-        self.model = tf.keras.models.Model(inputs=gan_input, outputs=[denoiser_output, discrim_output])
+        self.model = tf.keras.models.Model(inputs=gan_input, outputs=[predicted_img, discrim_output])
         
         if self.denoiser.kernel_predict:
-            loss = self.denoiser.MAVKernelPredict(gan_input)
-            metrics = [self.denoiser.kernelPredictPSNR(gan_input)]
+            loss = self.denoiser.VGG19FeatureLoss
         else:
             loss = "mean_squared_error"
             metrics = [self.psnr]
 
         self.model.compile(
             loss=[loss, "binary_crossentropy"],
-            loss_weights=[1.0, 1e-2],
+            loss_weights=[1.0, 1e-3],
             metrics=["accuracy"],
             #loss_weights=[1.0, 0],
             optimizer=self.adam
@@ -169,8 +167,6 @@ class GAN():
         return train_pred, test_pred
 
     def train(self):
-        #self.denoiser.discriminator = self.discriminator
-        
         now = time()
         gan_writer = tf.summary.FileWriter(
             "../logs/gan-{}".format(now),
@@ -182,11 +178,11 @@ class GAN():
             max_queue=1,
             flush_secs=10
         )
-        adversarial_writer = tf.summary.FileWriter(
-            "../logs/adversarial-{}".format(now), 
-            max_queue=1,
-            flush_secs=10
-        )
+        #adversarial_writer = tf.summary.FileWriter(
+        #    "../logs/adversarial-{}".format(now), 
+        #    max_queue=1,
+        #    flush_secs=10
+        #)
 
         self.denoiser.vgg_mode = 54
 
@@ -199,63 +195,68 @@ class GAN():
         print("  ========================================== ")
 
         global_step = 0
+        discrim_acc = 0
+
         for epoch in range(self.num_epochs):
             print("="*15, "Epoch %d" % epoch, "="*15)
             for _ in tqdm(range(train_data_size // self.batch_size)):
 
-                # Get random numbers to select our batch
-                rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
+                discrim_itrs = 1 #20
+                for _ in range(discrim_itrs):
+                    # Get random numbers to select our batch
+                    rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
 
-                # Get a batch and denoise
-                train_noisy_batch = self.denoiser.train_input[rand_indices]
-                train_reference_batch = np.array(
-                    self.denoiser.train_data["reference"]["diffuse"]
-                )[rand_indices]
+                    # Get a batch and denoise
+                    train_noisy_batch = self.denoiser.train_input[rand_indices]
+                    train_reference_batch = self.denoiser.train_labels[rand_indices]
 
-                if config.ALBEDO_DIVIDE:
-                    train_reference_batch = np.array(
-                        self.denoiser.train_data["reference"]["albedo_divided"]
-                    )[rand_indices]
+                    denoised_batch = self.model.predict(train_noisy_batch)[0]
+                    
+                    # Create labels for the discriminator
+                    train_reference_labels = np.random.uniform(0.9, 1.0, size=self.batch_size)# One sided label smoothing
+                    train_noisy_labels = np.zeros(self.batch_size)
 
-                denoised_images = self.denoiser.model.predict(train_noisy_batch)
+                    for i in range(len(train_reference_labels)):
+                        rand_num = np.random.random()
+                        if rand_num < 0.05:
+                            train_reference_labels[i] = 0
 
-                # Create labels for the discriminator
-                train_reference_labels = np.ones(self.batch_size) * 0.9 # One sided label smoothing
-                train_noisy_labels = np.zeros(self.batch_size)
+                    for i in range(len(train_noisy_labels)):
+                        rand_num = np.random.random()
+                        if rand_num < 0.05:
+                            train_noisy_labels[i] = np.random.uniform(0.9, 1.0)
 
-                # Unfreeze the discriminator so that we can train it
-                self.discriminator.model.trainable = True
+                    # Unfreeze the discriminator so that we can train it
+                    self.discriminator.model.trainable = True
 
-                discrim_input = np.concatenate((train_reference_batch, train_noisy_batch[:,:,:,0:3]), axis=0)
-                discrim_labels = np.concatenate((train_reference_labels, train_noisy_labels), axis=0)
+                    if True: #discrim_acc < 0.5:
+                        discrim_loss_real = self.discriminator.model.train_on_batch(
+                            train_reference_batch, 
+                            train_reference_labels
+                        )
 
-                discrim_loss_real = self.discriminator.model.train_on_batch(
-                    train_reference_batch, 
-                    train_reference_labels
-                )
+                        discrim_loss_fake = self.discriminator.model.train_on_batch(
+                            denoised_batch,
+                            train_noisy_labels
+                        )
+                        discrim_loss = 0.5 * np.add(discrim_loss_real[0], discrim_loss_fake[0])
 
-                discrim_loss_fake = self.discriminator.model.train_on_batch(
-                    train_noisy_batch[:,:,:,0:3],
-                    train_noisy_labels
-                )
-
-                rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
-                train_noisy_batch = self.denoiser.train_input[rand_indices]
-                train_reference_batch = np.array(
-                    self.denoiser.train_data["reference"]["diffuse"]
-                )[rand_indices]
-
-                if config.ALBEDO_DIVIDE:
-                    train_reference_batch = np.array(
-                        self.denoiser.train_data["reference"]["albedo_divided"]
-                    )[rand_indices]
-
-                # Create labels for the gan
-                gan_labels = np.ones(self.batch_size)
-
-                # Freeze the weights so the discriminator isn't trained with the denoiser in the gan network
                 self.discriminator.model.trainable = False
-                gan_loss = self.model.train_on_batch(train_noisy_batch, [train_reference_batch, gan_labels])
+                
+                generator_itrs = 1
+                for _ in range(generator_itrs):
+
+                    rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
+                    train_noisy_batch = self.denoiser.train_input[rand_indices]
+                    train_reference_batch = self.denoiser.train_labels[rand_indices]
+
+                    # Create labels for the gan
+                    gan_labels = np.ones(self.batch_size)
+
+                    # Freeze the weights so the discriminator isn't trained with the denoiser in the gan network
+                    start = time()
+                    gan_loss = self.model.train_on_batch(train_noisy_batch, [train_reference_batch, gan_labels])
+                    discrim_acc = gan_loss[4]
 
                 # Add the discriminator's loss to tensorboard summary
                 discrim_loss_real_summary = tf.Summary(
@@ -280,20 +281,19 @@ class GAN():
                 )
 
                 gan_acc_summary = tf.Summary(
-                    value=[tf.Summary.Value(tag="gan_acc", simple_value=gan_loss[1]),]
+                    value=[tf.Summary.Value(tag="gan_acc", simple_value=gan_loss[4]),]
                 )
 
                 # Add the adversarial loss to tensorboard sumamry
-                adversarial_summary = tf.Summary(
-                    value=[tf.Summary.Value(tag="adversarial_loss", simple_value=gan_loss[2]),]
+                discrim_loss_summary = tf.Summary(
+                    value=[tf.Summary.Value(tag="discriminator_loss", simple_value=discrim_loss),]
                 )
                     
-                #discrim_writer.add_summary(discrim_acc_real_summary, global_step)
-                #discrim_writer.add_summary(discrim_acc_fake_summary, global_step)
-                #discrim_writer.add_summary(discrim_loss_real_summary, global_step)
-                #discrim_writer.add_summary(discrim_loss_fake_summary, global_step)
+                gan_writer.add_summary(discrim_acc_real_summary, global_step)
+                gan_writer.add_summary(discrim_acc_fake_summary, global_step)
                 gan_writer.add_summary(gan_summary, global_step)
-                adversarial_writer.add_summary(adversarial_summary, global_step)
+                gan_writer.add_summary(gan_acc_summary, global_step)
+                gan_writer.add_summary(discrim_loss_summary, global_step)
                 global_step += 1
 
             score = self.eval()
@@ -302,32 +302,35 @@ class GAN():
             )
             gan_val_writer.add_summary(gan_test_summary, global_step)
 
-            psnr = self.denoiser.eval(False)[1]
-            psnr_summary = tf.Summary(
-                value=[tf.Summary.Value(tag="psnr", simple_value=psnr),]
-            )
-            gan_writer.add_summary(psnr_summary, global_step)
+            #psnr = self.denoiser.eval(False)[1]
+            #psnr_summary = tf.Summary(
+            #    value=[tf.Summary.Value(tag="psnr", simple_value=psnr),]
+            #)
+            #gan_writer.add_summary(psnr_summary, global_step)
 
-            print("discriminator_loss_real :" + str(discrim_loss_real[0]))
-            print("discriminator_loss_fake :" + str(discrim_loss_fake[0]))
+            print("discriminator_acc_real :" + str(discrim_loss_real[1]))
+            print("discriminator_acc_fake :" + str(discrim_loss_fake[1]))
+            print("discriminator_loss :" + str(discrim_loss))
             print("gan_loss :" + str(gan_loss[0]))
-            print("psnr :" + str(psnr))
+            #print("psnr :" + str(psnr))
 
             self.denoiser.model.save("../models/gan-{}".format(now))
+            #self.model.save("../models/gan-{}".format(now))
             if (epoch % 50) == 0:
                 self.denoiser.model.save(self.denoiser.model_dir + "epoch:" + str(epoch))
 
+
             # Drop the LR after 200 epochs
-            if (epoch == 100):
-                self.adam_lr = 1e-5
-                self.adam = tf.keras.optimizers.Adam(
-                    lr=self.adam_lr,
-                    beta_1=self.adam_beta1,
-                    beta_2=self.adam_beta2,
-                    decay=self.adam_lr_decay,
-                    clipnorm=1,
-                    #amsgrad=True
-                )
+            #if (epoch == 100):
+            #    self.adam_lr = 1e-5
+            #    self.adam = tf.keras.optimizers.Adam(
+            #        lr=self.adam_lr,
+            #        beta_1=self.adam_beta1,
+            #        beta_2=self.adam_beta2,
+            #        decay=self.adam_lr_decay,
+            #        clipnorm=1,
+            #        #amsgrad=True
+            #    )
                 # Need to recompile with the new LR
                 #self.buildNetwork()
 

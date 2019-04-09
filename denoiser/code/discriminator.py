@@ -25,7 +25,7 @@ class Discriminator():
 
         # Data dictionary
         self.train_data = train_data
-        self.test_pred = test_data
+        self.test_data = test_data
 
         #self.setInputAndOutputData()
 
@@ -45,7 +45,7 @@ class Discriminator():
         self.adam_lr_decay = kwargs.get("adam_lr_decay", 0.0)
 
         self.initialiser_seed = kwargs.get("initialiser_seed", 91011)
-        self.kernel_initialiser = tf.keras.initializers.glorot_normal(seed=self.initialiser_seed)
+        self.kernel_initialiser = tf.keras.initializers.glorot_normal() #seed=self.initialiser_seed)
 
         self.adam = tf.keras.optimizers.Adam(
             lr=self.adam_lr,
@@ -63,21 +63,43 @@ class Discriminator():
         # Use the sequential model API
         self.model = kwargs.get("model", tf.keras.models.Sequential())
 
-        self.log_dir = "logs/discriminator/{}".format(time())
+        self.log_dir = "../logs/discriminator/{}".format(time())
 
+        self.setInputAndOutputData()
         self.setCallbacks()
 
     def setInputAndOutputData(self):
-        train_reference_labels = np.ones([len(self.train_ref_images), 1])
-        train_fake_labels = np.zeros([len(self.train_pred), 1])
 
-        self.train_input = np.concatenate((self.train_ref_images, self.train_pred))
+        train_reference_labels = np.ones([len(self.train_data["reference"]["diffuse"]), 1])
+        train_fake_labels = np.zeros([len(self.train_data["noisy"]["diffuse"]), 1])
+
+        if config.ALBEDO_DIVIDE:
+            self.train_input = np.concatenate(
+                (self.train_data["reference"]["albedo_divided"],
+                 self.train_data["noisy"]["albedo_divided"])
+            )
+        else:
+            self.train_input = np.concatenate(
+                (self.train_data["reference"]["diffuse"],
+                 self.train_data["noisy"]["diffuse"])
+            )
+
         self.train_labels = np.concatenate((train_reference_labels, train_fake_labels))
 
-        test_reference_labels = np.ones([len(self.test_ref_images), 1])
-        test_fake_labels = np.zeros([len(self.test_pred), 1])
+        test_reference_labels = np.ones([len(self.test_data["reference"]["diffuse"]), 1])
+        test_fake_labels = np.zeros([len(self.test_data["noisy"]["diffuse"]), 1])
 
-        self.test_input = np.concatenate((self.test_ref_images, self.test_pred))
+        if config.ALBEDO_DIVIDE:
+            self.test_input = np.concatenate(
+                (self.test_data["reference"]["albedo_divided"],
+                 self.test_data["noisy"]["albedo_divided"])
+            )
+        else:
+            self.test_input = np.concatenate(
+                (self.test_data["reference"]["diffuse"],
+                 self.test_data["noisy"]["diffuse"])
+            )
+
         self.test_labels = np.concatenate((test_reference_labels, test_fake_labels))
 
     def setCallbacks(self):
@@ -88,15 +110,15 @@ class Discriminator():
 
         # Stop taining if we don't see an improvement (aabove 98%) after 20 epochs and
         # restore the best performing weight
-        early_stopping_cb = keras.callbacks.EarlyStopping(
-            monitor='val_acc',
-            mode='max',
-            verbose=1,
-            patience=20,
-            baseline=0.98,
-            restore_best_weights=True
-        )
-        self.callbacks.append(early_stopping_cb)
+        #early_stopping_cb = keras.callbacks.EarlyStopping(
+        #    monitor='val_acc',
+        #    mode='max',
+        #    verbose=1,
+        #    patience=20,
+        #    baseline=0.98,
+        #    restore_best_weights=True
+        #)
+        #self.callbacks.append(early_stopping_cb)
 
     def initialConvLayer(self, kernel_size, num_filters, strides):
         self.model.add(
@@ -136,7 +158,7 @@ class Discriminator():
         )
         self.batchNormalisation()
         self.leakyReLU()
-        #self.dropoutLayer(0.2)
+        self.dropoutLayer(0.5)
 
     def denseLayer(self, units):
         self.model.add(tf.keras.layers.Dense(units))
@@ -160,7 +182,7 @@ class Discriminator():
 
         self.denseLayer(1024)
         self.leakyReLU()
-        #self.dropoutLayer(0.2)
+        self.dropoutLayer(0.5)
         self.flatten()
         self.denseLayer(1)
         self.sigmoid()
@@ -173,6 +195,7 @@ class Discriminator():
         )
 
     def train(self):
+        print(self.callbacks)
         self.model.fit(
             self.train_input,
             self.train_labels,

@@ -3,7 +3,7 @@ TRAIN_SCENES = 8
 TEST_SCENES = 4
 
 # Parameters to go into the patching function
-NUM_DARTS = 32
+NUM_DARTS = 128
 IMAGE_WIDTH = 512
 IMAGE_HEIGHT = 512
 PATCH_WIDTH = 60

@@ -396,6 +396,7 @@ class Denoiser():
             prediction = weighted_average.weighted_average(noisy_img, weights)
             feature_loss = self.VGG19FeatureLoss(y_true, prediction)
             mse_loss = tf.keras.losses.mean_squared_error(y_true, prediction)
+            mse_loss = tf.reduce_sum(mse_loss) / (config.PATCH_WIDTH * config.PATCH_HEIGHT)
             return feature_loss
         return loss
 
@@ -448,12 +449,6 @@ class Denoiser():
             x = self.returnConvLayer(conv_input)
             for _ in range(self.num_layers):
                 x = self.returnConvLayer(x)
-            #x = self.returnConvLayer(x)
-            #x = self.returnConvLayer(x)
-            #x = self.returnConvLayer(x)
-            #x = self.returnConvLayer(x)
-            #x = self.returnConvLayer(x)
-            #x = self.returnConvLayer(x)
             pred = self.returnFinalConvLayer(x)
 
             self.model = tf.keras.models.Model(inputs=conv_input, outputs=pred)
@@ -471,7 +466,6 @@ class Denoiser():
                 loss=loss,
                 metrics=metrics
             )
-            print(self.model.count_params())
 
     def train(self):
         self.model.fit(
@@ -504,4 +498,5 @@ class Denoiser():
             print(" ==== Test PSNR: " + str(score[1]) + " ==== ")
             print(" ")
         return score
+
 

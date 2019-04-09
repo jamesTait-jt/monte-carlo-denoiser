@@ -64,6 +64,7 @@ print("Making prediction... ")
 index = random.randint(0, config.NUM_DARTS * config.TEST_SCENES) 
 #index = 100
 weights = model.predict(model_input[index - 1 : index])
+print(weights)
 
 noisy_colour = np.array(patches["test"]["noisy"]["diffuse"][index-1 : index])
 if config.ALBEDO_DIVIDE:
@@ -88,7 +89,9 @@ else:
     print(noisy_colour.shape)
 
 
+print(pred)
 denoised_img = array_to_img(pred.clip(0,1))
+#denoised_img = array_to_img(weights[0])
 
 print (index)
 
@@ -105,7 +108,3 @@ plt.imshow(denoised_img)
 
 
 plt.show()
-
-
-
-
