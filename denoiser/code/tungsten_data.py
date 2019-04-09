@@ -309,8 +309,8 @@ def importanceSample(full_dict, patches):
             patches
         )
 
-    diffuse = full_dict["test"]["reference"]["diffuse"]
-    normal = full_dict["test"]["reference"]["normal"]
+    diffuse = full_dict["test"]["noisy"]["diffuse"]
+    normal = full_dict["test"]["noisy"]["normal"]
     print("Sampling test patches...")
     for scene_num in range(len(diffuse)):
         fillSampledPatches(
@@ -520,24 +520,30 @@ def cropPatches(data, darts, patches, img_number, test_or_train):
                         px, py = dart
                         patch = val[img_number][(py - sy) : (py + sy), (px - sx) : (px + sx), :]
                         patches[test_or_train][noisy_or_reference][key].append(patch)
-
-
+            
 def getSampledPatches():
     if config.LOAD_NEW_IMAGES:
         print("\nReading exr files...")
         full_dict = getAllImagesAndSaveAsPkl()
-        saveAsPkl(full_dict, full_pkl_path)
     else:
         print("\nLoading buffers from disk...")
         full_dict = loadPkl(full_pkl_path)
+        #for test_or_train in full_dict:
+        #    for noisy_or_reference in full_dict[test_or_train]:
+        #        for key, val in full_dict[test_or_train][noisy_or_reference].items():
+        #            print(key)
+        #            print(np.amax(val[0]))
+        #            print(np.amin(val[0]))
     
     if config.MAKE_NEW_PATCHES:
         patches = initialiseDict()
         importanceSample(full_dict, patches)
+        del full_dict
         print("\nTraining patches: %d" % len(patches["train"]["noisy"]["diffuse"]))
         print("Test patches: %d" % len(patches["test"]["reference"]["diffuse"]))
         saveAsPkl(patches, patches_pkl_path)
     else:
+        del full_dict
         patches = loadPkl(patches_pkl_path)
 
     return patches

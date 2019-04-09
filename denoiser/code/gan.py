@@ -260,19 +260,19 @@ class GAN():
 
                 # Add the discriminator's loss to tensorboard summary
                 discrim_loss_real_summary = tf.Summary(
-                    value=[tf.Summary.Value(tag="discrim_loss_real", simple_value=discrim_loss_real[0]),]
+                    value=[tf.Summary.Value(tag="discrim_loss", simple_value=discrim_loss_real[0]),]
                 )
 
                 discrim_acc_real_summary = tf.Summary(
-                    value=[tf.Summary.Value(tag="discrim_acc_real", simple_value=discrim_loss_real[1]),]
+                    value=[tf.Summary.Value(tag="discrim_acc", simple_value=discrim_loss_real[1]),]
                 )
 
                 discrim_loss_fake_summary = tf.Summary(
-                    value=[tf.Summary.Value(tag="discrim_loss_fake", simple_value=discrim_loss_fake[0]),]
+                    value=[tf.Summary.Value(tag="discrim_loss", simple_value=discrim_loss_fake[0]),]
                 )
 
                 discrim_acc_fake_summary = tf.Summary(
-                    value=[tf.Summary.Value(tag="discrim_acc_fake", simple_value=discrim_loss_fake[1]),]
+                    value=[tf.Summary.Value(tag="discrim_acc", simple_value=discrim_loss_fake[1]),]
                 )
 
                 # Add the gan's loss to tensorboard summary

@@ -17,10 +17,14 @@ import tensorflow as tf
 from time import time
 from tensorflow.keras.applications.vgg19 import VGG19
 
+from tensorflow.python import debug as tf_debug
+
 import config
 from callbacks import TrainValTensorBoard
 import data
 import weighted_average
+
+#tf.keras.backend.set_session(tf_debug.LocalCLIDebugWrapperSession(tf.Session()))
 
 class Denoiser():
     """Class for image denoiser via CNN
@@ -76,9 +80,8 @@ class Denoiser():
         self.adam_beta2 = kwargs.get("adam_beta2", 0.999)
         self.adam_lr_decay = kwargs.get("adam_lr_decay", 0.0)
         
-        #self.activation = tf.keras.layers.PReLU()
-        #self.activation = tf.keras.layers.LeakyReLU(alpha=0.05)
         self.activation = tf.keras.layers.ReLU()
+        self.loss = kwargs.get("loss", "mae")
 
         self.initialiser_seed = kwargs.get("initialiser_seed", 5678)
         self.kernel_initialiser = tf.keras.initializers.glorot_normal(seed=self.initialiser_seed)
@@ -97,12 +100,16 @@ class Denoiser():
         self.kpcn_size = kwargs.get("kpcn_size", 21)
 
         # Which layer of vgg do we extract features from
-        self.vgg_mode = kwargs.get("vgg_mode", 22)
+        #self.vgg_mode = kwargs.get("vgg_mode", 22)
 
         # Set the log directory with a timestamp
         #self.log_dir = "logs/{}".format(time())
-        self.set_log_dir()
-        self.set_model_dir()
+        #self.set_log_dir()
+        #self.set_model_dir()
+
+        now = time()
+        self.model_dir = "../models/" + kwargs.get("model_dir", "default") + str(now)
+        self.log_dir = "../logs/" + kwargs.get("model_dir", "default") + str(now)
 
         # Use the sequential model API
         self.model = kwargs.get("model", tf.keras.models.Sequential())
@@ -164,14 +171,14 @@ class Denoiser():
 
         # Stop taining if we don't see an improvement after 20 epochs and
         # restore the best performing weight
-        early_stopping_cb = keras.callbacks.EarlyStopping(
+        early_stopping_cb = tf.keras.callbacks.EarlyStopping(
             monitor='val_loss',
             mode='min',
             verbose=1,
             patience=20,
             restore_best_weights=True
         )
-        #self.callbacks.append(early_stopping_cb)
+        self.callbacks.append(early_stopping_cb)
 
     # Read in the data from the dictionary, exctracting the necessary features
     def setInputAndLabels(self):
@@ -383,20 +390,58 @@ class Denoiser():
         def psnr(y_true, y_pred):
             weights = self.processWeightsForKernelPrediction(y_pred)
             prediction = weighted_average.weighted_average(noisy_img, weights)
-            return tf.image.psnr(y_true, prediction, max_val=1.0)
+
+            y_true = tf.divide(y_true, tf.reduce_max(y_true))
+            prediction = tf.divide(prediction, tf.reduce_max(prediction))
+
+            psnr_val = tf.image.psnr(y_true, prediction, max_val=1.0)
+            
+            # Sometimes the psnr value returns nan or inf - in this case, we
+            # disregard the value and instead calculate the mean across non zero
+            # values (we set nans and inf to zero in the following two lines)
+            psnr_val = tf.where(tf.is_nan(psnr_val), tf.zeros_like(psnr_val), psnr_val)
+            psnr_val = tf.where(tf.is_inf(psnr_val), tf.zeros_like(psnr_val), psnr_val)
+
+            # Count how many non zeros we have (corresponding to how many wer
+            # not nan or inf
+            non_zeros = tf.count_nonzero(psnr_val)
+
+            # Sum up the batch
+            psnr_batch_sum = tf.reduce_sum(psnr_val, axis=0)
+            
+            # Divide the batch sum by the number of non zero (nan or inf)
+            # elements
+            psnr_val = tf.divide(psnr_batch_sum, tf.cast(non_zeros, tf.float32))
+
+            return psnr_val
         return psnr
 
     def psnr(self, y_true, y_pred):
         return tf.image.psnr(y_true, y_pred, max_val=1.0)
 
-    def MAVKernelPredict(self, noisy_img):
+    # Perform kernel prediction and calculate mean absolute value cost
+    def kernelPredictMAE(self, noisy_img):
+        print(" \n\n ==== USING MAE LOSS ==== \n\n")
+        noisy_img = self.processImgForKernelPrediction(noisy_img)
+        def loss(y_true, y_pred):
+            weights = self.processWeightsForKernelPrediction(y_pred)
+            prediction = weighted_average.weighted_average(noisy_img, weights)
+            mae_loss = tf.keras.losses.mean_absolute_error(y_true, prediction)
+
+            # Ensure nans are 0
+            mae_loss = tf.where(tf.is_nan(mae_loss), tf.zeros_like(mae_loss), mae_loss)
+
+            return mae_loss
+        return loss
+
+    # Perform kernel prediction and calculate feature cost
+    def kernelPredictVGG(self, noisy_img):
+        print(" ==== USING FEATURE LOSS (%s) ==== " % self.vgg_mode)
         noisy_img = self.processImgForKernelPrediction(noisy_img)
         def loss(y_true, y_pred):
             weights = self.processWeightsForKernelPrediction(y_pred)
             prediction = weighted_average.weighted_average(noisy_img, weights)
             feature_loss = self.VGG19FeatureLoss(y_true, prediction)
-            mse_loss = tf.keras.losses.mean_squared_error(y_true, prediction)
-            mse_loss = tf.reduce_sum(mse_loss) / (config.PATCH_WIDTH * config.PATCH_HEIGHT)
             return feature_loss
         return loss
 
@@ -428,10 +473,13 @@ class Denoiser():
         features_pred = feature_extractor(y_pred)
         features_true = feature_extractor(y_true)
 
+        print(features_pred)
+        print(features_true)
+
         feature_loss = tf.keras.losses.mean_squared_error(features_pred, features_true)
 
         # 0.03 rescales to be similar to MSE loss values
-        feature_loss = 0.03 * tf.reduce_sum(feature_loss) / (feature_shape[0] * feature_shape[1])
+        feature_loss = tf.reduce_sum(feature_loss) / (feature_shape[0] * feature_shape[1])
 
         return feature_loss
 
@@ -454,12 +502,23 @@ class Denoiser():
             self.model = tf.keras.models.Model(inputs=conv_input, outputs=pred)
 
             if self.kernel_predict:
-                loss = self.MAVKernelPredict(conv_input)
-                metrics = [self.kernelPredictPSNR(conv_input)]
-            else:
-                loss = "mean_squared_error"
-                metrics = [self.psnr]
+                # Use the psnr metric
+                metrics=[self.kernelPredictPSNR(conv_input)]
 
+                # Mean absolute error
+                if self.loss == "mae":
+                    loss = self.kernelPredictMAE(conv_input)
+                # Feature loss with block2conv2
+                elif self.loss == "vgg22":
+                    self.vgg_mode = 22
+                    loss = self.kernelPredictVGG(conv_input)
+                # Feature loss with block5conv4
+                elif self.loss == "vgg54":
+                    self.vgg_mode = 54
+                    loss = self.kernelPredictVGG(conv_input)
+            else:
+                loss = "mean_absolute_error"
+                metrics = [self.psnr]
 
             self.model.compile(
                 optimizer=self.adam,

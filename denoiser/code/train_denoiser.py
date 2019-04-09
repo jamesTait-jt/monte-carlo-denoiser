@@ -21,14 +21,49 @@ def main():
     denoiser = Denoiser(
         train_data,
         test_data,
-        num_epochs=200,
+        adam_lr=1e-4,
+        num_epochs=200000, # Stupid number of epochs, early stopping will prevent reaching this
         kernel_predict=True,
         feature_list=feature_list,
-        num_layers=4,
-        batch_size=32
+        num_layers=7,
+        batch_size=32,
+        loss="mae",
+        model_dir="mae_0.0001_allfeatures"
     )
     denoiser.buildNetwork()
-    denoiser.train()
+    #denoiser.train()
+    del denoiser
+
+    denoiser = Denoiser(
+        train_data,
+        test_data,
+        adam_lr=1e-4,
+        num_epochs=200000,
+        kernel_predict=True,
+        feature_list=feature_list,
+        num_layers=7,
+        batch_size=32,
+        loss="vgg22",
+        model_dir="vgg22_0.0001_allfeatures"
+    )
+    denoiser.buildNetwork()
+    denoiser.compile()
+    del denoiser
+
+    denoiser = Denoiser(
+        train_data,
+        test_data,
+        adam_lr=1e-4,
+        num_epochs=200000,
+        kernel_predict=True,
+        feature_list=feature_list,
+        num_layers=7,
+        batch_size=32,
+        loss="vgg54",
+        model_dir="vgg54_0.0001_allfeatures"
+    )
+    denoiser.buildNetwork()
+    denoiser.compile()
 
     discriminator = Discriminator(
         train_data,
