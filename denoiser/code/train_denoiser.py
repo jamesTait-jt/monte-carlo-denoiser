@@ -11,11 +11,12 @@ def main():
 
     seed = 1234
     #patches = data.makePatches(seed)
-    patches = tungsten_data.getPatches()
+    #patches = tungsten_data.getPatches()
+    patches = tungsten_data.getSampledPatches()
 
     train_data = patches["train"]
     test_data = patches["test"]
-    
+
     feature_list = ["normal", "albedo", "depth"]
     denoiser = Denoiser(
         train_data,
@@ -27,7 +28,7 @@ def main():
         batch_size=32
     )
     denoiser.buildNetwork()
-    #denoiser.train()
+    denoiser.train()
 
     discriminator = Discriminator(
         train_data,
@@ -46,7 +47,7 @@ def main():
         num_epochs=1000,
         batch_size=32
     )
-    gan.train()
+    #gan.train()
 
 if __name__ == "__main__":
     main()
