@@ -11,9 +11,10 @@ RUN apt-get -y update &&\
     apt-get -y install libopenexr-dev &&\
     pip3 install librosa --user &&\
     pip3 install keras==2.2.4 --user &&\
-    pip3 install tqdm &&\
-    pip3 install OpenEXR &&\
-    pip3 install Imath
+    pip3 install tqdm --user &&\
+    pip3 install OpenEXR --user &&\
+    pip3 install Imath --user &&\
+    pip3 install matplotlib --user
 
 
 # Make a new working directory

@@ -15,43 +15,46 @@ const int SCREEN_HEIGHT = 512; // The height of the final image
 
 // Camera configurations
 const vec4 camera_configurations[] = {
-    vec4(0.0f, 0.0f, 1.0f, 1.0f), // Whole room open box
-    vec4(-0.99f, 0.1f, 0.99f, 1.0f),  // Front left corner looking in (closed box)
-    vec4(0.8f, 0.1f, 0.8f, 1.0f),    // Front right corner looking in (closed box)
-    vec4(0.0f, 0.0f, 1.0f, 1.0f), // Whole room open box
-    vec4(0.0f, 0.0f, 1.0f, 1.0f) // Whole room open box
+    //vec4(0.0f, 0.0f, 1.0f, 1.0f) // Whole room open box
+    //vec4(-0.99f, 0.1f, 0.99f, 1.0f),  // Front left corner looking in (closed box)
+    //vec4(0.8f, 0.1f, 0.8f, 1.0f),    // Front right corner looking in (closed box)
+    //vec4(0.0f, 0.0f, 1.0f, 1.0f), // Whole room open box
+    //vec4(0.0f, 0.0f, 1.0f, 1.0f) // Whole room open box
+    vec4(0.0f, 0.0f, 1.0f, 1.0f)
 };
 
 const float camera_yaws[] = {
-    0.0f,
-    -(float) M_PI / 6.0f,
-    (float) M_PI / 6.0f,
-    0.0f,
+    //0.0f,
+    //-(float) M_PI / 6.0f,
+    //(float) M_PI / 6.0f,
+    //0.0f,
     0.0f
 };
 
 const std::string scenes[] = {
-    "objects/james_room_closed_big_light.obj",
-    "objects/james_room_closed_big_light.obj",
-    "objects/james_room_closed_big_light.obj",
-    "objects/box_with_decoration.obj",
-    "objects/cornell_box.obj",
+    //"objects/james_room_closed_big_light.obj",
+    //"objects/james_room_closed_big_light.obj",
+    //"objects/james_room_closed_big_light.obj",
+    //"objects/box_with_decoration.obj",
+    "objects/cornell_box.obj"
 };
 
 const std::string directory_names[] = {
-    "train",
-    "train",
-    "train",
-    "train",
-    "test"
+    //"train",
+    //"train",
+    //"train",
+    //"train",
+    //"test",
+    "report"
 };
 
 // Lights configuration
-// -- lightSphere 1: 
+// -- lightSphere 1:
+
 const vec4 light_start_position(0.0f, -0.4f, -0.9f, 1.0f); // The start position of the centre of the area light
 const float area_light_radius = 0.1f; // Distance away from the centre point lights can spawn
 const int num_lights = 1; // The number of point lights in the area light
-const float light_intensity = 0.5f; // The intensity of the area light as a whole
+const float light_intensity = 0.1f; // The intensity of the area light as a whole
 const vec3 light_colour(0.75f, 0.75f, 0.75f); // The colour of the area light
 
 const int NUM_BOUNCES = 10; // Number of bounces in the path tracer before returning black

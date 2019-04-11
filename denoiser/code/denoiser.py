@@ -82,6 +82,7 @@ class Denoiser():
         
         self.activation = tf.keras.layers.ReLU()
         self.loss = kwargs.get("loss", "mae")
+        self.early_stopping = kwargs.get("early_stopping", False)
 
         self.initialiser_seed = kwargs.get("initialiser_seed", 5678)
         self.kernel_initialiser = tf.keras.initializers.glorot_normal(seed=self.initialiser_seed)
@@ -91,7 +92,7 @@ class Denoiser():
             beta_2=self.adam_beta2,
             decay=self.adam_lr_decay,
             clipnorm=1,
-            clipvalue=0.05
+            clipvalue=0.01
             #amsgrad=True
         )
 
@@ -178,7 +179,8 @@ class Denoiser():
             patience=20,
             restore_best_weights=True
         )
-        self.callbacks.append(early_stopping_cb)
+        if self.early_stopping:
+            self.callbacks.append(early_stopping_cb)
 
     # Read in the data from the dictionary, exctracting the necessary features
     def setInputAndLabels(self):
@@ -426,10 +428,12 @@ class Denoiser():
         def loss(y_true, y_pred):
             weights = self.processWeightsForKernelPrediction(y_pred)
             prediction = weighted_average.weighted_average(noisy_img, weights)
-            mae_loss = tf.keras.losses.mean_absolute_error(y_true, prediction)
 
+            mae_loss = tf.keras.losses.mean_absolute_error(y_true, prediction)
             # Ensure nans are 0
             mae_loss = tf.where(tf.is_nan(mae_loss), tf.zeros_like(mae_loss), mae_loss)
+            mae_loss = tf.reduce_mean(mae_loss)
+            mae_loss = tf.multiply(mae_loss, 100)
 
             return mae_loss
         return loss
@@ -443,6 +447,33 @@ class Denoiser():
             prediction = weighted_average.weighted_average(noisy_img, weights)
             feature_loss = self.VGG19FeatureLoss(y_true, prediction)
             return feature_loss
+        return loss
+
+    def kernelPredictCombination(self, noisy_img):
+        print(" ==== USING COMBINATION LOSS ==== ")
+        noisy_img = self.processImgForKernelPrediction(noisy_img)
+        def loss(y_true, y_pred):
+            weights = self.processWeightsForKernelPrediction(y_pred)
+            prediction = weighted_average.weighted_average(noisy_img, weights)
+            feature_loss = self.VGG19FeatureLoss(y_true, prediction)
+
+            mae_loss = tf.keras.losses.mean_absolute_error(y_true, prediction)
+            # Ensure nans are 0
+            mae_loss = tf.where(tf.is_nan(mae_loss), tf.zeros_like(mae_loss), mae_loss)
+            mae_loss = tf.reduce_mean(mae_loss)
+            # Rescale to a similar value to features
+            mae_loss = tf.multiply(mae_loss, 100)
+
+            # Apply weighting 
+            mae_loss = tf.multiply(mae_loss, 0.5)
+            
+            # Calculate final loss
+            final_loss = tf.add(feature_loss, mae_loss)
+            
+            # Scale down to nicer values
+            final_loss = tf.multiply(final_loss, 0.5)
+
+            return final_loss
         return loss
 
     # Compares the features from VGG19 of the prediction and ground truth
@@ -461,25 +492,22 @@ class Denoiser():
                 inputs=vgg19.input,
                 outputs=vgg19.get_layer("block5_conv4").output
             )
-            feature_shape = [4, 4]
+            multiplier = 100 #1.441 / 2.502 # Ensures it converges to similar value to mae
         elif self.vgg_mode == 22:
             feature_extractor = tf.keras.Model(
                 inputs=vgg19.input,
                 outputs=vgg19.get_layer("block2_conv2").output
             )
-            feature_shape = [32, 32]
+            multiplier = 1.441 / 2.502 # Ensures it converges to similar value to mae
+
         feature_extractor.trainable = False
 
         features_pred = feature_extractor(y_pred)
         features_true = feature_extractor(y_true)
 
-        print(features_pred)
-        print(features_true)
-
         feature_loss = tf.keras.losses.mean_squared_error(features_pred, features_true)
-
-        # 0.03 rescales to be similar to MSE loss values
-        feature_loss = tf.reduce_sum(feature_loss) / (feature_shape[0] * feature_shape[1])
+        feature_loss = tf.reduce_mean(feature_loss)
+        #feature_loss = tf.multiply(feature_loss, multiplier)
 
         return feature_loss
 
@@ -516,6 +544,9 @@ class Denoiser():
                 elif self.loss == "vgg54":
                     self.vgg_mode = 54
                     loss = self.kernelPredictVGG(conv_input)
+                elif self.loss == "combination":
+                    self.vgg_mode = 22
+                    loss = self.kernelPredictCombination(conv_input)
             else:
                 loss = "mean_absolute_error"
                 metrics = [self.psnr]

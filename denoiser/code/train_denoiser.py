@@ -21,49 +21,70 @@ def main():
     denoiser = Denoiser(
         train_data,
         test_data,
-        adam_lr=1e-4,
+        early_stopping=True,
+        adam_lr=1e-3,
         num_epochs=200000, # Stupid number of epochs, early stopping will prevent reaching this
         kernel_predict=True,
         feature_list=feature_list,
         num_layers=7,
         batch_size=32,
         loss="mae",
-        model_dir="mae_0.0001_allfeatures"
+        model_dir="mae_0.001_0.00001_allfeatures_1"
     )
-    denoiser.buildNetwork()
+    #denoiser.buildNetwork()
     #denoiser.train()
     del denoiser
+    
+    denoiser = Denoiser(
+        train_data,
+        test_data,
+        early_stopping=True,
+        adam_lr=1e-5,
+        num_epochs=200000, # Stupid number of epochs, early stopping will prevent reaching this
+        kernel_predict=True,
+        feature_list=feature_list,
+        num_layers=7,
+        batch_size=32,
+        loss="mae",
+        model_dir="mae_0.00001_allfeatures_1"
+    )
+    #denoiser.buildNetwork()
+    #denoiser.train()
+    #del denoiser
 
     denoiser = Denoiser(
         train_data,
         test_data,
-        adam_lr=1e-4,
+        adam_lr=1e-3,
         num_epochs=200000,
+        early_stopping=True,
         kernel_predict=True,
         feature_list=feature_list,
         num_layers=7,
         batch_size=32,
         loss="vgg22",
-        model_dir="vgg22_0.0001_allfeatures"
+        model_dir="vgg22_0.001_allfeatures"
     )
-    denoiser.buildNetwork()
-    denoiser.compile()
-    del denoiser
+    #denoiser.buildNetwork()
+    #denoiser.train()
+    #del denoiser
 
     denoiser = Denoiser(
         train_data,
         test_data,
-        adam_lr=1e-4,
+        adam_lr=1e-3,
         num_epochs=200000,
+        early_stopping=True,
         kernel_predict=True,
         feature_list=feature_list,
         num_layers=7,
         batch_size=32,
-        loss="vgg54",
-        model_dir="vgg54_0.0001_allfeatures"
+        loss="combination",
+        model_dir="combination_0.001_allfeatures"
     )
-    denoiser.buildNetwork()
-    denoiser.compile()
+    #denoiser.buildNetwork()
+    #denoiser.train()
+    #del denoiser
 
     discriminator = Discriminator(
         train_data,
@@ -72,8 +93,8 @@ def main():
         num_epochs=200,
         batch_size=32
     )
-    discriminator.buildNetwork()
-    discriminator.compile()
+    #discriminator.buildNetwork()
+    #discriminator.compile()
     #discriminator.train()
 
     gan = GAN(
@@ -82,7 +103,7 @@ def main():
         num_epochs=1000,
         batch_size=32
     )
-    #gan.train()
+    gan.train()
 
 if __name__ == "__main__":
     main()

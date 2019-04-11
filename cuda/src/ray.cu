@@ -4,6 +4,8 @@
 #include "ray.cuh"
 #include "triangle.h"
 #include "sphere.h"
+#include "light.h"
+#include "lightSphere.h"
 #include "util.h"
 #include "constants/materials.h"
 
@@ -42,6 +44,48 @@ bool cramer_(mat3 A, vec3 b, vec3 & solution) {
         A = temp;
     } 
     return det_not_zero;
+}
+
+__device__
+vec3 Ray::raytrace(
+    Triangle * triangles,
+    int num_tris,
+    Sphere * spheres,
+    int num_spheres,
+    Light light,
+    LightSphere ls
+) {
+    // If the ray didn't hit an object, return the current accumulation
+    if (closestIntersection(triangles, num_tris, spheres, num_spheres)) {
+
+        // Get the material of the object we have intersected with
+        Material material = closest_intersection_.is_triangle ?
+                    triangles[closest_intersection_.index].material_ :
+                    spheres[closest_intersection_.index].material_;
+
+        /*
+        vec3 direct = light.directLight(
+            closest_intersection_,
+            triangles,
+            num_tris,
+            spheres,
+            num_spheres
+        );
+        */
+
+        vec3 direct = ls.directLight(
+            closest_intersection_,
+            triangles,
+            num_tris,
+            spheres,
+            num_spheres
+        );
+        vec3 final_estimate = direct * material.diffuse_light_component_;
+
+        return final_estimate;
+    }
+    return vec3(0,0,0);
+
 }
 
 __device__

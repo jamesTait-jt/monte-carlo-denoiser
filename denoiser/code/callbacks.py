@@ -15,7 +15,7 @@ class TrainValTensorBoard(tf.keras.callbacks.TensorBoard):
 
     def set_model(self, model):
         # Setup writer for validation metrics
-        self.val_writer = tf.summary.FileWriter(self.val_log_dir)
+        self.val_writer = tf.summary.FileWriter(self.val_log_dir, flush_secs=5)
         super(TrainValTensorBoard, self).set_model(model)
 
     def on_epoch_end(self, epoch, logs=None):

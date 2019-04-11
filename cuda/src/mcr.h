@@ -55,7 +55,9 @@ void render_kernel(
     Sphere * spheres,
     int num_spheres,
     curandState * rand_state,
-    bool is_reference_image
+    bool is_reference_image,
+    Light light,
+    LightSphere ls
 );
 
 __device__

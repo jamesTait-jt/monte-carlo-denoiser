@@ -22,9 +22,9 @@ def applyKernel(noisy_img, weights):
     weights = tf.divide(weights, (tf.reduce_sum(weights, axis=3, keepdims=True)))
 
     with tf.Session(""):
+        print(weights.eval())
         pred = weighted_average.weighted_average(noisy_img, weights).eval()
         return pred
-
 
 model = tf.keras.models.load_model(sys.argv[1], compile=False)
 #feature_list = getFeaturesFromTitle(sys.argv[1])
@@ -63,8 +63,11 @@ print(model_input.shape)
 print("Making prediction... ")
 index = random.randint(0, config.NUM_DARTS * config.TEST_SCENES) 
 #index = 100
+index = 643
+#index = 390 # FAILURE CASE
+#index = 579 # FAILURE CASE
+
 weights = model.predict(model_input[index - 1 : index])
-print(weights)
 
 noisy_colour = np.array(patches["test"]["noisy"]["diffuse"][index-1 : index])
 if config.ALBEDO_DIVIDE:

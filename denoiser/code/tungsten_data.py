@@ -32,7 +32,7 @@ def getScenes(input_dir, image_dict, reference_or_noisy, test_or_train):
 
         # --- DIFFUSE --- #
         diffuse = exr.getBuffer(exr_file, "diffuse")
-        #diffuse_clipped = diffuse.clip(0, 1) # Clip the diffuse colour values between 0 and 1
+        diffuse = diffuse.clip(0, 1) # Clip the diffuse colour values between 0 and 1
         image_dict[test_or_train][reference_or_noisy]["diffuse"].append(diffuse)
 
         # --- ALBEDO DIVIDE --- # 

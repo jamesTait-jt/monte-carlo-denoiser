@@ -19,6 +19,8 @@ using glm::vec3;
 
 class Triangle;
 class Sphere;
+class Light;
+class LightSphere;
 
 struct Intersection {
     vec4 position;
@@ -40,6 +42,15 @@ class Ray {
         CUDA_DEV Ray(
             vec4 start,
             vec4 direction
+        );
+
+        CUDA_DEV vec3 raytrace(
+            Triangle * triangles,
+            int num_tris,
+            Sphere * spheres,
+            int num_spheres,
+            Light light,
+            LightSphere
         );
 
         CUDA_DEV bool closestIntersection(

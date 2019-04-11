@@ -21,8 +21,10 @@
 
 
 // ----- DEVICE CONSTANTS ----- //
-__constant__ int D_REF_SAMPLES_PER_PIXEL = 16 * 1024;
-__constant__ int D_NOISY_SAMPLES_PER_PIXEL = 3 * 256;
+//__constant__ int D_REF_SAMPLES_PER_PIXEL = 16 * 1024;
+//__constant__ int D_NOISY_SAMPLES_PER_PIXEL = 3 * 256;
+__constant__ int D_REF_SAMPLES_PER_PIXEL = 65536;
+__constant__ int D_NOISY_SAMPLES_PER_PIXEL = 128;
 
 // The error for floating point arithmetic issues
 __constant__ float D_EPS = 0.0001f;
@@ -52,29 +54,34 @@ int main(int argc, char *argv[]) {
 
     // Generate the material map
     std::unordered_map<std::string, Material> material_map = {
-            {"base03",  m_sol_base03},
-            {"base02",  m_sol_base02},
-            {"base01",  m_sol_base01},
-            {"base00",  m_sol_base00},
-            {"base0",   m_sol_base0},
-            {"base1",   m_sol_base1},
-            {"base2",   m_sol_base2},
-            {"base3",   m_sol_base3},
-            {"yellow",  m_sol_yellow},
-            {"orange",  m_sol_orange},
-            {"red",     m_sol_red},
-            {"magenta", m_sol_magenta},
-            {"violet",  m_sol_violet},
-            {"blue",    m_sol_blue},
-            {"cyan",    m_sol_cyan},
-            {"green",   m_sol_green},
-            {"light",   m_light}
+            {"base03",    m_sol_base03},
+            {"base02",    m_sol_base02},
+            {"base01",    m_sol_base01},
+            {"base00",    m_sol_base00},
+            {"base0",     m_sol_base0},
+            {"base1",     m_sol_base1},
+            {"base2",     m_sol_base2},
+            {"base3",     m_sol_base3},
+            {"yellow",    m_sol_yellow},
+            {"orange",    m_sol_orange},
+            {"red",       m_sol_red},
+            {"magenta",   m_sol_magenta},
+            {"violet",    m_sol_violet},
+            {"blue",      m_sol_blue},
+            {"cyan",      m_sol_cyan},
+            {"green",     m_sol_green},
+            {"light",     m_light},
+            {"def_red"  , m_red},
+            {"def_green", m_green},
     };
 
-    int total_scenes = 5; //scenes.size();
+    int total_scenes = 1; //scenes.size();
     for (int scene_index = 0; scene_index < total_scenes; scene_index++) {
 
-        for (int i = 0; i < 2; i++) {
+        Light light(light_intensity, halogen_light_colour, light_start_position);
+        LightSphere ls(light_start_position, 0.5, 100, light_intensity, halogen_light_colour);
+
+        for (int i = 0; i < 1; i++) {
 
             bool is_reference_image = i == 0 ? true : false;
 
@@ -148,9 +155,11 @@ int main(int argc, char *argv[]) {
 
             // Load in the shapes
             std::vector<Triangle> triangles_vec;
+            //printf(scenes[scene_index].c_str());
             load_scene(scenes[scene_index].c_str(), triangles_vec, material_map);
 
             int num_tris = triangles_vec.size();
+            //int num_tris = 30;
             Triangle *triangles = new Triangle[num_tris];
 
             for (int j = 0; j < num_tris; j++) {
@@ -160,14 +169,15 @@ int main(int argc, char *argv[]) {
             int num_spheres = 0;
             Sphere * spheres = new Sphere[num_spheres];
 
+            // Load the polygons into the triangles array
+            //loadShapes(triangles, spheres);
+
             Triangle *d_triangles;
             Sphere * d_spheres;
 
             checkCudaErrors(cudaMalloc(&d_triangles, num_tris * sizeof(Triangle)));
             checkCudaErrors(cudaMalloc(&d_spheres, num_spheres * sizeof(Sphere)));
 
-            // Load the polygons into the triangles array
-            //loadShapes(triangles, spheres);
 
             checkCudaErrors(cudaMemcpy(
                     d_triangles,
@@ -218,7 +228,9 @@ int main(int argc, char *argv[]) {
                 d_spheres,
                 num_spheres,
                 d_rand_states,
-                is_reference_image
+                is_reference_image,
+                light,
+                ls
             );
 
             // Copy results of rendering back to the host
@@ -448,7 +460,9 @@ void render_kernel(
     Sphere *spheres,
     int num_spheres,
     curandState *rand_state,
-    bool is_reference_image
+    bool is_reference_image,
+    Light light,
+    LightSphere ls
 ) {
     int num_samples = is_reference_image ? D_REF_SAMPLES_PER_PIXEL : D_NOISY_SAMPLES_PER_PIXEL;
 
@@ -461,6 +475,26 @@ void render_kernel(
 
     // Flip the y coordinate
     y = SCREEN_HEIGHT - y;
+
+    /*
+    // Change the ray's direction to work for the current pixel (pixel space -> Camera space)
+    vec4 dir(
+            (float) x - SCREEN_WIDTH / 2.0f,
+            (float) y - SCREEN_HEIGHT / 2.0f,
+            camera.focal_length_,
+            1
+    );
+
+    // Create a ray for the given pixel
+    Ray ray(camera.position_, dir);
+    ray.rotateRay(camera.yaw_);
+
+    vec3 colour = ray.raytrace(triangles, num_tris, spheres, num_spheres, light, ls);
+
+    colours[pixel_index] = colour;
+     */
+
+    //////////////////////////////////////////////////////////
 
     vec3 colour_accum = vec3(0.0f);
     vec3 surface_normal_accum = vec3(0.0f);
@@ -614,23 +648,23 @@ void loadShapes(Triangle *triangles, Sphere *spheres) {
     curr_tris++;
 
     // Left wall
-    Triangle left_wall_1 = Triangle(A, E, C, m_sol_red);
+    Triangle left_wall_1 = Triangle(A, E, C, m_red);
     //triangles.push_back(left_wall_1);
     triangles[curr_tris] = left_wall_1;
     curr_tris++;
 
-    Triangle left_wall_2 = Triangle(C, E, G, m_sol_red);
+    Triangle left_wall_2 = Triangle(C, E, G, m_red);
     //triangles.push_back(left_wall_2);
     triangles[curr_tris] = left_wall_2;
     curr_tris++;
 
     // Right wall
-    Triangle right_wall_1 = Triangle(F, B, D, m_sol_cyan);
+    Triangle right_wall_1 = Triangle(F, B, D, m_green);
     //triangles.push_back(right_wall_1);
     triangles[curr_tris] = right_wall_1;
     curr_tris++;
 
-    Triangle right_wall_2 = Triangle(H, F, D, m_sol_cyan);
+    Triangle right_wall_2 = Triangle(H, F, D, m_green);
     //triangles.push_back(right_wall_2);
     triangles[curr_tris] = right_wall_2;
     curr_tris++;
@@ -648,33 +682,33 @@ void loadShapes(Triangle *triangles, Sphere *spheres) {
 
 
     // Back wall
-    Triangle back_wall_1 = Triangle(G, D, C, m_sol_yellow);
+    Triangle back_wall_1 = Triangle(G, D, C, m_sol_base3);
     //triangles.push_back(back_wall_1);
     triangles[curr_tris] = back_wall_1;
     curr_tris++;
 
-    Triangle back_wall_2 = Triangle(G, H, D, m_sol_yellow);
+    Triangle back_wall_2 = Triangle(G, H, D, m_sol_base3);
     //triangles.push_back(back_wall_2);
     triangles[curr_tris] = back_wall_2;
     curr_tris++;
 
     // ----- LIGHTS ----- //
-    float divisor = 1.5f;
-    float diff = cornell_length - (cornell_length / divisor);
-    vec4 new_e = vec4(E.x - diff, E.y - 1, E.z + diff, 1.0f);
-    vec4 new_f = vec4(F.x + diff, F.y - 1, F.z + diff, 1.0f);
-    vec4 new_g = vec4(G.x - diff, G.y - 1, G.z - diff, 1.0f);
-    vec4 new_h = vec4(H.x + diff, H.y - 1, H.z - diff, 1.0f);
+    //float divisor = 1.5f;
+    //float diff = cornell_length - (cornell_length / divisor);
+    //vec4 new_e = vec4(E.x - diff, E.y - 1, E.z + diff, 1.0f);
+    //vec4 new_f = vec4(F.x + diff, F.y - 1, F.z + diff, 1.0f);
+    //vec4 new_g = vec4(G.x - diff, G.y - 1, G.z - diff, 1.0f);
+    //vec4 new_h = vec4(H.x + diff, H.y - 1, H.z - diff, 1.0f);
 
-    Triangle light_1 = Triangle(new_e, new_f, new_g, m_light);
+    //Triangle light_1 = Triangle(new_e, new_f, new_g, m_light);
     //triangles.push_back(ceiling_1);
-    triangles[curr_tris] = light_1;
-    curr_tris++;
+    //triangles[curr_tris] = light_1;
+    //curr_tris++;
 
-    Triangle light_2 = Triangle(new_f, new_h, new_g, m_light);
+    //Triangle light_2 = Triangle(new_f, new_h, new_g, m_light);
     //triangles.push_back(ceiling_2);
-    triangles[curr_tris] = light_2;
-    curr_tris++;
+    //triangles[curr_tris] = light_2;
+    //curr_tris++;
 
     // ---------------------------------------------------------------------------
     // Short block
@@ -690,43 +724,43 @@ void loadShapes(Triangle *triangles, Sphere *spheres) {
     H = vec4(32, 165, 345, 1);
 
     // Front
-    //triangles.push_back(Triangle(E, B, A, m_sol_orange));
-    triangles[curr_tris] = Triangle(E, B, A, m_sol_orange);
+    //triangles.push_back(Triangle(E, B, A, m_sol_base3));
+    triangles[curr_tris] = Triangle(E, B, A, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(E, F, B, m_sol_orange));
-    triangles[curr_tris] = Triangle(E, F, B, m_sol_orange);
+    //triangles.push_back(Triangle(E, F, B, m_sol_base3));
+    triangles[curr_tris] = Triangle(E, F, B, m_sol_base3);
     curr_tris++;
 
     // Front
-    //triangles.push_back(Triangle(F, D, B, m_sol_orange));
-    triangles[curr_tris] = Triangle(F, D, B, m_sol_orange);
+    //triangles.push_back(Triangle(F, D, B, m_sol_base3));
+    triangles[curr_tris] = Triangle(F, D, B, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(F, H, D, m_sol_orange));
-    triangles[curr_tris] = Triangle(F, H, D, m_sol_orange);
+    //triangles.push_back(Triangle(F, H, D, m_sol_base3));
+    triangles[curr_tris] = Triangle(F, H, D, m_sol_base3);
     curr_tris++;
 
     // BACK
-    //triangles.push_back(Triangle(H, C, D, m_sol_orange));
-    triangles[curr_tris] = Triangle(H, C, D, m_sol_orange);
+    //triangles.push_back(Triangle(H, C, D, m_sol_base3));
+    triangles[curr_tris] = Triangle(H, C, D, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(H, G, C, m_sol_orange));
-    triangles[curr_tris] = Triangle(H, G, C, m_sol_orange);
+    //triangles.push_back(Triangle(H, G, C, m_sol_base3));
+    triangles[curr_tris] = Triangle(H, G, C, m_sol_base3);
     curr_tris++;
 
     // LEFT
-    //triangles.push_back(Triangle(G, E, C, m_sol_orange));
-    triangles[curr_tris] = Triangle(G, E, C, m_sol_orange);
+    //triangles.push_back(Triangle(G, E, C, m_sol_base3));
+    triangles[curr_tris] = Triangle(G, E, C, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(E, A, C, m_sol_orange));
-    triangles[curr_tris] = Triangle(E, A, C, m_sol_orange);
+    //triangles.push_back(Triangle(E, A, C, m_sol_base3));
+    triangles[curr_tris] = Triangle(E, A, C, m_sol_base3);
     curr_tris++;
 
     // TOP
-    //triangles.push_back(Triangle(G, F, E, m_sol_orange));
-    triangles[curr_tris] = Triangle(G, F, E, m_sol_orange);
+    //triangles.push_back(Triangle(G, F, E, m_sol_base3));
+    triangles[curr_tris] = Triangle(G, F, E, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(G, H, F, m_sol_orange));
-    triangles[curr_tris] = Triangle(G, H, F, m_sol_orange);
+    //triangles.push_back(Triangle(G, H, F, m_sol_base3));
+    triangles[curr_tris] = Triangle(G, H, F, m_sol_base3);
     curr_tris++;
 
     // ---------------------------------------------------------------------------
@@ -744,43 +778,43 @@ void loadShapes(Triangle *triangles, Sphere *spheres) {
 
     // Front
 
-    //triangles.push_back(Triangle(E, B, A, m_sol_blue));
-    triangles[curr_tris] = Triangle(E, B, A, m_sol_blue);
+    //triangles.push_back(Triangle(E, B, A, m_sol_base3));
+    triangles[curr_tris] = Triangle(E, B, A, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(E, F, B, m_sol_blue));
-    triangles[curr_tris] = Triangle(E, F, B, m_sol_blue);
+    //triangles.push_back(Triangle(E, F, B, m_sol_base3));
+    triangles[curr_tris] = Triangle(E, F, B, m_sol_base3);
     curr_tris++;
 
     // Front
-    //triangles.push_back(Triangle(F, D, B, m_sol_blue));
-    triangles[curr_tris] = Triangle(F, D, B, m_sol_blue);
+    //triangles.push_back(Triangle(F, D, B, m_sol_base3));
+    triangles[curr_tris] = Triangle(F, D, B, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(F, H, D, m_sol_blue));
-    triangles[curr_tris] = Triangle(F, H, D, m_sol_blue);
+    //triangles.push_back(Triangle(F, H, D, m_sol_base3));
+    triangles[curr_tris] = Triangle(F, H, D, m_sol_base3);
     curr_tris++;
 
     // BACK
-    //triangles.push_back(Triangle(H, C, D, m_sol_blue));
-    triangles[curr_tris] = Triangle(H, C, D, m_sol_blue);
+    //triangles.push_back(Triangle(H, C, D, m_sol_base3));
+    triangles[curr_tris] = Triangle(H, C, D, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(H, G, C, m_sol_blue));
-    triangles[curr_tris] = Triangle(H, G, C, m_sol_blue);
+    //triangles.push_back(Triangle(H, G, C, m_sol_base3));
+    triangles[curr_tris] = Triangle(H, G, C, m_sol_base3);
     curr_tris++;
 
     // LEFT
-    //triangles.push_back(Triangle(G, E, C, m_sol_blue));
-    triangles[curr_tris] = Triangle(G, E, C, m_sol_blue);
+    //triangles.push_back(Triangle(G, E, C, m_sol_base3));
+    triangles[curr_tris] = Triangle(G, E, C, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(E, A, C, m_sol_blue));
-    triangles[curr_tris] = Triangle(E, A, C, m_sol_blue);
+    //triangles.push_back(Triangle(E, A, C, m_sol_base3));
+    triangles[curr_tris] = Triangle(E, A, C, m_sol_base3);
     curr_tris++;
 
     // TOP
-    //triangles.push_back(Triangle(G, F, E, m_sol_blue));
-    triangles[curr_tris] = Triangle(G, F, E, m_sol_blue);
+    //triangles.push_back(Triangle(G, F, E, m_sol_base3));
+    triangles[curr_tris] = Triangle(G, F, E, m_sol_base3);
     curr_tris++;
-    //triangles.push_back(Triangle(G, H, F, m_sol_blue));
-    triangles[curr_tris] = Triangle(G, H, F, m_sol_blue);
+    //triangles.push_back(Triangle(G, H, F, m_sol_base3));
+    triangles[curr_tris] = Triangle(G, H, F, m_sol_base3);
     curr_tris++;
 
     // ---------------------------------------------------------------------------
@@ -789,8 +823,8 @@ void loadShapes(Triangle *triangles, Sphere *spheres) {
     //Sphere for the light
     //spheres[curr_spheres] = Sphere(vec4(0, -1, 0, 1), 0.2, m_light);
     //curr_spheres++;
-    spheres[curr_spheres] = Sphere(vec4(-0.4, 0.8, -0.5, 1), 0.2, m_sol_magenta);
-    curr_spheres++;
+    //spheres[curr_spheres] = Sphere(vec4(-0.4, 0.8, -0.5, 1), 0.2, m_sol_magenta);
+    //curr_spheres++;
 
 
     // ----------------------------------------------
