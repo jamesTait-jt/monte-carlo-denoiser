@@ -385,7 +385,6 @@ class Denoiser():
         weights = tf.divide(exp, weight_sum)
         return weights
 
-
     # Calculates the Peak Signal-to-noise value between two images
     def kernelPredictPSNR(self, noisy_img):
         noisy_img = self.processImgForKernelPrediction(noisy_img)
@@ -515,47 +514,44 @@ class Denoiser():
         self.model.add(tf.keras.layers.Dropout(rate))
 
     def buildNetwork(self):
-        if self.batch_norm:
-            self.trainBatchNorm()
+        conv_input = tf.keras.layers.Input(
+            shape=(self.patch_height, self.patch_width, self.input_channels)
+        )
+        
+        x = self.returnConvLayer(conv_input)
+        for _ in range(self.num_layers):
+            x = self.returnConvLayer(x)
+        pred = self.returnFinalConvLayer(x)
+
+        self.model = tf.keras.models.Model(inputs=conv_input, outputs=pred)
+
+        if self.kernel_predict:
+            # Use the psnr metric
+            metrics=[self.kernelPredictPSNR(conv_input)]
+
+            # Mean absolute error
+            if self.loss == "mae":
+                loss = self.kernelPredictMAE(conv_input)
+            # Feature loss with block2conv2
+            elif self.loss == "vgg22":
+                self.vgg_mode = 22
+                loss = self.kernelPredictVGG(conv_input)
+            # Feature loss with block5conv4
+            elif self.loss == "vgg54":
+                self.vgg_mode = 54
+                loss = self.kernelPredictVGG(conv_input)
+            elif self.loss == "combination":
+                self.vgg_mode = 22
+                loss = self.kernelPredictCombination(conv_input)
         else:
-            conv_input = tf.keras.layers.Input(
-                shape=(self.patch_height, self.patch_width, self.input_channels)
-            )
-            
-            x = self.returnConvLayer(conv_input)
-            for _ in range(self.num_layers):
-                x = self.returnConvLayer(x)
-            pred = self.returnFinalConvLayer(x)
+            loss = "mean_absolute_error"
+            metrics = [self.psnr]
 
-            self.model = tf.keras.models.Model(inputs=conv_input, outputs=pred)
-
-            if self.kernel_predict:
-                # Use the psnr metric
-                metrics=[self.kernelPredictPSNR(conv_input)]
-
-                # Mean absolute error
-                if self.loss == "mae":
-                    loss = self.kernelPredictMAE(conv_input)
-                # Feature loss with block2conv2
-                elif self.loss == "vgg22":
-                    self.vgg_mode = 22
-                    loss = self.kernelPredictVGG(conv_input)
-                # Feature loss with block5conv4
-                elif self.loss == "vgg54":
-                    self.vgg_mode = 54
-                    loss = self.kernelPredictVGG(conv_input)
-                elif self.loss == "combination":
-                    self.vgg_mode = 22
-                    loss = self.kernelPredictCombination(conv_input)
-            else:
-                loss = "mean_absolute_error"
-                metrics = [self.psnr]
-
-            self.model.compile(
-                optimizer=self.adam,
-                loss=loss,
-                metrics=metrics
-            )
+        self.model.compile(
+            optimizer=self.adam,
+            loss=loss,
+            metrics=metrics
+        )
 
     def train(self):
         self.model.fit(

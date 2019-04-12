@@ -14,7 +14,8 @@ RUN apt-get -y update &&\
     pip3 install tqdm --user &&\
     pip3 install OpenEXR --user &&\
     pip3 install Imath --user &&\
-    pip3 install matplotlib --user
+    pip3 install matplotlib --user &&\
+    pip3 install numpy --user 
 
 
 # Make a new working directory
