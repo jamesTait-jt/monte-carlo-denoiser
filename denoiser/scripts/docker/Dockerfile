@@ -15,7 +15,7 @@ RUN apt-get -y update &&\
     pip3 install OpenEXR --user &&\
     pip3 install Imath --user &&\
     pip3 install matplotlib --user &&\
-    pip3 install numpy --user 
+    pip3 install pillow --user
 
 
 # Make a new working directory

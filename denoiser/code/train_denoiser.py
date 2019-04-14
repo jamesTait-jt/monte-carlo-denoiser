@@ -102,9 +102,9 @@ def main():
         test_data, 
         num_epochs=1000,
         batch_size=64,
-        model_dir="gan_1.0vgg22_0.1adv_0.001lr_0.9b1_0.999b2_64bs_allfeatures"
+        model_dir="gan_0vgg22_1adv_0.001lr_0.9b1_0.999b2_64bs_allfeatures"
     )
-    gan.train()
+    gan.trainWGAN()
 
 if __name__ == "__main__":
     main()
