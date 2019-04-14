@@ -109,8 +109,8 @@ class Denoiser():
         #self.set_model_dir()
 
         now = time()
-        self.model_dir = "../models/" + kwargs.get("model_dir", "default") + str(now)
-        self.log_dir = "../logs/" + kwargs.get("model_dir", "default") + str(now)
+        self.model_dir = "../models/generator_only/" + kwargs.get("model_dir", "default") + str(now)
+        self.log_dir = "../logs/generator_only/" + kwargs.get("model_dir", "default") + str(now)
 
         # Use the sequential model API
         self.model = kwargs.get("model", tf.keras.models.Sequential())
@@ -380,6 +380,8 @@ class Denoiser():
     # Process the weights ready to be used in kernel prediction
     def processWeightsForKernelPrediction(self, weights):
         # Normalise the weights (softmax)
+        weightsum = tf.reduce_max(weights, axis=3, keepdims=True)
+        weights = weights - weightsum
         exp = tf.math.exp(weights)
         weight_sum = tf.reduce_sum(exp, axis=3, keepdims=True)
         weights = tf.divide(exp, weight_sum)

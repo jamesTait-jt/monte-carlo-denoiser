@@ -38,19 +38,19 @@ def main():
     denoiser = Denoiser(
         train_data,
         test_data,
-        early_stopping=True,
-        adam_lr=1e-5,
+        adam_lr=1e-4,
         num_epochs=200000, # Stupid number of epochs, early stopping will prevent reaching this
+        early_stopping=True,
         kernel_predict=True,
         feature_list=feature_list,
         num_layers=7,
         batch_size=32,
         loss="mae",
-        model_dir="mae_0.00001_allfeatures_1"
+        model_dir="MAE-0.0001-allfeatures"
     )
     #denoiser.buildNetwork()
     #denoiser.train()
-    #del denoiser
+    del denoiser
 
     denoiser = Denoiser(
         train_data,
@@ -63,11 +63,11 @@ def main():
         num_layers=7,
         batch_size=32,
         loss="vgg22",
-        model_dir="vgg22_0.001_allfeatures"
+        model_dir="vgg-0.001-allfeatures-rmsprop"
     )
     #denoiser.buildNetwork()
     #denoiser.train()
-    #del denoiser
+    del denoiser
 
     denoiser = Denoiser(
         train_data,
@@ -84,7 +84,7 @@ def main():
     )
     #denoiser.buildNetwork()
     #denoiser.train()
-    #del denoiser
+    del denoiser
 
     discriminator = Discriminator(
         train_data,
@@ -96,15 +96,19 @@ def main():
     #discriminator.buildNetwork()
     #discriminator.compile()
     #discriminator.train()
+    del discriminator
 
     gan = GAN(
         train_data, 
         test_data, 
         num_epochs=1000,
-        batch_size=64,
-        model_dir="gan_0vgg22_1adv_0.001lr_0.9b1_0.999b2_64bs_allfeatures"
+        batch_size=32,
+        g_lr=1e-5,
+        c_lr=1e-5,
+        g_beta1=0.5,
+        g_beta2=0.9
     )
-    gan.trainWGAN()
+    gan.trainWGAN_GP()
 
 if __name__ == "__main__":
     main()

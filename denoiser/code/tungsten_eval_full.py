@@ -46,19 +46,21 @@ def stitch(img, patch_width, patch_height, img_width, img_height):
 def normaliseWeights(weights):
     # Normalise weights
 
-    for image_weights in weights:
-        for x in range(image_weights.shape[0]):
-            for y in range(image_weights.shape[1]):
-                image_weights[x][y] -= np.max(image_weights[x][y])
+    # Subtract by a constant to avoid overflow
+    weightmax = np.max(weights, axis=3, keepdims=True)
+    weights = weights - weightmax
 
     weights = np.exp(weights)
-
     weight_sum = np.sum(weights, axis=3, keepdims=True)
     weights = np.divide(weights, weight_sum)
+
     return weights
 
 
 def applyKernel(noisy_img, weights):
+
+    batch_size = 8
+
     total_patches = weights.shape[0]
     kernel_size = math.sqrt(weights.shape[3])
     kernel_radius = int(math.floor(kernel_size / 2.0))
@@ -66,20 +68,30 @@ def applyKernel(noisy_img, weights):
     noisy_img = np.pad(noisy_img, paddings, mode="symmetric")
     weights = normaliseWeights(weights)
 
-    weights_tensor = tf.placeholder(tf.float32, shape=weights.shape, name="weights")
-    noisy_img_tensor = tf.placeholder(tf.float32, shape=noisy_img.shape, name="noisy_img")
+    weights_shape = (batch_size, weights.shape[1], weights.shape[2], weights.shape[3])
+    noisy_img_shape = (batch_size, noisy_img.shape[1], noisy_img.shape[2], noisy_img.shape[3])
+
+    weights_tensor = tf.placeholder(tf.float32, shape=weights_shape, name="weights")
+    noisy_img_tensor = tf.placeholder(tf.float32, shape=noisy_img_shape, name="noisy_img")
 
     pred = weighted_average.weighted_average(
-        noisy_img,
-        weights
+        noisy_img_tensor,
+        weights_tensor
     )
 
     with tf.Session("") as sess:
-        inputs = {
-            weights_tensor : weights,
-            noisy_img_tensor : noisy_img
-        }
-        denoised_patches = sess.run(pred, feed_dict=inputs)
+        
+        denoised_patches = []
+        for i in range(0, total_patches, batch_size):
+            print(str(i) + "/" + str(total_patches))
+            inputs = {
+                    weights_tensor : weights[i : i + batch_size],
+                    noisy_img_tensor : noisy_img[i : i + batch_size]
+            }
+            denoised_patches.append(sess.run(pred, feed_dict=inputs))
+        
+        denoised_patches = np.concatenate(denoised_patches)
+        print(denoised_patches.shape)
 
     return denoised_patches
 
@@ -119,6 +131,7 @@ def getDenoisedImg(model_input, noisy_img_patches):
     print("Applying weights...")
     pred = applyKernel(noisy_img_patches, weights)
     print("Done!")
+    pred = weights
 
     stitched = stitch(pred, config.PATCH_WIDTH, config.PATCH_HEIGHT, 1280, 1280)
     stitched = array_to_img(stitched[0 : 720, 0 : 1280])
