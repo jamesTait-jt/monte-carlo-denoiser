@@ -71,7 +71,7 @@ class GAN():
         self.c_lr = kwargs.get("c_lr", 1e-5)
 
         # How many times do we update critic per generator?
-        self.c_itr = kwargs.get("c_itr", 10)
+        self.c_itr = kwargs.get("c_itr", 1)
 
         # How much do we clip the weights of critic
         self.wgan_clip = kwargs.get("wgan_clip", 0.01)
@@ -204,8 +204,8 @@ class GAN():
             x = keras.layers.ReLU()(x)
 
         # Final layer is not activated
-        #weights = convLayer(x, pow(self.kpcn_size, 2))
-        weights = convLayer(x, 3)
+        weights = convLayer(x, pow(self.kpcn_size, 2))
+        #weights = convLayer(x, 3)
 
         return keras.models.Model(noisy_img, weights, name="Generator")
 
@@ -236,8 +236,8 @@ class GAN():
         x = convBlock(x, 128, strides=[2, 2])
         x = convBlock(x, 256, strides=[1, 1])
         x = convBlock(x, 256, strides=[2, 2])
-        #x = convBlock(x, 512, strides=[1, 1])
-        #x = convBlock(x, 512, strides=[2, 2])
+        x = convBlock(x, 512, strides=[1, 1])
+        x = convBlock(x, 512, strides=[2, 2])
 
         x = keras.layers.Dense(1024)(x)
         x = keras.layers.LeakyReLU(alpha=0.2)(x)
@@ -339,8 +339,8 @@ class GAN():
         weights = self.generator(noisy_img)
 
         # Apply the weights to the noisy image
-        #denoised_img = keras.layers.Lambda(self.applyKernel(noisy_img))(weights)
-        denoised_img = weights
+        denoised_img = keras.layers.Lambda(self.applyKernel(noisy_img))(weights)
+        #denoised_img = weights
 
         # Normalise critic inputs between -1 and 1
         normalised_denoised_img = keras.layers.Lambda(
@@ -395,15 +395,13 @@ class GAN():
         weights_gen = self.generator(noisy_img_gen)
 
         # Apply the weights to the noisy image
-        #denoised_img_gen = keras.layers.Lambda(self.applyKernel(noisy_img_gen))(weights_gen)
-        denoised_img_gen = weights_gen
+        denoised_img_gen = keras.layers.Lambda(self.applyKernel(noisy_img_gen))(weights_gen)
+        #denoised_img_gen = weights_gen
 
-        # Get the noisy features
-        #denoised_features = self.vgg(
-        #    denoised_img_gen
-        #)
-        #denoised_features = keras.layers.Lambda(lambda x: x, name='WGAN_GP_Feature')(denoised_features)
-
+        normalised_denoised_img_gen = keras.layers.Lambda(
+            lambda x: tf.image.per_image_standardization(x)
+        )(denoised_img_gen)
+        
         # Critic determines validity
         valid = self.critic(denoised_img_gen)
         
@@ -415,12 +413,11 @@ class GAN():
 
         self.generator_model.compile(
             loss=[self.featureLoss, self.wassersteinLoss, None],
-            loss_weights=[1.0, 1.0, 0.0],
+            loss_weights=[0.1, 1.0, 0.0],
             optimizer=keras.optimizers.Adam(
                 lr=self.g_lr,
                 beta_1=self.g_beta1,
                 beta_2=self.g_beta1
-                #clipvalue=0.01
             )
         )
 
@@ -791,7 +788,7 @@ class GAN():
 
     def trainWGAN_GP(self):
 
-        def saveModel(loss_function):
+        def saveModel():
             self.generator.save(
                 "../models/wgan-gp/{0}".format(
                     self.timestamp
@@ -838,7 +835,7 @@ class GAN():
 
         real = np.ones((self.batch_size, 1))
         fake = -real
-        dummy = real * 0.0 #Dummy labels of 0  
+        dummy = np.zeros((self.batch_size)) #Dummy labels of 0  
         
         val_writer = self.makeSummaryWriter("wgan-gp", "vgg+adv", "val")
         d_loss_writer = self.makeSummaryWriter("wgan-gp", "vgg+adv", "train")

@@ -43,6 +43,25 @@ def stitch(img, patch_width, patch_height, img_width, img_height):
                 img2d[y + y1][x + x1][2] = img[i][y1][x1][2]
     return img2d
 
+def stitchTwo(left_half, right_half, patch_size=60, img_height=720, img_width=1260):
+    patches_per_row = int(img_width/ patch_size)
+    patches_per_col = int(img_height / patch_size)
+    img2d = np.zeros((img_height, img_width, 3))
+    for i in range(left_half.shape[0]):
+        x = patch_size * (i % patches_per_row)
+        y = patch_size * (i // patches_per_row) #integer division
+        if x < patches_per_row / 2:
+            img = left_half
+        else:
+            img = right_half
+
+        for x1 in range(left_half[i].shape[0]):
+            for y1 in range(left_half[i].shape[1]):
+                img2d[y + y1][x + x1][0] = img[i][y1][x1][0]
+                img2d[y + y1][x + x1][1] = img[i][y1][x1][1]
+                img2d[y + y1][x + x1][2] = img[i][y1][x1][2]
+    return img2d
+
 def normaliseWeights(weights):
     # Normalise weights
 
@@ -123,7 +142,7 @@ def getModelInput(index):
 
     return np.concatenate((test_in), 3), test_in[0]
 
-def getDenoisedImg(model_input, noisy_img_patches):
+def getDenoisedImg(model_input, noisy_img_patches, reference_img_patches):
     print("Making prediction... ")
     weights = model.predict(model_input)
     print("Done!")
@@ -131,10 +150,29 @@ def getDenoisedImg(model_input, noisy_img_patches):
     print("Applying weights...")
     pred = applyKernel(noisy_img_patches, weights)
     print("Done!")
-    pred = weights
 
+    # Save image patches
+    for i in range(pred.shape[0]):
+        array_to_img(pred[i]).save("../data/output/{0}/pred/patches/{1}.png".format(index, i))
+        array_to_img(noisy_img_patches[i]).save("../data/output/{0}/noisy/patches/{1}.png".format(index, i))
+        array_to_img(reference_img_patches[i]).save("../data/output/{0}/reference/patches/{1}.png".format(index, i))
+
+    # Stitch prediction together and save
     stitched = stitch(pred, config.PATCH_WIDTH, config.PATCH_HEIGHT, 1280, 1280)
-    stitched = array_to_img(stitched[0 : 720, 0 : 1280])
+    stitched = array_to_img(stitched[0 : 720, 0 : 1260])
+    stitched.save("../data/output/{0}/pred/full.png".format(index))
+
+    # Stitch noisy and prediction
+
+
+    # Save noisy
+    noisy = np.array(images["test"]["noisy"]["diffuse"][index])
+    array_to_img(noisy).save("../data/output/{0}/noisy/full.png".format(index))
+
+    # Save reference
+    reference = np.array(images["test"]["reference"]["diffuse"][index])
+    array_to_img(reference).save("../data/output/{0}/reference/full.png".format(index))
+
 
     return stitched
 
@@ -158,7 +196,8 @@ def saveAsFigure(stitched, index):
 def denoiseTestImage(index):
     # Load in images
     model_input, noisy_img_patches = getModelInput(index)
-    stitched = getDenoisedImg(model_input, noisy_img_patches)
+    reference_patches = np.array(patchify(images["test"]["reference"]["diffuse"][index], 3))
+    stitched = getDenoisedImg(model_input, noisy_img_patches, reference_patches)
     saveAsFigure(stitched, index)
 
 full_pkl_path = "../data/tungsten/pkl/full_dict.pkl"
