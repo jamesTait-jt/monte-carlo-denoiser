@@ -10,7 +10,7 @@ PATCH_WIDTH = 60
 PATCH_HEIGHT = 60
 
 # Do we do the albedo divide step
-ALBEDO_DIVIDE = False
+ALBEDO_DIVIDE = True
 
 # Do we need to generate new patches?
 MAKE_NEW_PATCHES = False

@@ -51,6 +51,10 @@ class GAN():
         self.model_dir = kwargs.get("model_dir", "default_gan")
 
         # --- Network hyperparameters --- #
+        
+        # Are we doing KPCN or DPCN
+        self.kernel_predict = kwargs.get("kernel_predict", False)
+
         # Set the number of epochs
         self.num_epochs = kwargs.get("num_epochs", 100)
 
@@ -71,14 +75,14 @@ class GAN():
         self.c_lr = kwargs.get("c_lr", 1e-5)
 
         # How many times do we update critic per generator?
-        self.c_itr = kwargs.get("c_itr", 1)
+        self.c_itr = kwargs.get("c_itr", 5)
 
         # How much do we clip the weights of critic
         self.wgan_clip = kwargs.get("wgan_clip", 0.01)
 
         # Build and compile the Generator 
         self.generator = self.buildGenerator()
-        #self.generator.summary()
+        self.generator.summary()
 
         # Create our feature extractor for perceptual loss
         self.vgg = self.buildVGG()
@@ -94,7 +98,7 @@ class GAN():
         # Build and compile the critic
         self.critic = self.buildCritic()
         #self.compileCritic()
-        #self.critic.summary()
+        self.critic.summary()
 
         # Build (and compile inside) WGAN_GP model
         self.buildWGAN_GP()
@@ -182,7 +186,7 @@ class GAN():
         def convLayer(c_input, num_filters):
             c_output = keras.layers.Conv2D(
                 filters=num_filters,
-                kernel_size=[5, 5],
+                kernel_size=[3, 3],
                 use_bias=True,
                 strides=[1, 1],
                 padding="SAME",
@@ -200,12 +204,14 @@ class GAN():
         x = keras.layers.ReLU()(x)
         for _ in range(7):
             x = convLayer(x, 100)
-            #x = keras.layers.BatchNormalization()(x)
+            x = keras.layers.BatchNormalization()(x)
             x = keras.layers.ReLU()(x)
 
         # Final layer is not activated
-        weights = convLayer(x, pow(self.kpcn_size, 2))
-        #weights = convLayer(x, 3)
+        if self.kernel_predict:
+            weights = convLayer(x, pow(self.kpcn_size, 2))
+        else:
+            weights = convLayer(x, 3)
 
         return keras.models.Model(noisy_img, weights, name="Generator")
 
@@ -236,8 +242,8 @@ class GAN():
         x = convBlock(x, 128, strides=[2, 2])
         x = convBlock(x, 256, strides=[1, 1])
         x = convBlock(x, 256, strides=[2, 2])
-        x = convBlock(x, 512, strides=[1, 1])
-        x = convBlock(x, 512, strides=[2, 2])
+        #x = convBlock(x, 512, strides=[1, 1])
+        #x = convBlock(x, 512, strides=[2, 2])
 
         x = keras.layers.Dense(1024)(x)
         x = keras.layers.LeakyReLU(alpha=0.2)(x)
@@ -324,8 +330,9 @@ class GAN():
             return prediction
         return applyKernelLayer
 
-    def buildWGAN_GP(self):
 
+    def buildWGAN_GP(self):
+        
         # Freeze generator's layers while taining critic
         self.generator.trainable = False
 
@@ -335,28 +342,21 @@ class GAN():
         # Noisy images input
         noisy_img = keras.layers.Input(self.denoiser_input_shape)
 
-        # Get kernel of weights
-        weights = self.generator(noisy_img)
 
         # Apply the weights to the noisy image
-        denoised_img = keras.layers.Lambda(self.applyKernel(noisy_img))(weights)
-        #denoised_img = weights
-
-        # Normalise critic inputs between -1 and 1
-        normalised_denoised_img = keras.layers.Lambda(
-            lambda x: tf.image.per_image_standardization(x)
-        )(denoised_img)
-        
-        normalised_real_img = keras.layers.Lambda(
-            lambda x: tf.image.per_image_standardization(x)
-        )(real_img)
+        if self.kernel_predict:
+            # Get kernel of weights
+            weights = self.generator(noisy_img)
+            denoised_img = keras.layers.Lambda(self.applyKernel(noisy_img))(weights)
+        else:
+            denoised_img = self.generator(noisy_img)
 
         # Critic determines validity of real image and denoised image
-        fake = self.critic(normalised_denoised_img)
-        valid = self.critic(normalised_real_img)
+        fake = self.critic(denoised_img)
+        valid = self.critic(real_img)
 
         # Weighted average between real and fake images
-        interpolated_img = RandomWeightedAverage()([normalised_real_img, normalised_denoised_img])
+        interpolated_img = RandomWeightedAverage()([real_img, denoised_img])
         
         # Critic determines validity of weighted sample
         validity_interpolated = self.critic(interpolated_img)
@@ -391,33 +391,31 @@ class GAN():
         # Noisy image generator input
         noisy_img_gen = keras.layers.Input(self.denoiser_input_shape)
 
-        # Generate images based of noise
-        weights_gen = self.generator(noisy_img_gen)
+        if self.kernel_predict:
+            # Generate images based of noise
+            weights_gen = self.generator(noisy_img_gen)
+            # Apply the weights to the noisy image
+            denoised_img_gen = keras.layers.Lambda(self.applyKernel(noisy_img_gen))(weights_gen)
+        else:
+            denoised_img_gen = self.generator(noisy_img_gen)
 
-        # Apply the weights to the noisy image
-        denoised_img_gen = keras.layers.Lambda(self.applyKernel(noisy_img_gen))(weights_gen)
-        #denoised_img_gen = weights_gen
-
-        normalised_denoised_img_gen = keras.layers.Lambda(
-            lambda x: tf.image.per_image_standardization(x)
-        )(denoised_img_gen)
-        
         # Critic determines validity
         valid = self.critic(denoised_img_gen)
         
         # Defines generator model
         self.generator_model = keras.models.Model(
             inputs=[noisy_img_gen],
-            outputs=[denoised_img_gen, valid, denoised_img_gen]
+            outputs=[denoised_img_gen, valid]
         )
 
         self.generator_model.compile(
-            loss=[self.featureLoss, self.wassersteinLoss, None],
-            loss_weights=[0.1, 1.0, 0.0],
+            loss=[self.featureLoss, self.wassersteinLoss],
+            loss_weights=[0.1, 1.0],
             optimizer=keras.optimizers.Adam(
                 lr=self.g_lr,
                 beta_1=self.g_beta1,
-                beta_2=self.g_beta1
+                beta_2=self.g_beta1,
+                clipvalue=1
             )
         )
 
@@ -470,12 +468,11 @@ class GAN():
             lr=self.g_lr,
             beta_1=self.g_beta1,
             beta_2=self.g_beta2,
-            #clipvalue=0.01
+            clipvalue=1
         )
         self.generator.compile(
             loss=self.featureLoss,
-            optimizer=adam,
-            metrics=["mse"]
+            optimizer=adam
         )
     
     #https://github.com/keras-team/keras-contrib/blob/master/examples/improved_wgan.py
@@ -799,8 +796,12 @@ class GAN():
             reference_imgs = self.test_labels
             noisy_imgs = self.test_input
 
-            denoised = self.generator_model.predict(noisy_imgs)[2]
+            denoised = self.generator_model.predict(noisy_imgs)[0]
         
+            if config.ALBEDO_DIVIDE:
+                reference_imgs = np.array(self.test_data["reference"]["diffuse"])
+                denoised *= (np.array(self.test_data["noisy"]["albedo"]) + 0.00316)
+
             reference_imgs = np.clip(reference_imgs, 0, 1)
             denoised = np.clip(denoised, 0, 1)
 
@@ -843,11 +844,11 @@ class GAN():
         g_adv_loss_writer = self.makeSummaryWriter("wgan-gp", "vgg+adv", "train_adv")
 
         step = 0
+        d_loss = [0]
         for epoch in range(self.num_epochs):
             print("="*15, "Epoch %d" % epoch, "="*15)
             for batch_num in tqdm(range(train_data_size // self.batch_size)):
 
-                d_loss = [0]
                 for _ in range(self.c_itr):
                     # Get random numbers to select our batch
                     rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
@@ -861,6 +862,11 @@ class GAN():
                         [train_reference_batch, train_noisy_batch], 
                         [real, fake, dummy]
                     )
+
+                    d_loss_summary = self.makeSummary("d_loss", -d_loss[0])
+                    d_loss_writer.add_summary(d_loss_summary, step)
+    
+                    step += 1
 
                 # Get random numbers to select our batch
                 rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
@@ -879,16 +885,16 @@ class GAN():
                 feat_loss = g_loss[1]
                 adv_loss = g_loss[2]
 
-                d_loss_summary = self.makeSummary("d_loss", -d_loss[0])
-                d_loss_writer.add_summary(d_loss_summary, step)
+                #d_loss_summary = self.makeSummary("d_loss", -d_loss[0])
+                #d_loss_writer.add_summary(d_loss_summary, step)
 
-                g_feat_loss_summary = self.makeSummary("g_loss", 0.1 * feat_loss)
+                g_feat_loss_summary = self.makeSummary("g_loss", feat_loss)
                 g_feat_loss_writer.add_summary(g_feat_loss_summary, step)
 
                 g_adv_loss_summary = self.makeSummary("g_loss", adv_loss)
                 g_adv_loss_writer.add_summary(g_adv_loss_summary, step)
                 
-                step += 1
+                #step += 1
 
             # Save the model at each epoch
             saveModel()
@@ -1046,3 +1052,53 @@ class GAN():
         )
         return writer
 
+
+    def toyGenerator(self):
+
+        def convLayer(prev_layer, num_filters):
+            new_layer = keras.layers.Conv2D(
+                filters=num_filters,
+                kernel_size=[5, 5],
+                use_bias=True,
+                strides=[1, 1],
+                padding="SAME",
+                kernel_initializer= keras.initializers.glorot_normal(seed=5678)
+            )(prev_layer)
+        
+            return new_layer
+
+        ####################################
+
+        conv_input = keras.layers.Input(
+            shape=self.denoiser_input_shape
+        )
+
+        x = convLayer(conv_input, 100)
+        x = keras.layers.ReLU()(x)
+        for _ in range(7):
+            x = convLayer(x, 100)
+            x = keras.layers.ReLU()(x)
+    
+        out = convLayer(x, 3)
+
+        model = keras.models.Model(conv_input, out)
+
+        adam = keras.optimizers.Adam(
+            lr=self.g_lr,
+            beta_1=self.g_beta1,
+            beta_2=self.g_beta2,
+            clipvalue=1
+        )
+
+        model.compile(
+            optimizer=adam,
+            loss="mean_absolute_error"
+        )
+
+        model.fit(
+            self.train_input,
+            self.train_labels,
+            validation_data=(self.test_input, self.test_labels),
+            batch_size=self.batch_size,
+            epochs=self.num_epochs,
+        )

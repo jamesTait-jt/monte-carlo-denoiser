@@ -18,22 +18,6 @@ def main():
     test_data = patches["test"]
 
     feature_list = ["normal", "albedo", "depth"]
-    denoiser = Denoiser(
-        train_data,
-        test_data,
-        early_stopping=True,
-        adam_lr=1e-3,
-        num_epochs=200000, # Stupid number of epochs, early stopping will prevent reaching this
-        kernel_predict=True,
-        feature_list=feature_list,
-        num_layers=7,
-        batch_size=32,
-        loss="mae",
-        model_dir="mae_0.001_0.00001_allfeatures_1"
-    )
-    #denoiser.buildNetwork()
-    #denoiser.train()
-    del denoiser
     
     denoiser = Denoiser(
         train_data,
@@ -46,7 +30,7 @@ def main():
         num_layers=7,
         batch_size=32,
         loss="mae",
-        model_dir="MAE-0.0001-allfeatures"
+        model_dir="MAE-0.0001-allfeatures-albedodiv"
     )
     #denoiser.buildNetwork()
     #denoiser.train()
@@ -63,52 +47,26 @@ def main():
         num_layers=7,
         batch_size=32,
         loss="vgg22",
-        model_dir="vgg-0.001-allfeatures-rmsprop"
+        model_dir="vgg-0.001-allfeatures-albedodiv"
     )
     #denoiser.buildNetwork()
     #denoiser.train()
     del denoiser
-
-    denoiser = Denoiser(
-        train_data,
-        test_data,
-        adam_lr=1e-3,
-        num_epochs=200000,
-        early_stopping=True,
-        kernel_predict=True,
-        feature_list=feature_list,
-        num_layers=7,
-        batch_size=32,
-        loss="combination",
-        model_dir="combination_0.001_allfeatures"
-    )
-    #denoiser.buildNetwork()
-    #denoiser.train()
-    del denoiser
-
-    discriminator = Discriminator(
-        train_data,
-        test_data,
-        adam_lr=1e-4,
-        num_epochs=200,
-        batch_size=32
-    )
-    #discriminator.buildNetwork()
-    #discriminator.compile()
-    #discriminator.train()
-    del discriminator
 
     gan = GAN(
         train_data, 
         test_data, 
         num_epochs=1000,
+        kernel_predict=True,
         batch_size=32,
-        g_lr=1e-5,
-        c_lr=1e-5,
+        g_lr=1e-4,
         g_beta1=0.5,
-        g_beta2=0.9
+        g_beta2=0.9,
+        c_lr=1e-4,
+        c_itr=10
     )
     gan.trainWGAN_GP()
+    #gan.toyGenerator()
 
 if __name__ == "__main__":
     main()
