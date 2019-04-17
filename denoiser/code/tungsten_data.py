@@ -338,7 +338,22 @@ def fillSampledPatches(
     diffuse_buf = diffuse[scene_num]
     normal_buf = normal[scene_num]
     importance_map = getImportanceMap([diffuse_buf, normal_buf], metrics, weights)
+
+    # Save importance map
+    if test_or_train == "test":
+        plt.figure()
+        imgplot = plt.imshow(importance_map)
+        imgplot.axes.get_xaxis().set_visible(False)
+        imgplot.axes.get_yaxis().set_visible(False)
+        plt.savefig("../data/output/{0}/sampling/importance_map.png".format(scene_num))
+
     patch_positions = samplePatches(diffuse_buf.shape[:2])
+    
+    # Save original patch positions
+    if test_or_train == "test":
+        plt.figure()
+        plt.scatter(list(a[0] for a in patch_positions), list(a[1] for a in patch_positions))
+        plt.savefig("../data/output/{0}/sampling/dart_thrown_patches.png".format(scene_num))
 
     selection = diffuse_buf * 0.1
     for i in range(patch_positions.shape[0]):
@@ -361,6 +376,13 @@ def fillSampledPatches(
         x, y = pruned[i, 0], pruned[i, 1]
         selection[y : y + config.PATCH_WIDTH, x : x + config.PATCH_HEIGHT, :] = \
             diffuse_buf[y : y + config.PATCH_WIDTH, x : x + config.PATCH_HEIGHT, :]
+
+    # Save pruned patch positions
+    if test_or_train == "test":
+        plt.figure()
+        plt.scatter(list(a[0] for a in pruned), list(a[1] for a in pruned))
+        plt.savefig("../data/output/{0}/sampling/pruned_patches.png".format(scene_num))
+
 
     patch_positions = pruned + pad
 

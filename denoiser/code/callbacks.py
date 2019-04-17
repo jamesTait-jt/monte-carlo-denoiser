@@ -1,5 +1,6 @@
 import os
 import tensorflow as tf
+import keras.backend as K
 
 
 # Callback to plot both training and validation metrics
@@ -39,3 +40,5 @@ class TrainValTensorBoard(tf.keras.callbacks.TensorBoard):
     def on_train_end(self, logs=None):
         super(TrainValTensorBoard, self).on_train_end(logs)
         self.val_writer.close()
+
+

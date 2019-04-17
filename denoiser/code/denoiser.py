@@ -185,35 +185,23 @@ class Denoiser():
     # Read in the data from the dictionary, exctracting the necessary features
     def setInputAndLabels(self):
 
+        diffuse_or_albedo_div = "diffuse"
+        if config.ALBEDO_DIVIDE:
+            diffuse_or_albedo_div = "albedo_divided"
+
         new_train_in = [
-            np.array(self.train_data["noisy"]["diffuse"]),
-            np.array(self.train_data["noisy"]["diffuse_gx"]),
-            np.array(self.train_data["noisy"]["diffuse_gy"]),
-            np.array(self.train_data["noisy"]["diffuse_var"])
+            np.array(self.train_data["noisy"][diffuse_or_albedo_div]),
+            np.array(self.train_data["noisy"][diffuse_or_albedo_div + "_gx"]),
+            np.array(self.train_data["noisy"][diffuse_or_albedo_div + "_gy"]),
+            np.array(self.train_data["noisy"][diffuse_or_albedo_div + "_var"])
         ]
 
         new_test_in = [
-            np.array(self.test_data["noisy"]["diffuse"]),
-            np.array(self.test_data["noisy"]["diffuse_gx"]),
-            np.array(self.test_data["noisy"]["diffuse_gy"]),
-            np.array(self.test_data["noisy"]["diffuse_var"])
+            np.array(self.test_data["noisy"][diffuse_or_albedo_div]),
+            np.array(self.test_data["noisy"][diffuse_or_albedo_div + "_gx"]),
+            np.array(self.test_data["noisy"][diffuse_or_albedo_div + "_gy"]),
+            np.array(self.test_data["noisy"][diffuse_or_albedo_div + "_var"])
         ]
-
-        if config.ALBEDO_DIVIDE:
-            new_train_in = [
-                np.array(self.train_data["noisy"]["albedo_divided"]),
-                np.array(self.train_data["noisy"]["albedo_divided_gx"]),
-                np.array(self.train_data["noisy"]["albedo_divided_gy"]),
-                np.array(self.train_data["noisy"]["albedo_divided_var"])
-            ]
-
-            new_test_in = [
-                np.array(self.test_data["noisy"]["albedo_divided"]),
-                np.array(self.test_data["noisy"]["albedo_divided_gx"]),
-                np.array(self.test_data["noisy"]["albedo_divided_gy"]),
-                np.array(self.test_data["noisy"]["albedo_divided_var"])
-            ]
-
 
         for feature in self.feature_list:
             feature = feature
@@ -227,25 +215,8 @@ class Denoiser():
         self.train_input = np.concatenate((new_train_in), 3)
         self.test_input = np.concatenate((new_test_in), 3)
 
-        #train_labels = [
-        #    np.array(self.train_data["reference_colour"]),
-        #    np.array(self.train_data["noisy_colour"])
-        #]
-
-        #test_labels = [
-        #    np.array(self.test_data["reference_colour"]),
-        #    np.array(self.test_data["noisy_colour"])
-        #]
-
-        #self.train_labels = np.concatenate((train_labels), 3)
-        #self.test_labels = np.concatenate((test_labels), 3)
-
-        self.train_labels = np.array(self.train_data["reference"]["diffuse"])
-        self.test_labels = np.array(self.test_data["reference"]["diffuse"])
-
-        if config.ALBEDO_DIVIDE:
-            self.train_labels = np.array(self.train_data["reference"]["albedo_divided"])
-            self.test_labels = np.array(self.test_data["reference"]["albedo_divided"])
+        self.train_labels = np.array(self.train_data["reference"][diffuse_or_albedo_div])
+        self.test_labels = np.array(self.test_data["reference"][diffuse_or_albedo_div])
 
         # Ensure input channels is the right size
         self.input_channels = self.train_input.shape[3]
@@ -402,7 +373,7 @@ class Denoiser():
             # Sometimes the psnr value returns nan or inf - in this case, we
             # disregard the value and instead calculate the mean across non zero
             # values (we set nans and inf to zero in the following two lines)
-            psnr_val = tf.where(tf.is_nan(psnr_val), tf.zeros_like(psnr_val), psnr_val)
+            #psnr_val = tf.where(tf.is_nan(psnr_val), tf.zeros_like(psnr_val), psnr_val)
             psnr_val = tf.where(tf.is_inf(psnr_val), tf.zeros_like(psnr_val), psnr_val)
 
             # Count how many non zeros we have (corresponding to how many wer
