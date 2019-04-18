@@ -1,3 +1,7 @@
+# Training examples
+denoiser/training_results/*
+
+# Data
 perturbed_scenes/*
 
 # pkl data
