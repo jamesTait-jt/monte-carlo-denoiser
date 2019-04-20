@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 from time import time
 from tqdm import tqdm
 
-from keras.applications import VGG19
 from keras.applications.vgg19 import preprocess_input
 from keras.preprocessing.image import array_to_img, img_to_array
 import keras
@@ -15,6 +14,7 @@ import keras.backend as K
 from keras.layers.merge import _Merge
 
 import config
+import models
 import data
 from denoiser import Denoiser
 from discriminator import Discriminator
@@ -23,7 +23,7 @@ import weighted_average
 # https://github.com/eriklindernoren/Keras-GAN/blob/master/wgan_gp/wgan_gp.py
 class RandomWeightedAverage(_Merge):
     def _merge_function(self, inputs):
-        alpha = K.random_uniform((32, 1, 1, 1))
+        alpha = K.random_uniform((64, 1, 1, 1))
         return (alpha * inputs[0]) + ((1 - alpha) * inputs[1])
 
 class GAN():
@@ -49,6 +49,7 @@ class GAN():
 
         # Set where we will save our model and logs
         self.model_dir = kwargs.get("model_dir", "default_gan")
+        self.log_dir = kwargs.get("log_dir", "default_gan")
 
         # --- Network hyperparameters --- #
         
@@ -64,14 +65,35 @@ class GAN():
         # set the size of the weights kernel
         self.kpcn_size = kwargs.get("kpcn_size", 21)
 
+        g_loss = kwargs.get("g_loss", self.featureLoss)
+        if g_loss == "mae":
+            self.g_loss = "mean_absolute_error"
+        elif g_loss == "vgg":
+            self.g_loss = self.featureLoss
+
+        # Weighting of the loss function
+        self.loss_weights = kwargs.get("loss_weights", [1, 1])
+        
+
         # Set learning rates and adam params 
         self.g_lr = kwargs.get("g_lr", 1e-3)
         self.g_beta1 = kwargs.get("g_beta1", 0.9)
         self.g_beta2 = kwargs.get("g_beta2", 0.999)
 
+        # How many hidden layers for generator
+        self.g_layers = kwargs.get("g_layers", 6)
 
+
+        # Kernel size for generator
+        self.g_kernel_size = kwargs.get("g_kernel_size", [3, 3])
+
+        # Do we do batch norm on the generator
+        self.g_bn = kwargs.get("g_bn", False)
+
+        # Set learning rate for discriminator
         self.d_lr = kwargs.get("d_lr", 1e-4)
 
+        # Set learning rate for critic
         self.c_lr = kwargs.get("c_lr", 1e-5)
 
         # How many times do we update critic per generator?
@@ -81,11 +103,17 @@ class GAN():
         self.wgan_clip = kwargs.get("wgan_clip", 0.01)
 
         # Build and compile the Generator 
-        self.generator = self.buildGenerator()
+        self.generator = models.buildGenerator(
+            self.g_kernel_size,
+            self.g_layers,
+            self.g_bn,
+            self.kernel_predict,
+            self.kpcn_size
+        )
         self.generator.summary()
 
         # Create our feature extractor for perceptual loss
-        self.vgg = self.buildVGG()
+        self.vgg = models.buildVGG()
         
         #self.compileVGG()
         #self.vgg.summary()
@@ -96,7 +124,7 @@ class GAN():
         #self.discriminator.summary()
 
         # Build and compile the critic
-        self.critic = self.buildCritic()
+        self.critic = models.buildCritic()
         #self.compileCritic()
         self.critic.summary()
 
@@ -120,7 +148,7 @@ class GAN():
         self.global_step = 0
 
         # Set the model's timestamp
-        self.timestamp = time()
+        self.timestamp = str(time())
         
     # ==== Data handling ==== #
     def setInputAndLabels(self):
@@ -161,134 +189,6 @@ class GAN():
         # Ensure input channels is the right size
         self.input_channels = self.train_input.shape[3]
 
-    # ===== Functions to build the network ===== #
-    def buildVGG(self):
-        vgg19 = VGG19(
-            include_top=False,
-            weights='imagenet',
-            input_shape=self.img_shape
-        )
-        vgg19.trainable = False
-        for layer in vgg19.layers:
-            layer.trainable = False
-
-        feature_extractor = keras.models.Model(
-            inputs=vgg19.input,
-            outputs=vgg19.get_layer("block2_conv2").output
-        )
-
-        feature_extractor.trainable = False
-        return feature_extractor
-
-    def buildGenerator(self):
-
-        # Helper function for convolutional layer
-        def convLayer(c_input, num_filters):
-            c_output = keras.layers.Conv2D(
-                filters=num_filters,
-                kernel_size=[3, 3],
-                use_bias=True,
-                strides=[1, 1],
-                padding="SAME",
-                kernel_initializer=keras.initializers.glorot_normal(seed=5678)
-            )(c_input)
-            return c_output
-
-        ################################################
-
-        # The generator takes a noisy image as input
-        noisy_img = keras.layers.Input(self.denoiser_input_shape, name="Generator_input")
-
-        # 9 fully convolutional layers
-        x = convLayer(noisy_img, 100)
-        x = keras.layers.ReLU()(x)
-        for _ in range(7):
-            x = convLayer(x, 100)
-            x = keras.layers.BatchNormalization()(x)
-            x = keras.layers.ReLU()(x)
-
-        # Final layer is not activated
-        if self.kernel_predict:
-            weights = convLayer(x, pow(self.kpcn_size, 2))
-        else:
-            weights = convLayer(x, 3)
-
-        return keras.models.Model(noisy_img, weights, name="Generator")
-
-    def buildCritic(self):
-        # Helper function for convolution layer
-        def convBlock(c_input, num_filters, strides, bn=False):
-            c_output = keras.layers.Conv2D(
-                filters=num_filters,
-                kernel_size=[3, 3],
-                strides=strides,
-                padding="SAME"
-            )(c_input)
-            
-            output = keras.layers.LeakyReLU(alpha=0.2)(c_output)
-            
-            if bn:
-                output = keras.layers.BatchNormalization(momentum=0.8)(output)
-        
-            return output
-
-        ################################################
-
-        img = keras.layers.Input(shape=self.img_shape, name="Critic_input")
-        
-        x = convBlock(img, 64, strides=[1, 1], bn=False)
-        x = convBlock(x, 64, strides=[2, 2])
-        x = convBlock(x, 128, strides=[1, 1])
-        x = convBlock(x, 128, strides=[2, 2])
-        x = convBlock(x, 256, strides=[1, 1])
-        x = convBlock(x, 256, strides=[2, 2])
-        #x = convBlock(x, 512, strides=[1, 1])
-        #x = convBlock(x, 512, strides=[2, 2])
-
-        x = keras.layers.Dense(1024)(x)
-        x = keras.layers.LeakyReLU(alpha=0.2)(x)
-        x = keras.layers.Flatten()(x)
-        x = keras.layers.Dense(1)(x)
-
-        return keras.models.Model(img, x, name="Critic")
-
-    def buildDiscriminator(self):
-
-        # Helper function for convolution layer
-        def convBlock(c_input, num_filters, strides, bn=True):
-            c_output = keras.layers.Conv2D(
-                filters=num_filters,
-                kernel_size=[3, 3],
-                strides=strides,
-                padding="SAME"
-            )(c_input)
-            
-            output = keras.layers.LeakyReLU(alpha=0.2)(c_output)
-            
-            if bn:
-                output = keras.layers.BatchNormalization(momentum=0.8)(output)
-        
-            return output
-
-        ################################################
-
-        img = keras.layers.Input(shape=self.img_shape, name="Discriminator_input")
-        
-        x = convBlock(img, 64, strides=[1, 1], bn=False)
-        x = convBlock(x, 64, strides=[2, 2])
-        x = convBlock(x, 128, strides=[1, 1])
-        x = convBlock(x, 128, strides=[2, 2])
-        x = convBlock(x, 256, strides=[1, 1])
-        x = convBlock(x, 256, strides=[2, 2])
-        x = convBlock(x, 512, strides=[1, 1])
-        x = convBlock(x, 512, strides=[2, 2])
-
-        x = keras.layers.Dense(1024)(x)
-        x = keras.layers.LeakyReLU(alpha=0.2)(x)
-        x = keras.layers.Flatten()(x)
-        prob = keras.layers.Dense(1, activation='sigmoid')(x)
-
-        return keras.models.Model(img, prob, name="Discriminator")
 
     ################################################################
     #                HELPER FUNCTIONS - MAYBE SEPARATE             #
@@ -333,60 +233,62 @@ class GAN():
 
     def buildWGAN_GP(self):
         
-        # Freeze generator's layers while taining critic
-        self.generator.trainable = False
+        # If we are using the critic's loss
+        if self.loss_weights[1] > 0:
+            # Freeze generator's layers while taining critic
+            self.generator.trainable = False
 
-        # Real (reference) image input
-        real_img = keras.layers.Input(self.img_shape)
+            # Real (reference) image input
+            real_img = keras.layers.Input(self.img_shape)
 
-        # Noisy images input
-        noisy_img = keras.layers.Input(self.denoiser_input_shape)
+            # Noisy images input
+            noisy_img = keras.layers.Input(self.denoiser_input_shape)
 
 
-        # Apply the weights to the noisy image
-        if self.kernel_predict:
-            # Get kernel of weights
-            weights = self.generator(noisy_img)
-            denoised_img = keras.layers.Lambda(self.applyKernel(noisy_img))(weights)
-        else:
-            denoised_img = self.generator(noisy_img)
+            # Apply the weights to the noisy image
+            if self.kernel_predict:
+                # Get kernel of weights
+                weights = self.generator(noisy_img)
+                denoised_img = keras.layers.Lambda(self.applyKernel(noisy_img))(weights)
+            else:
+                denoised_img = self.generator(noisy_img)
 
-        # Critic determines validity of real image and denoised image
-        fake = self.critic(denoised_img)
-        valid = self.critic(real_img)
+            # Critic determines validity of real image and denoised image
+            fake = self.critic(denoised_img)
+            valid = self.critic(real_img)
 
-        # Weighted average between real and fake images
-        interpolated_img = RandomWeightedAverage()([real_img, denoised_img])
-        
-        # Critic determines validity of weighted sample
-        validity_interpolated = self.critic(interpolated_img)
+            # Weighted average between real and fake images
+            interpolated_img = RandomWeightedAverage()([real_img, denoised_img])
+            
+            # Critic determines validity of weighted sample
+            validity_interpolated = self.critic(interpolated_img)
 
-        # Get loss function with averaged_samples argument 
-        partial_gp_loss = partial(
-            self.gradient_penalty_loss,
-            averaged_samples=interpolated_img
-        )
-        
-        partial_gp_loss.__name__ = 'gradient_penalty' # Keras requires function names
-
-        self.critic_model = keras.models.Model(
-            inputs=[real_img, noisy_img],
-            outputs=[valid, fake, validity_interpolated]
-        )
-
-        self.critic_model.compile(
-            loss=[self.wassersteinLoss, self.wassersteinLoss, partial_gp_loss],
-            loss_weights=[1, 1, 10],
-            optimizer=keras.optimizers.Adam(
-                lr=self.c_lr,
-                beta_1=0.5,
-                beta_2=0.9
+            # Get loss function with averaged_samples argument 
+            partial_gp_loss = partial(
+                self.gradient_penalty_loss,
+                averaged_samples=interpolated_img
             )
-        )
+            
+            partial_gp_loss.__name__ = 'gradient_penalty' # Keras requires function names
 
-        # For the generator we freeze the critic's layers
-        self.critic.trainable = False
-        self.generator.trainable = True
+            self.critic_model = keras.models.Model(
+                inputs=[real_img, noisy_img],
+                outputs=[valid, fake, validity_interpolated]
+            )
+
+            self.critic_model.compile(
+                loss=[self.wassersteinLoss, self.wassersteinLoss, partial_gp_loss],
+                loss_weights=[1, 1, 10],
+                optimizer=keras.optimizers.Adam(
+                    lr=self.c_lr,
+                    beta_1=0.5,
+                    beta_2=0.9
+                )
+            )
+
+            # For the generator we freeze the critic's layers
+            self.critic.trainable = False
+            self.generator.trainable = True
 
         # Noisy image generator input
         noisy_img_gen = keras.layers.Input(self.denoiser_input_shape)
@@ -409,8 +311,9 @@ class GAN():
         )
 
         self.generator_model.compile(
-            loss=[self.featureLoss, self.wassersteinLoss],
-            loss_weights=[0.1, 1.0],
+            loss=[self.g_loss, self.wassersteinLoss],
+            #loss_weights=[0.1, 1.0],
+            loss_weights=self.loss_weights,
             optimizer=keras.optimizers.Adam(
                 lr=self.g_lr,
                 beta_1=self.g_beta1,
@@ -495,7 +398,7 @@ class GAN():
         gradient_l2_norm = K.sqrt(gradients_sqr_sum)
         
         # compute lambda * (1 - ||grad||)^2 still for each single sample
-        gradient_penalty = K.square(1 - gradient_l2_norm)
+        gradient_penalty = K.square(gradient_l2_norm)
         
         # return the mean as loss over all the batch samples
         return K.mean(gradient_penalty)
@@ -556,171 +459,6 @@ class GAN():
             #loss_weights=[1, 0, 0], #Weighting from the paper
             optimizer=adam
         )
-
-    # We provide a function to train only thge generator. We must wrap the
-    # generator so we can perform kernel prediction otherwise we will nto be
-    # able to save the model.
-    def trainGeneratorOnly(self, loss_function):
-
-        # Build the generator with the wrapper to perform kernel predict
-        def buildGeneratorWrapper(loss_function):
-
-            # Noisy images input
-            noisy_img = keras.layers.Input(self.denoiser_input_shape, name="GAN_Input")
-            
-            # Pass through the generator submodel to obtain weights
-            weights = self.generator(noisy_img)
-
-            # Apply the weights
-            denoised_img = keras.layers.Lambda(self.applyKernel(noisy_img))(weights)
-
-            # If mae, image is model output
-            if loss_function == "mae":
-                return keras.models.Model(
-                    inputs=noisy_img,
-                    outputs=denoised_img
-                ) 
-            
-            # If feature loss, get them, and use as model output
-            elif loss_function == "vgg":
-                denoised_features = self.vgg(
-                    denoised_img
-                )
-                denoised_features = keras.layers.Lambda(lambda x: x, name='Feature')(denoised_features)
-
-                return keras.models.Model(
-                    inputs=noisy_img,
-                    outputs=[denoised_features, denoised_img]
-                )
-        
-        def compileGeneratorWrapper(loss_function):
-            adam = keras.optimizers.Adam(
-                lr=self.g_lr,
-                beta_1=0.9,
-                beta_2=0.999,
-            )
-            if loss_function == "mae":
-                self.generatorWrapper.compile(
-                    loss="mean_absolute_error",
-                    optimizer=adam
-                )
-            elif loss_function == "vgg":
-                self.generatorWrapper.compile(
-                    loss=["mean_squared_error", None],
-                    optimizer=adam
-                )
-
-        def saveModel(loss_function):
-            self.generator.save(
-                "../models/generator_only/{0}-{1}-{2}".format(
-                    self.timestamp, 
-                    loss_function, 
-                    self.g_lr
-                )
-            )
-
-        def psnr(loss_function, epoch):
-            reference_imgs = self.test_labels
-            noisy_imgs = self.test_input
-
-            if loss_function == "vgg":
-                denoised = self.generatorWrapper.predict(noisy_imgs)[1]
-            elif loss_function == "mae":
-                denoised = self.generatorWrapper.predict(noisy_imgs)
-        
-            reference_imgs = np.clip(reference_imgs, 0, 1)
-            denoised = np.clip(denoised, 0, 1)
-
-            self.makeFigureAndSave(reference_imgs[0], denoised[0], epoch)
-
-            reference_imgs_tensor = tf.placeholder(tf.float32, shape=reference_imgs.shape)
-            denoised_tensor = tf.placeholder(tf.float32, shape=denoised.shape)
-
-            psnr = tf.image.psnr(denoised_tensor, reference_imgs_tensor, max_val=1.0)
-            #psnr = tf.where(tf.is_nan(psnr), tf.zeros_like(psnr), psnr)
-            #psnr = tf.where(tf.is_inf(psnr), tf.zeros_like(psnr), psnr)
-            #non_zeros = tf.count_nonzero(psnr)
-            #psnr = tf.divide(K.sum(psnr), tf.cast(non_zeros, tf.float32))
-            psnr = K.mean(psnr)
-
-            with tf.Session("") as sess:
-                inputs = {
-                    reference_imgs_tensor : reference_imgs,
-                    denoised_tensor : denoised
-                }
-                psnr = sess.run(psnr, feed_dict=inputs)
-
-            return psnr
-
-        ################################################
-
-        self.generatorWrapper = buildGeneratorWrapper(loss_function)
-        compileGeneratorWrapper(loss_function)
-
-        train_data_size = np.array(self.train_data["noisy"]["diffuse"]).shape[0]
-        test_data_size = np.array(self.test_data["noisy"]["diffuse"]).shape[0]
-        step = 0
-
-        train_writer = self.makeSummaryWriter("generator_only", loss_function, "train")
-        val_writer = self.makeSummaryWriter("generator_only", loss_function, "val")
-
-        for epoch in range(self.num_epochs):
-            print("="*15, "Epoch %d" % epoch, "="*15)
-            for batch_num in tqdm(range(train_data_size // self.batch_size)):
-
-                rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
-                train_noisy_batch = self.train_input[rand_indices]
-                train_reference_batch = self.train_labels[rand_indices]
-
-                if loss_function == "vgg":
-                    reference_features = self.vgg(
-                        train_reference_batch
-                    )
-                    train_loss = self.generatorWrapper.train_on_batch(
-                        train_noisy_batch,
-                        reference_features
-                    )[0]
-
-                elif loss_function == "mae":
-                    train_loss = self.generatorWrapper.train_on_batch(
-                        train_noisy_batch,
-                        train_reference_batch
-                    )
-
-                train_loss_summary = self.makeSummary("loss", train_loss)
-                train_writer.add_summary(train_loss_summary, step)
-                step += 1
-            
-            # Save the model at the end of each epoch
-            #saveModel(loss_function)
-
-            # Calculate the psnr on the test set
-            val_psnr = psnr(loss_function, epoch)
-            psnr_summary = self.makeSummary("psnr", val_psnr)
-            val_writer.add_summary(psnr_summary, step)
-
-            # Calculate the validation loss on a random batch
-            rand_indices = np.random.randint(0, test_data_size, size=self.batch_size)
-            if loss_function == "vgg":
-                test_ref_features = self.vgg(
-                    self.test_labels[rand_indices]
-                )
-                val_loss = self.generatorWrapper.test_on_batch(
-                    self.test_input[rand_indices],
-                    test_ref_features
-                )[0]
-            elif loss_function == "mae":
-                val_loss = self.generatorWrapper.evaluate(
-                    self.test_input,
-                    self.test_labels
-                )
-            
-            val_loss_summary = self.makeSummary("loss", val_loss)
-            val_writer.add_summary(val_loss_summary, step)
-
-            print("PSNR: %f" % val_psnr)
-            print("VAL_LOSS: %f" % val_loss)
-
 
     # Convert from [0, 1] to [0, 255] for vgg
     def preprocessVGG(self, img):
@@ -785,12 +523,8 @@ class GAN():
 
     def trainWGAN_GP(self):
 
-        def saveModel():
-            self.generator.save(
-                "../models/wgan-gp/{0}".format(
-                    self.timestamp
-                )
-            )
+        def saveModel(model):
+            model.save(self.model_dir + self.timestamp)
 
         def psnr(epoch):
             reference_imgs = self.test_labels
@@ -805,7 +539,8 @@ class GAN():
             reference_imgs = np.clip(reference_imgs, 0, 1)
             denoised = np.clip(denoised, 0, 1)
 
-            self.makeFigureAndSave(reference_imgs[0], denoised[0], epoch)
+            rnd = np.random.randint(noisy_imgs.shape[0])
+            self.makeFigureAndSave(reference_imgs[rnd], denoised[rnd], epoch)
 
             reference_imgs_tensor = tf.placeholder(tf.float32, shape=reference_imgs.shape)
             denoised_tensor = tf.placeholder(tf.float32, shape=denoised.shape)
@@ -845,10 +580,14 @@ class GAN():
 
         step = 0
         d_loss = [0]
+        best_val_loss = 100000
+        last_update_step = 0
         for epoch in range(self.num_epochs):
             print("="*15, "Epoch %d" % epoch, "="*15)
-            for batch_num in tqdm(range(train_data_size // self.batch_size)):
-
+            batches_per_epoch = train_data_size // self.batch_size
+            epoch_val_loss_sum = 0
+            for batch_num in tqdm(range(batches_per_epoch)):
+                batch_loss_sum = 0
                 for _ in range(self.c_itr):
                     # Get random numbers to select our batch
                     rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
@@ -863,10 +602,9 @@ class GAN():
                         [real, fake, dummy]
                     )
 
-                    d_loss_summary = self.makeSummary("d_loss", -d_loss[0])
-                    d_loss_writer.add_summary(d_loss_summary, step)
-    
-                    step += 1
+                    batch_loss_sum += d_loss[0]
+
+                batch_loss_avg = batch_loss_sum / self.c_itr
 
                 # Get random numbers to select our batch
                 rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
@@ -876,7 +614,6 @@ class GAN():
                 train_reference_batch = self.train_labels[rand_indices]
                 
                 # Train generator
-
                 g_loss = self.generator_model.train_on_batch(
                     train_noisy_batch, 
                     [train_reference_batch, real]
@@ -884,27 +621,63 @@ class GAN():
 
                 feat_loss = g_loss[1]
                 adv_loss = g_loss[2]
-
-                #d_loss_summary = self.makeSummary("d_loss", -d_loss[0])
-                #d_loss_writer.add_summary(d_loss_summary, step)
-
+                
+                # Training summaries
+                d_loss_summary = self.makeSummary("d_loss", -batch_loss_avg)
+                d_loss_writer.add_summary(d_loss_summary, step)
+    
                 g_feat_loss_summary = self.makeSummary("g_loss", feat_loss)
                 g_feat_loss_writer.add_summary(g_feat_loss_summary, step)
 
                 g_adv_loss_summary = self.makeSummary("g_loss", adv_loss)
                 g_adv_loss_writer.add_summary(g_adv_loss_summary, step)
                 
-                #step += 1
+                # Evaluation summaries
+                rand_indices = np.random.randint(0, test_data_size, size=self.batch_size)
+                test_noisy_batch = self.test_input[rand_indices]
+                test_reference_batch = self.test_labels[rand_indices]
+                d_val_loss = self.critic_model.test_on_batch(
+                    [test_reference_batch, test_noisy_batch], 
+                    [real, fake, dummy]
+                )
+
+                d_val_loss_summary = self.makeSummary("d_loss", -d_val_loss[0])
+                val_writer.add_summary(d_val_loss_summary, step)
+
+                g_val_loss = self.generator_model.test_on_batch(
+                    test_noisy_batch,
+                    [test_reference_batch, real]
+                )
+                epoch_val_loss_sum += g_val_loss[1]
+
+                step += 1
+
+            epoch_val_loss_avg = epoch_val_loss_sum / batches_per_epoch
+            if  epoch_val_loss_avg < best_val_loss:
+                print("New best!")
+                best_val_loss = epoch_val_loss_avg
+                best_model = self.generator
+                last_update_epoch = epoch
+
+            g_val_loss_summary = self.makeSummary("g_loss", epoch_val_loss_avg)
+            val_writer.add_summary(g_val_loss_summary, step)
+    
+            if epoch - last_update_epoch > 20:
+                print("==== EARLY STOPPING =======")
+                saveModel(best_model)
+                return
 
             # Save the model at each epoch
-            saveModel()
+            saveModel(best_model)
 
             val_psnr = psnr(epoch)
             val_psnr_summary = self.makeSummary("psnr", val_psnr)
             val_writer.add_summary(val_psnr_summary, step)
+            print("FEAT_VAL_LOSS: %f" % epoch_val_loss_avg)
             print("PSNR: %f" % val_psnr)
-            print("D_LOSS: %f" % d_loss[0])
-            print("G_ADV_LOSS: %f" % adv_loss)
+            #print("D_LOSS: %f" % d_loss[0])
+            #print("D_VAL_LOSS: %f" % batch_loss_avg)
+            #print("G_ADV_LOSS: %f" % adv_loss)
                 
     def train(self):
         #self.setTensorBoardWriters()
@@ -1017,21 +790,6 @@ class GAN():
 
         fig.savefig("../training_results/epoch:%d" % epoch)
 
-    def testPSNR(self): 
-        reference_test_imgs = self.test_labels
-        noisy_test_imgs = self.test_input
-        denoised = self.gan.predict(noisy_test_imgs)[2]
-        
-        denoised = np.clip(denoised, 0, 1)
-        reference_test_imgs = np.clip(reference_test_imgs, 0, 1)
-
-        with tf.Session(""):
-            psnr = tf.image.psnr(denoised, reference_test_imgs, max_val=1.0)
-            psnr = tf.where(tf.is_nan(psnr), tf.zeros_like(psnr), psnr)
-            non_zeros = tf.count_nonzero(psnr)
-            psnr = tf.divide(K.sum(psnr), tf.cast(non_zeros, tf.float32)).eval()
-        return psnr
-        
     def makeSummary(self, tag, val):
         summary = tf.Summary(
             value=[tf.Summary.Value(tag=tag, simple_value=val),]
@@ -1040,10 +798,8 @@ class GAN():
 
     def makeSummaryWriter(self, directory, loss_function, name):
         writer = tf.summary.FileWriter(
-            "../logs/{0}/{1}-{2}-{3}-{4}".format(
-                directory,
+            self.log_dir + "/{0}-{1}-{2}".format(
                 self.timestamp, 
-                loss_function,
                 self.g_lr,
                 name
             ),
@@ -1051,54 +807,3 @@ class GAN():
             flush_secs=10
         )
         return writer
-
-
-    def toyGenerator(self):
-
-        def convLayer(prev_layer, num_filters):
-            new_layer = keras.layers.Conv2D(
-                filters=num_filters,
-                kernel_size=[5, 5],
-                use_bias=True,
-                strides=[1, 1],
-                padding="SAME",
-                kernel_initializer= keras.initializers.glorot_normal(seed=5678)
-            )(prev_layer)
-        
-            return new_layer
-
-        ####################################
-
-        conv_input = keras.layers.Input(
-            shape=self.denoiser_input_shape
-        )
-
-        x = convLayer(conv_input, 100)
-        x = keras.layers.ReLU()(x)
-        for _ in range(7):
-            x = convLayer(x, 100)
-            x = keras.layers.ReLU()(x)
-    
-        out = convLayer(x, 3)
-
-        model = keras.models.Model(conv_input, out)
-
-        adam = keras.optimizers.Adam(
-            lr=self.g_lr,
-            beta_1=self.g_beta1,
-            beta_2=self.g_beta2,
-            clipvalue=1
-        )
-
-        model.compile(
-            optimizer=adam,
-            loss="mean_absolute_error"
-        )
-
-        model.fit(
-            self.train_input,
-            self.train_labels,
-            validation_data=(self.test_input, self.test_labels),
-            batch_size=self.batch_size,
-            epochs=self.num_epochs,
-        )

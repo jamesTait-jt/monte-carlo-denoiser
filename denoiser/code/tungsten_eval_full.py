@@ -154,7 +154,9 @@ def getDenoisedImg(model_input, noisy_img_patches, reference_img_patches, networ
 
     noisy_patches = np.array(patchify(images["test"]["noisy"]["diffuse"][index], 3))
     albedo = np.array(patchify(images["test"]["noisy"]["albedo"][index], 3))
-    pred = pred * (albedo + 0.00316)
+    if config.ALBEDO_DIVIDE:
+        pred = pred * (albedo + 0.00316)
+    
     pred = pred.clip(0, 1)
 
     # Save image patches

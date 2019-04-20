@@ -11,10 +11,10 @@ import matplotlib.pyplot as plt
 
 from keras.preprocessing.image import array_to_img, img_to_array
 
-noisy_test_dir = "../data/tungsten/test/noisy"
-reference_test_dir = "../data/tungsten/test/reference"
-noisy_train_dir = "../data/tungsten/train/noisy"
-reference_train_dir = "../data/tungsten/train/reference"
+noisy_test_dir = "../data/tungsten/test/noisy/32"
+reference_test_dir = "../data/tungsten/test/reference/1024"
+noisy_train_dir = "../data/tungsten/train/noisy/32"
+reference_train_dir = "../data/tungsten/train/reference/4096"
 
 full_pkl_path = "../data/tungsten/pkl/full_dict.pkl"
 patches_pkl_path = "../data/tungsten/pkl/patches_dict.pkl"

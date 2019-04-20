@@ -20,11 +20,12 @@ from tensorflow.keras.applications.vgg19 import VGG19
 from tensorflow.python import debug as tf_debug
 
 import config
+import models
 from callbacks import TrainValTensorBoard
 import data
 import weighted_average
 
-#tf.keras.backend.set_session(tf_debug.LocalCLIDebugWrapperSession(tf.Session()))
+#keras.backend.set_session(tf_debug.LocalCLIDebugWrapperSession(tf.Session()))
 
 class Denoiser():
     """Class for image denoiser via CNN
@@ -80,13 +81,13 @@ class Denoiser():
         self.adam_beta2 = kwargs.get("adam_beta2", 0.999)
         self.adam_lr_decay = kwargs.get("adam_lr_decay", 0.0)
         
-        self.activation = tf.keras.layers.ReLU()
+        self.activation = keras.layers.ReLU()
         self.loss = kwargs.get("loss", "mae")
         self.early_stopping = kwargs.get("early_stopping", False)
 
         self.initialiser_seed = kwargs.get("initialiser_seed", 5678)
-        self.kernel_initialiser = tf.keras.initializers.glorot_normal(seed=self.initialiser_seed)
-        self.adam = tf.keras.optimizers.Adam(
+        self.kernel_initialiser = keras.initializers.glorot_normal(seed=self.initialiser_seed)
+        self.adam = keras.optimizers.Adam(
             lr=self.adam_lr,
             beta_1=self.adam_beta1,
             beta_2=self.adam_beta2,
@@ -100,6 +101,8 @@ class Denoiser():
         self.kernel_predict = kwargs.get("kernel_predict", False)
         self.kpcn_size = kwargs.get("kpcn_size", 21)
 
+        self.vgg = models.buildVGG()
+
         # Which layer of vgg do we extract features from
         #self.vgg_mode = kwargs.get("vgg_mode", 22)
 
@@ -109,11 +112,11 @@ class Denoiser():
         #self.set_model_dir()
 
         now = time()
-        self.model_dir = "../models/generator_only/" + kwargs.get("model_dir", "default") + str(now)
-        self.log_dir = "../logs/generator_only/" + kwargs.get("model_dir", "default") + str(now)
+        self.model_dir = kwargs.get("model_dir", "default") + str(now)
+        self.log_dir = kwargs.get("log_dir", "default") + str(now)
 
         # Use the sequential model API
-        self.model = kwargs.get("model", tf.keras.models.Sequential())
+        self.model = kwargs.get("model", keras.models.Sequential())
 
         # Set callbacks
         self.set_callbacks()
@@ -147,7 +150,7 @@ class Denoiser():
     def set_callbacks(self):
         self.callbacks = []
 
-        tensorboard_cb = tf.keras.callbacks.TensorBoard(
+        tensorboard_cb = keras.callbacks.TensorBoard(
             log_dir=self.log_dir,
             histogram_freq=0,
             write_graph=True,
@@ -158,7 +161,7 @@ class Denoiser():
         self.callbacks.append(tensorboard_cb)
 
         filepath = self.model_dir
-        model_checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
+        model_checkpoint_cb = keras.callbacks.ModelCheckpoint(
             filepath,
             monitor='val_loss',
             verbose=0,
@@ -172,7 +175,7 @@ class Denoiser():
 
         # Stop taining if we don't see an improvement after 20 epochs and
         # restore the best performing weight
-        early_stopping_cb = tf.keras.callbacks.EarlyStopping(
+        early_stopping_cb = keras.callbacks.EarlyStopping(
             monitor='val_loss',
             mode='min',
             verbose=1,
@@ -225,7 +228,7 @@ class Denoiser():
     # First convolutional layer (must define input shape)
     def initialConvLayer(self):
         self.model.add(
-            tf.keras.layers.Conv2D(
+            keras.layers.Conv2D(
                 input_shape=(self.patch_height, self.patch_width, self.input_channels),
                 filters=self.num_filters,
                 kernel_size=self.kernel_size,
@@ -240,7 +243,7 @@ class Denoiser():
     # Convolutional layer (not final)
     def convLayer(self):
         self.model.add(
-            tf.keras.layers.Conv2D(
+            keras.layers.Conv2D(
                 filters=self.num_filters,
                 kernel_size=self.kernel_size,
                 use_bias=True,
@@ -252,14 +255,14 @@ class Denoiser():
         self.model.add(self.activation)
     
     def returnConvLayer(self, prev_layer):
-        new_layer = tf.keras.layers.Conv2D(
+        new_layer = keras.layers.Conv2D(
                 filters=self.num_filters,
                 kernel_size=self.kernel_size,
                 use_bias=True,
                 strides=[1, 1],
                 padding=self.padding_type,
                 kernel_initializer=self.kernel_initialiser, # Xavier uniform
-                #kernel_regularizer=tf.keras.regularizers.l2(0.01)
+                #kernel_regularizer=keras.regularizers.l2(0.01)
         )(prev_layer)
         
         new_layer = self.activation(new_layer)
@@ -269,7 +272,7 @@ class Denoiser():
     def convWithBatchNorm(self):
         # We don't need to add bias if we use batch normalisation
         self.model.add(
-            tf.keras.layers.Conv2D(
+            keras.layers.Conv2D(
                 input_shape=(self.patch_height, self.patch_height, self.input_channels),
                 filters=self.num_filters,
                 kernel_size=self.kernel_size,
@@ -282,7 +285,7 @@ class Denoiser():
         )
 
         # Batch normalise after the convolutional layer
-        self.model.add(tf.keras.layers.BatchNormalization())
+        self.model.add(keras.layers.BatchNormalization())
 
         # Apply the relu activation function
         self.model.add(self.activation)
@@ -297,7 +300,7 @@ class Denoiser():
             output_size = self.output_channels
 
         self.model.add(
-            tf.keras.layers.Conv2D(
+            keras.layers.Conv2D(
                 filters=output_size,
                 kernel_size=self.kernel_size,
                 use_bias=True,
@@ -305,7 +308,7 @@ class Denoiser():
                 padding=self.padding_type,
                 activation=None,
                 kernel_initializer=self.kernel_initialiser, # Xavier uniform
-                #kernel_regularizer=tf.keras.regularizers.l2(0.01)
+                #kernel_regularizer=keras.regularizers.l2(0.01)
             )
         )
 
@@ -316,7 +319,7 @@ class Denoiser():
         else:
             output_size = self.output_channels
 
-        new_layer = tf.keras.layers.Conv2D(
+        new_layer = keras.layers.Conv2D(
             filters=output_size,
             kernel_size=self.kernel_size,
             use_bias=True,
@@ -324,7 +327,7 @@ class Denoiser():
             padding=self.padding_type,
             activation=None,
             kernel_initializer=self.kernel_initialiser, # Xavier uniform
-            #kernel_regularizer=tf.keras.regularizers.l2(0.01)
+            #kernel_regularizer=keras.regularizers.l2(0.01)
         )(prev_layer)
 
         return new_layer
@@ -393,6 +396,19 @@ class Denoiser():
     def psnr(self, y_true, y_pred):
         return tf.image.psnr(y_true, y_pred, max_val=1.0)
 
+    # Perform kernel prediction and calculate SSIM cost
+    def kernelPredictSSIM(self, noisy_img):
+        print(" \n\n ==== USING SSIM LOSS ==== \n\n")
+        noisy_img = self.processImgForKernelPrediction(noisy_img)
+        def loss(y_true, y_pred):
+            weights = self.processWeightsForKernelPrediction(y_pred)
+            prediction = weighted_average.weighted_average(noisy_img, weights)
+            ssim_loss = tf.image.ssim(y_true, prediction, mav_val=1.0)
+            ssim_loss = tf.reduce_mean(ssim_loss)
+            return ssim_loss
+        return loss
+
+
     # Perform kernel prediction and calculate mean absolute value cost
     def kernelPredictMAE(self, noisy_img):
         print(" \n\n ==== USING MAE LOSS ==== \n\n")
@@ -401,7 +417,7 @@ class Denoiser():
             weights = self.processWeightsForKernelPrediction(y_pred)
             prediction = weighted_average.weighted_average(noisy_img, weights)
 
-            mae_loss = tf.keras.losses.mean_absolute_error(y_true, prediction)
+            mae_loss = keras.losses.mean_absolute_error(y_true, prediction)
             # Ensure nans are 0
             mae_loss = tf.where(tf.is_nan(mae_loss), tf.zeros_like(mae_loss), mae_loss)
             mae_loss = tf.reduce_mean(mae_loss)
@@ -429,7 +445,7 @@ class Denoiser():
             prediction = weighted_average.weighted_average(noisy_img, weights)
             feature_loss = self.VGG19FeatureLoss(y_true, prediction)
 
-            mae_loss = tf.keras.losses.mean_absolute_error(y_true, prediction)
+            mae_loss = keras.losses.mean_absolute_error(y_true, prediction)
             # Ensure nans are 0
             mae_loss = tf.where(tf.is_nan(mae_loss), tf.zeros_like(mae_loss), mae_loss)
             mae_loss = tf.reduce_mean(mae_loss)
@@ -450,44 +466,20 @@ class Denoiser():
 
     # Compares the features from VGG19 of the prediction and ground truth
     def VGG19FeatureLoss(self, y_true, y_pred):
-        vgg19 = VGG19(
-            include_top=False,
-            weights='imagenet',
-            input_shape=(config.PATCH_HEIGHT, config.PATCH_WIDTH, 3)
-        )
-        vgg19.trainable = False
-        for layer in vgg19.layers:
-            layer.trainable = False
 
-        if self.vgg_mode == 54:
-            feature_extractor = tf.keras.Model(
-                inputs=vgg19.input,
-                outputs=vgg19.get_layer("block5_conv4").output
-            )
-            multiplier = 100 #1.441 / 2.502 # Ensures it converges to similar value to mae
-        elif self.vgg_mode == 22:
-            feature_extractor = tf.keras.Model(
-                inputs=vgg19.input,
-                outputs=vgg19.get_layer("block2_conv2").output
-            )
-            multiplier = 1.441 / 2.502 # Ensures it converges to similar value to mae
+        features_pred = self.vgg(y_pred)
+        features_true = self.vgg(y_true)
 
-        feature_extractor.trainable = False
-
-        features_pred = feature_extractor(y_pred)
-        features_true = feature_extractor(y_true)
-
-        feature_loss = tf.keras.losses.mean_squared_error(features_pred, features_true)
+        feature_loss = keras.losses.mean_squared_error(features_pred, features_true)
         feature_loss = tf.reduce_mean(feature_loss)
-        #feature_loss = tf.multiply(feature_loss, multiplier)
 
         return feature_loss
 
     def dropoutLayer(self, rate):
-        self.model.add(tf.keras.layers.Dropout(rate))
+        self.model.add(keras.layers.Dropout(rate))
 
     def buildNetwork(self):
-        conv_input = tf.keras.layers.Input(
+        conv_input = keras.layers.Input(
             shape=(self.patch_height, self.patch_width, self.input_channels)
         )
         
@@ -496,7 +488,7 @@ class Denoiser():
             x = self.returnConvLayer(x)
         pred = self.returnFinalConvLayer(x)
 
-        self.model = tf.keras.models.Model(inputs=conv_input, outputs=pred)
+        self.model = keras.models.Model(inputs=conv_input, outputs=pred)
 
         if self.kernel_predict:
             # Use the psnr metric
