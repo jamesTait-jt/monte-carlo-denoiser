@@ -148,10 +148,10 @@ def vgg_bn(train_data, test_data):
     denoiser.train()
 
 
-def vgg(train_data, test_data):
-    """Train the vgg denoiser with no albedo divide and no batch norm. Use all
+def vgg_albdiv(train_data, test_data):
+    """Train the vgg denoiser with albedo divide and no batch norm. Use all
     features"""
-    config.ALBEDO_DIVIDE = False
+    config.ALBEDO_DIVIDE = True
     feature_list = ["normal", "albedo", "depth"]
     denoiser = Denoiser(
         train_data,
@@ -165,12 +165,34 @@ def vgg(train_data, test_data):
         num_layers=7,
         batch_size=64,
         loss="vgg22",
-        model_dir="../experiments/models/vgg",
-        log_dir="../experiments/logs/vgg",
+        model_dir="../experiments/models/vgg_albdiv",
+        log_dir="../experiments/logs/vgg_albdiv",
     )
     denoiser.buildNetwork()
     denoiser.train()
 
+def vgg_albdiv_bn(train_data, test_data):
+    """Train the vgg denoiser with albedo divide and batch norm. Use all
+    features"""
+    config.ALBEDO_DIVIDE = True
+    feature_list = ["normal", "albedo", "depth"]
+    denoiser = Denoiser(
+        train_data,
+        test_data,
+        adam_lr=1e-3,
+        num_epochs=100000,
+        early_stopping=True,
+        kernel_predict=True,
+        bn=True,
+        feature_list=feature_list,
+        num_layers=7,
+        batch_size=64,
+        loss="vgg22",
+        model_dir="../experiments/models/vgg_albdiv_bn",
+        log_dir="../experiments/logs/vgg_albdiv_bn",
+    )
+    denoiser.buildNetwork()
+    denoiser.train()
 
 def main():
 
@@ -181,18 +203,18 @@ def main():
 
     # ==== NO ALBDIV, NO BATCHNORM, ALL FEATURES ==== #
     #mae(train_data, test_data)
-    #vgg(train_data, test_data)
+    vgg(train_data, test_data)
 
     # === NO ALBDIV, BATCHNORM ON, ALL FEATURES ==== #
     #mae_bn(train_data, test_data)
-    #vgg_bn(train_data, test_data)
+    vgg_bn(train_data, test_data)
 
     # === ALBDIV ON, NO BATCHNORM, ALL FEATURES ==== #
-    mae_albdiv(train_data, test_data)
+    #mae_albdiv(train_data, test_data)
     #vgg_albdiv(train_data, test_data)
 
     # === ALBDIV ON, BATCHNORM ON, ALL FEATURES ==== #
-    mae_albdiv_bn(train_data, test_data)
+    #mae_albdiv_bn(train_data, test_data)
     #vgg_albdiv_bn(train_data, test_data)
 
 

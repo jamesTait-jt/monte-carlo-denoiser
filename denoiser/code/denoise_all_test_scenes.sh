@@ -26,7 +26,7 @@ MODEL_DIR="../experiments/models/mae_albdiv_bn"
 NET_TYPE="mae_albdiv_bn"
 #python denoise_full_img_at_once.py $MODEL_DIR 0 $NET_TYPE
 #python denoise_full_img_at_once.py $MODEL_DIR 1 $NET_TYPE
-3python denoise_full_img_at_once.py $MODEL_DIR 2 $NET_TYPE
+#python denoise_full_img_at_once.py $MODEL_DIR 2 $NET_TYPE
 
 
 # ========= VGG ========= #
@@ -44,13 +44,13 @@ NET_TYPE="vgg_bn"
 
 MODEL_DIR="../experiments/models/vgg_albdiv"
 NET_TYPE="vgg_albdiv"
-#python denoise_full_img_at_once.py $MODEL_DIR 0 $NET_TYPE
-#python denoise_full_img_at_once.py $MODEL_DIR 1 $NET_TYPE
-#python denoise_full_img_at_once.py $MODEL_DIR 2 $NET_TYPE
+python denoise_full_img_at_once.py $MODEL_DIR 0 $NET_TYPE
+python denoise_full_img_at_once.py $MODEL_DIR 1 $NET_TYPE
+python denoise_full_img_at_once.py $MODEL_DIR 2 $NET_TYPE
 
 MODEL_DIR="../experiments/models/vgg_albdiv_bn"
 NET_TYPE="vgg_albdiv_bn"
-#python denoise_full_img_at_once.py $MODEL_DIR 0 $NET_TYPE
-#python denoise_full_img_at_once.py $MODEL_DIR 1 $NET_TYPE
-#python denoise_full_img_at_once.py $MODEL_DIR 2 $NET_TYPE
+python denoise_full_img_at_once.py $MODEL_DIR 0 $NET_TYPE
+python denoise_full_img_at_once.py $MODEL_DIR 1 $NET_TYPE
+python denoise_full_img_at_once.py $MODEL_DIR 2 $NET_TYPE
 

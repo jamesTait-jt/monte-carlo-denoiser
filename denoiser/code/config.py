@@ -13,7 +13,7 @@ IMG_SHAPE = (PATCH_WIDTH, PATCH_HEIGHT, 3)
 DENOISER_INPUT_SHAPE = (PATCH_WIDTH, PATCH_HEIGHT, 27)
 
 # Do we do the albedo divide step
-ALBEDO_DIVIDE = True
+ALBEDO_DIVIDE = False
 
 # Do we need to generate new patches?
 MAKE_NEW_PATCHES = False
