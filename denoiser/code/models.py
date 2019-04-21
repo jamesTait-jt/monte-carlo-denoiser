@@ -3,8 +3,8 @@ import keras
 
 import config
 
-# Build and return the vgg network for feature extraction
 def buildVGG():
+    """Build and return the vgg network for feature extraction."""
     vgg19 = VGG19(
         include_top=False,
         weights='imagenet',
@@ -24,9 +24,9 @@ def buildVGG():
 
 
 def buildGenerator(kernel_size, layers, bn, kpcn, kpcn_size):
-
-    # Helper function for convolutional layer
+    """Build and return the generator for use in the gan."""
     def convLayer(c_input, num_filters):
+        """Helper function for a convolutional block."""
         c_output = keras.layers.Conv2D(
             filters=num_filters,
             kernel_size=kernel_size,
@@ -60,8 +60,10 @@ def buildGenerator(kernel_size, layers, bn, kpcn, kpcn_size):
     return keras.models.Model(noisy_img, weights, name="Generator")
 
 def buildCritic():
-    # Helper function for convolution layer
-    def convBlock(c_input, num_filters, strides, bn=False):
+    """Build and return the critic for use in th GAN."""
+    def convBlock(c_input, num_filters, strides):
+        """Helper function for a convolutional block. Includes LeakyReLU
+        activation."""
         c_output = keras.layers.Conv2D(
             filters=num_filters,
             kernel_size=[3, 3],
@@ -71,30 +73,26 @@ def buildCritic():
         
         output = keras.layers.LeakyReLU(alpha=0.2)(c_output)
         
-        if bn:
-            output = keras.layers.BatchNormalization(momentum=0.8)(output)
-    
         return output
 
     ################################################
 
     img = keras.layers.Input(shape=config.IMG_SHAPE, name="Critic_input")
     
-    x = convBlock(img, 64, strides=[1, 1], bn=False)
+    x = convBlock(img, 64, strides=[1, 1])
     x = convBlock(img, 64, strides=[2, 2])
-    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Dropout(0.4)(x)
     x = convBlock(x, 128, strides=[1, 1])
     x = convBlock(x, 128, strides=[2, 2])
-    x = keras.layers.Dropout(0.2)(x)
+    x = keras.layers.Dropout(0.4)(x)
     x = convBlock(x, 256, strides=[1, 1])
     x = convBlock(x, 256, strides=[2, 2])
-    x = keras.layers.Dropout(0.2)(x)
-    #x = convBlock(x, 512, strides=[1, 1])
-    #x = convBlock(x, 512, strides=[2, 2])
+    x = keras.layers.Dropout(0.4)(x)
+    x = convBlock(x, 512, strides=[1, 1])
+    x = convBlock(x, 512, strides=[2, 2])
+    x = keras.layers.Dropout(0.4)(x)
 
-    #x = keras.layers.Dense(1024)(x)
     x = keras.layers.LeakyReLU(alpha=0.2)(x)
-    #x = keras.layers.Dropout(0.5)(x)
     x = keras.layers.Flatten()(x)
     x = keras.layers.Dense(1)(x)
 
@@ -102,9 +100,9 @@ def buildCritic():
 
 
 def buildDiscriminator():
-
-    # Helper function for convolution layer
+    """Build and return the discriminator for use in vanilla GAN."""
     def convBlock(c_input, num_filters, strides, bn=True):
+        """Helper function for a convolutional block."""
         c_output = keras.layers.Conv2D(
             filters=num_filters,
             kernel_size=[3, 3],

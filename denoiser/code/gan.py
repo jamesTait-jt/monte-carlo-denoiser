@@ -3,21 +3,21 @@ from functools import partial
 
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
 from time import time
 from tqdm import tqdm
 
 from keras.applications.vgg19 import preprocess_input
-from keras.preprocessing.image import array_to_img, img_to_array
 import keras
 import keras.backend as K
 from keras.layers.merge import _Merge
 
 import config
+import metrics_module
 import models
 import data
-from denoiser import Denoiser
-from discriminator import Discriminator
+#from denoiser import Denoiser
+#from discriminator import Discriminator
+import train_util
 import weighted_average
 
 # https://github.com/eriklindernoren/Keras-GAN/blob/master/wgan_gp/wgan_gp.py
@@ -65,11 +65,14 @@ class GAN():
         # set the size of the weights kernel
         self.kpcn_size = kwargs.get("kpcn_size", 21)
 
-        g_loss = kwargs.get("g_loss", self.featureLoss)
+        # Create our feature extractor for perceptual loss
+        self.vgg = models.buildVGG()
+
+        g_loss = kwargs.get("g_loss", metrics_module.noKernelVGG(self.vgg))
         if g_loss == "mae":
             self.g_loss = "mean_absolute_error"
         elif g_loss == "vgg":
-            self.g_loss = self.featureLoss
+            self.g_loss = metrics_module.noKernelVGG(self.vgg)
 
         # Weighting of the loss function
         self.loss_weights = kwargs.get("loss_weights", [1, 1])
@@ -110,10 +113,8 @@ class GAN():
             self.kernel_predict,
             self.kpcn_size
         )
-        self.generator.summary()
+        #self.generator.summary()
 
-        # Create our feature extractor for perceptual loss
-        self.vgg = models.buildVGG()
         
         #self.compileVGG()
         #self.vgg.summary()
@@ -126,7 +127,7 @@ class GAN():
         # Build and compile the critic
         self.critic = models.buildCritic()
         #self.compileCritic()
-        self.critic.summary()
+        #self.critic.summary()
 
         # Build (and compile inside) WGAN_GP model
         self.buildWGAN_GP()
@@ -190,47 +191,6 @@ class GAN():
         self.input_channels = self.train_input.shape[3]
 
 
-    ################################################################
-    #                HELPER FUNCTIONS - MAYBE SEPARATE             #
-    ################################################################
-    
-    # Apply softmax function to normalise the weights
-    def softmax(self, weights):
-        # Subtract constant to avoid overflow
-        weightmax = K.max(weights, axis=3, keepdims=True)
-        weights = weights - weightmax
-
-        exp = K.exp(weights)
-        weight_sum = K.sum(exp, axis=3, keepdims=True)
-        weights = tf.divide(exp, weight_sum)
-        return weights
-
-    # Prepare input data for weighted average function
-    def processInputForKPCN(self, noisy_img):
-        # Slice the noisy image out of the input
-        noisy_img = noisy_img[:, :, :, 0:3]
-
-        # Get the radius of the kernel
-        kernel_radius = int(math.floor(self.kpcn_size / 2.0))
-
-        # Pad the image on either side so that the kernel can reach all pixels
-        paddings = tf.constant([[0, 0], [kernel_radius, kernel_radius], [kernel_radius, kernel_radius], [0, 0]])
-        noisy_img = tf.pad(noisy_img, paddings, mode="SYMMETRIC")
-
-        return noisy_img
-
-    # Apply weighted average (KPCN)
-    def applyKernel(self, noisy_img):
-        import tensorflow as tf
-        noisy_img = self.processInputForKPCN(noisy_img)
-        def applyKernelLayer(weights):
-            # Normalise the weights  (softmax)
-            weights = self.softmax(weights)
-            prediction = weighted_average.weighted_average(noisy_img, weights)
-            return prediction
-        return applyKernelLayer
-
-
     def buildWGAN_GP(self):
         
         # If we are using the critic's loss
@@ -249,7 +209,9 @@ class GAN():
             if self.kernel_predict:
                 # Get kernel of weights
                 weights = self.generator(noisy_img)
-                denoised_img = keras.layers.Lambda(self.applyKernel(noisy_img))(weights)
+                denoised_img = keras.layers.Lambda(
+                    train_util.applyKernelLambda(noisy_img, self.kpcn_size)
+                )(weights)
             else:
                 denoised_img = self.generator(noisy_img)
 
@@ -277,7 +239,7 @@ class GAN():
             )
 
             self.critic_model.compile(
-                loss=[self.wassersteinLoss, self.wassersteinLoss, partial_gp_loss],
+                loss=[metrics_module.wassersteinLoss, metrics_module.wassersteinLoss, partial_gp_loss],
                 loss_weights=[1, 1, 10],
                 optimizer=keras.optimizers.Adam(
                     lr=self.c_lr,
@@ -297,7 +259,9 @@ class GAN():
             # Generate images based of noise
             weights_gen = self.generator(noisy_img_gen)
             # Apply the weights to the noisy image
-            denoised_img_gen = keras.layers.Lambda(self.applyKernel(noisy_img_gen))(weights_gen)
+            denoised_img_gen = keras.layers.Lambda(
+                train_util.applyKernelLambda(noisy_img_gen, self.kpcn_size)
+            )(weights_gen)
         else:
             denoised_img_gen = self.generator(noisy_img_gen)
 
@@ -311,8 +275,7 @@ class GAN():
         )
 
         self.generator_model.compile(
-            loss=[self.g_loss, self.wassersteinLoss],
-            #loss_weights=[0.1, 1.0],
+            loss=[self.g_loss, metrics_module.wassersteinLoss],
             loss_weights=self.loss_weights,
             optimizer=keras.optimizers.Adam(
                 lr=self.g_lr,
@@ -374,7 +337,7 @@ class GAN():
             clipvalue=1
         )
         self.generator.compile(
-            loss=self.featureLoss,
+            loss=metrics_module.noKernelVGG(self.vgg),
             optimizer=adam
         )
     
@@ -403,15 +366,6 @@ class GAN():
         # return the mean as loss over all the batch samples
         return K.mean(gradient_penalty)
 
-    def featureLoss(self, y_true, y_pred):
-        features_true = self.vgg(y_true)
-        features_pred = self.vgg(y_pred)
-        feature_loss = keras.losses.mean_squared_error(features_pred, features_true)
-        return K.mean(feature_loss)
-
-    def wassersteinLoss(self, y_true, y_pred):
-        return K.mean(y_true * y_pred)
-
     def compileCritic(self):
         adam = keras.optimizers.Adam(
             lr=self.c_lr,
@@ -419,7 +373,7 @@ class GAN():
             beta_2=0.9
         )
         self.critic.compile(
-            loss=self.wassersteinLoss,
+            loss=metrics_module.wassersteinLoss,
             optimizer=adam
         )
 
@@ -442,7 +396,10 @@ class GAN():
             beta_2=0.9
         )
         self.wgan.compile(
-            loss=[self.wassersteinLoss, self.featureLoss, None], # FINAL LOSS IS JUST SO WE CAN HAVE 3 OUTPUTS
+            loss=[metrics_module.wassersteinLoss,
+                  metrics_module.noKernelVGG(self.vgg), 
+                  None
+            ], # FINAL LOSS IS JUST SO WE CAN HAVE 3 OUTPUTS
             loss_weights=[100, 0.1, 0], #Weighting from the paper
             optimizer=adam
         )
@@ -454,7 +411,7 @@ class GAN():
             beta_2=0.999
         )
         self.gan.compile(
-            loss=["binary_crossentropy", self.featureLoss, None], # FINAL LOSS IS JUST SO WE CAN HAVE 3 OUTPUTS
+            loss=["binary_crossentropy", metrics_module.noKernelVGG(self.vgg), None], # FINAL LOSS IS JUST SO WE CAN HAVE 3 OUTPUTS
             loss_weights=[1, 0.006, 0], #Weighting from the paper
             #loss_weights=[1, 0, 0], #Weighting from the paper
             optimizer=adam
@@ -521,12 +478,30 @@ class GAN():
 
         return (real_acc, fake_acc, acc, real_loss, fake_loss, loss)
 
+    def getTrainBatch(self):
+        """Gets a random batch from the training data."""
+        rand_indices = np.random.randint(0, len(self.train_input), size=self.batch_size)
+        train_noisy_batch = self.train_input[rand_indices]
+        train_reference_batch = self.train_labels[rand_indices]
+        return train_noisy_batch, train_reference_batch
+
+    def getTestBatch(self):
+        """Gets a random batch from the test data."""
+        rand_indices = np.random.randint(0, len(self.test_input), size=self.batch_size)
+        test_noisy_batch = self.test_input[rand_indices]
+        test_reference_batch = self.test_labels[rand_indices]
+        return test_noisy_batch, test_reference_batch
+    
     def trainWGAN_GP(self):
 
         def saveModel(model):
+            """Saves a model in the correct directory with a timestamp."""
             model.save(self.model_dir + self.timestamp)
 
         def psnr(epoch):
+            """Calculates the psnr on the validation set. Alse saves a random
+            denoised image next to its corresponding reference for
+            comparison."""
             reference_imgs = self.test_labels
             noisy_imgs = self.test_input
 
@@ -540,7 +515,7 @@ class GAN():
             denoised = np.clip(denoised, 0, 1)
 
             rnd = np.random.randint(noisy_imgs.shape[0])
-            self.makeFigureAndSave(reference_imgs[rnd], denoised[rnd], epoch)
+            train_util.makeFigureAndSave(reference_imgs[rnd], denoised[rnd], epoch)
 
             reference_imgs_tensor = tf.placeholder(tf.float32, shape=reference_imgs.shape)
             denoised_tensor = tf.placeholder(tf.float32, shape=denoised.shape)
@@ -573,15 +548,15 @@ class GAN():
         fake = -real
         dummy = np.zeros((self.batch_size)) #Dummy labels of 0  
         
-        val_writer = self.makeSummaryWriter("wgan-gp", "vgg+adv", "val")
-        d_loss_writer = self.makeSummaryWriter("wgan-gp", "vgg+adv", "train")
-        g_feat_loss_writer = self.makeSummaryWriter("wgan-gp", "vgg+adv", "train_feature")
-        g_adv_loss_writer = self.makeSummaryWriter("wgan-gp", "vgg+adv", "train_adv")
+        val_writer = train_util.makeSummaryWriter(self.timestamp, self.g_lr, "val", self.log_dir)
+        d_loss_writer = train_util.makeSummaryWriter(self.timestamp, self.g_lr, "train", self.log_dir)
+        g_feat_loss_writer = train_util.makeSummaryWriter(self.timestamp, self.g_lr, "train_feature", self.log_dir)
+        g_adv_loss_writer = train_util.makeSummaryWriter(self.timestamp, self.g_lr, "train_adv", self.log_dir)
 
         step = 0
         d_loss = [0]
         best_val_loss = 100000
-        last_update_step = 0
+        last_update_epoch = 0
         for epoch in range(self.num_epochs):
             print("="*15, "Epoch %d" % epoch, "="*15)
             batches_per_epoch = train_data_size // self.batch_size
@@ -593,9 +568,8 @@ class GAN():
                     rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
 
                     # Get a batch and denoise
-                    train_noisy_batch = self.train_input[rand_indices]
-                    train_reference_batch = self.train_labels[rand_indices]
-
+                    train_noisy_batch, train_reference_batch = self.getTrainBatch()
+                    
                     # Train critic
                     d_loss = self.critic_model.train_on_batch(
                         [train_reference_batch, train_noisy_batch], 
@@ -606,13 +580,6 @@ class GAN():
 
                 batch_loss_avg = batch_loss_sum / self.c_itr
 
-                # Get random numbers to select our batch
-                rand_indices = np.random.randint(0, train_data_size, size=self.batch_size)
-
-                # Get a batch and denoise
-                train_noisy_batch = self.train_input[rand_indices]
-                train_reference_batch = self.train_labels[rand_indices]
-                
                 # Train generator
                 g_loss = self.generator_model.train_on_batch(
                     train_noisy_batch, 
@@ -623,25 +590,24 @@ class GAN():
                 adv_loss = g_loss[2]
                 
                 # Training summaries
-                d_loss_summary = self.makeSummary("d_loss", -batch_loss_avg)
+                d_loss_summary = train_util.makeSummary("d_loss", -batch_loss_avg)
                 d_loss_writer.add_summary(d_loss_summary, step)
     
-                g_feat_loss_summary = self.makeSummary("g_loss", feat_loss)
+                g_feat_loss_summary = train_util.makeSummary("g_loss", feat_loss)
                 g_feat_loss_writer.add_summary(g_feat_loss_summary, step)
 
-                g_adv_loss_summary = self.makeSummary("g_loss", adv_loss)
+                g_adv_loss_summary = train_util.makeSummary("g_loss", adv_loss)
                 g_adv_loss_writer.add_summary(g_adv_loss_summary, step)
                 
                 # Evaluation summaries
-                rand_indices = np.random.randint(0, test_data_size, size=self.batch_size)
-                test_noisy_batch = self.test_input[rand_indices]
-                test_reference_batch = self.test_labels[rand_indices]
+                test_noisy_batch, test_reference_batch = self.getTestBatch()
+
                 d_val_loss = self.critic_model.test_on_batch(
                     [test_reference_batch, test_noisy_batch], 
                     [real, fake, dummy]
                 )
 
-                d_val_loss_summary = self.makeSummary("d_loss", -d_val_loss[0])
+                d_val_loss_summary = train_util.makeSummary("d_loss", -d_val_loss[0])
                 val_writer.add_summary(d_val_loss_summary, step)
 
                 g_val_loss = self.generator_model.test_on_batch(
@@ -659,19 +625,33 @@ class GAN():
                 best_model = self.generator
                 last_update_epoch = epoch
 
-            g_val_loss_summary = self.makeSummary("g_loss", epoch_val_loss_avg)
+            g_val_loss_summary = train_util.makeSummary("g_loss", epoch_val_loss_avg)
             val_writer.add_summary(g_val_loss_summary, step)
     
-            if epoch - last_update_epoch > 20:
-                print("==== EARLY STOPPING =======")
-                saveModel(best_model)
-                return
+            # Lower c_itrs after set number of epochs
+            #if epoch == 4:
+            #    self.c_itr = 1
+            #    print("\n\n Reducing c_iters to %d\n\n" % self.c_itr)
+
+            # If we have gone 10 steps without a decrease in validation loss, we
+            # decrease the learning rate of the generator
+            if epoch - last_update_epoch > 10:
+                old_lr = float(K.get_value(self.generator_model.optimizer.lr))
+                if old_lr > 1e-5:
+                    new_lr = old_lr * 0.1
+                    K.set_value(self.generator_model.optimizer.lr, new_lr)
+                    last_update_epoch = epoch - 6
+                    print("\n\n Reducing learning rate to %f\n\n" % new_lr)
+                else:
+                    print("\n\n==== EARLY STOPPING =======\n\n")
+                    saveModel(best_model)
+                    return
 
             # Save the model at each epoch
             saveModel(best_model)
 
             val_psnr = psnr(epoch)
-            val_psnr_summary = self.makeSummary("psnr", val_psnr)
+            val_psnr_summary = train_util.makeSummary("psnr", val_psnr)
             val_writer.add_summary(val_psnr_summary, step)
             print("FEAT_VAL_LOSS: %f" % epoch_val_loss_avg)
             print("PSNR: %f" % val_psnr)
@@ -748,7 +728,7 @@ class GAN():
                 self.global_step += 1
 
             denoised = denoised_batch[0]
-            self.makeFigureAndSave(ref, denoised, epoch)
+            train_util.makeFigureAndSave(ref, denoised, epoch)
 
             # Calculate the feature loss and psnr on a test batch
             #val_f_loss, val_psnr = self.denoiser.eval(False)
@@ -770,40 +750,4 @@ class GAN():
             #if (epoch % 50) == 0:
             #    self.denoiser.model.save(self.denoiser.model_dir + "epoch:" + str(epoch))
 
-    def makeFigureAndSave(self, ref, denoised, epoch):
 
-        ref = ref.clip(0, 1)
-        denoised = denoised.clip(0, 1)
-
-        ref_img = array_to_img(ref)
-        denoised_img = array_to_img(denoised)
-
-        fig = plt.figure()
-
-        ref_subplot = plt.subplot(121)
-        ref_subplot.set_title("Reference image")
-        ref_subplot.imshow(ref_img)
-    
-        denoised_subplot = plt.subplot(122)
-        denoised_subplot.set_title("Denoised image")
-        denoised_subplot.imshow(denoised_img)
-
-        fig.savefig("../training_results/epoch:%d" % epoch)
-
-    def makeSummary(self, tag, val):
-        summary = tf.Summary(
-            value=[tf.Summary.Value(tag=tag, simple_value=val),]
-        )
-        return summary
-
-    def makeSummaryWriter(self, directory, loss_function, name):
-        writer = tf.summary.FileWriter(
-            self.log_dir + "/{0}-{1}-{2}".format(
-                self.timestamp, 
-                self.g_lr,
-                name
-            ),
-            max_queue=1,
-            flush_secs=10
-        )
-        return writer

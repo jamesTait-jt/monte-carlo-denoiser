@@ -11,6 +11,7 @@ much higher quality.
 """
 
 import keras
+import keras.backend as K
 import math
 import numpy as np
 import tensorflow as tf
@@ -20,12 +21,14 @@ from tensorflow.keras.applications.vgg19 import VGG19
 from tensorflow.python import debug as tf_debug
 
 import config
-import models
-from callbacks import TrainValTensorBoard
 import data
+import models
+import metrics_module
+import train_util
 import weighted_average
 
-#keras.backend.set_session(tf_debug.LocalCLIDebugWrapperSession(tf.Session()))
+from callbacks import TrainValTensorBoard
+
 
 class Denoiser():
     """Class for image denoiser via CNN
@@ -74,6 +77,7 @@ class Denoiser():
         self.batch_norm = kwargs.get("batch_norm", False)
         self.num_epochs = kwargs.get("num_epochs", 100)
         self.num_layers = kwargs.get("num_layers", 8)
+        self.bn = kwargs.get("bn", False)
 
         # The adam optimiser is used, this block defines its parameters
         self.adam_lr = kwargs.get("adam_lr", 1e-4)
@@ -92,8 +96,7 @@ class Denoiser():
             beta_1=self.adam_beta1,
             beta_2=self.adam_beta2,
             decay=self.adam_lr_decay,
-            clipnorm=1,
-            clipvalue=0.01
+            clipvalue=1
             #amsgrad=True
         )
 
@@ -173,6 +176,16 @@ class Denoiser():
 
         self.callbacks.append(model_checkpoint_cb)
 
+        reduce_lr_cb = keras.callbacks.ReduceLROnPlateau(
+            monitor='val_loss', 
+            factor=0.1, 
+            patience=10, 
+            verbose=1, 
+            mode='auto', 
+            min_lr=1e-5
+        )
+        self.callbacks.append(reduce_lr_cb)
+
         # Stop taining if we don't see an improvement after 20 epochs and
         # restore the best performing weight
         early_stopping_cb = keras.callbacks.EarlyStopping(
@@ -225,292 +238,83 @@ class Denoiser():
         self.input_channels = self.train_input.shape[3]
 
 
-    # First convolutional layer (must define input shape)
-    def initialConvLayer(self):
-        self.model.add(
-            keras.layers.Conv2D(
-                input_shape=(self.patch_height, self.patch_width, self.input_channels),
-                filters=self.num_filters,
-                kernel_size=self.kernel_size,
-                use_bias=True,
-                strides=(1, 1),
-                padding=self.padding_type,
-                kernel_initializer=self.kernel_initialiser # Xavier uniform
-            )
-        )
-        self.model.add(self.activation)
-
-    # Convolutional layer (not final)
-    def convLayer(self):
-        self.model.add(
-            keras.layers.Conv2D(
-                filters=self.num_filters,
-                kernel_size=self.kernel_size,
-                use_bias=True,
-                strides=[1, 1],
-                padding=self.padding_type,
-                kernel_initializer=self.kernel_initialiser # Xavier uniform
-            )
-        )
-        self.model.add(self.activation)
-    
-    def returnConvLayer(self, prev_layer):
-        new_layer = keras.layers.Conv2D(
-                filters=self.num_filters,
-                kernel_size=self.kernel_size,
-                use_bias=True,
-                strides=[1, 1],
-                padding=self.padding_type,
-                kernel_initializer=self.kernel_initialiser, # Xavier uniform
-                #kernel_regularizer=keras.regularizers.l2(0.01)
-        )(prev_layer)
-        
-        new_layer = self.activation(new_layer)
-        
-        return new_layer
-
-    def convWithBatchNorm(self):
-        # We don't need to add bias if we use batch normalisation
-        self.model.add(
-            keras.layers.Conv2D(
-                input_shape=(self.patch_height, self.patch_height, self.input_channels),
-                filters=self.num_filters,
-                kernel_size=self.kernel_size,
-                use_bias=False,
-                strides=(1, 1),
-                padding=self.padding_type,
-                activation=None,
-                kernel_initializer=self.kernel_initialiser # Xavier uniform
-            )
-        )
-
-        # Batch normalise after the convolutional layer
-        self.model.add(keras.layers.BatchNormalization())
-
-        # Apply the relu activation function
-        self.model.add(self.activation)
-
-
-    # Final convolutional layer - no activation function
-    def finalConvLayer(self):
-
-        if self.kernel_predict:
-            output_size = pow(self.kpcn_size, 2)
-        else:
-            output_size = self.output_channels
-
-        self.model.add(
-            keras.layers.Conv2D(
-                filters=output_size,
-                kernel_size=self.kernel_size,
-                use_bias=True,
-                strides=(1, 1),
-                padding=self.padding_type,
-                activation=None,
-                kernel_initializer=self.kernel_initialiser, # Xavier uniform
-                #kernel_regularizer=keras.regularizers.l2(0.01)
-            )
-        )
-
-
-    def returnFinalConvLayer(self, prev_layer):
-        if self.kernel_predict:
-            output_size = pow(self.kpcn_size, 2)
-        else:
-            output_size = self.output_channels
-
-        new_layer = keras.layers.Conv2D(
-            filters=output_size,
-            kernel_size=self.kernel_size,
-            use_bias=True,
-            strides=(1, 1),
-            padding=self.padding_type,
-            activation=None,
-            kernel_initializer=self.kernel_initialiser, # Xavier uniform
-            #kernel_regularizer=keras.regularizers.l2(0.01)
-        )(prev_layer)
-
-        return new_layer
-        
-    def trainBatchNorm(self):
-        for _ in range(8):
-            self.convWithBatchNorm()
-        self.finalConvLayer()
-
-    # Processes the input to the conv network ready for kernel prediction
-    def processImgForKernelPrediction(self, noisy_img):
-        # Slice the noisy image out of the input
-        noisy_img = noisy_img[:, :, :, 0:3]
-
-        # Get the radius of the kernel
-        kernel_radius = int(math.floor(self.kpcn_size / 2.0))
-
-        # Pad the image on either side so that the kernel can reach all pixels
-        paddings = tf.constant([[0, 0], [kernel_radius, kernel_radius], [kernel_radius, kernel_radius], [0, 0]])
-        noisy_img = tf.pad(noisy_img, paddings, mode="SYMMETRIC")
-
-        return noisy_img
-
-    # Process the weights ready to be used in kernel prediction
-    def processWeightsForKernelPrediction(self, weights):
-        # Normalise the weights (softmax)
-        weightsum = tf.reduce_max(weights, axis=3, keepdims=True)
-        weights = weights - weightsum
-        exp = tf.math.exp(weights)
-        weight_sum = tf.reduce_sum(exp, axis=3, keepdims=True)
-        weights = tf.divide(exp, weight_sum)
-        return weights
-
-    # Calculates the Peak Signal-to-noise value between two images
-    def kernelPredictPSNR(self, noisy_img):
-        noisy_img = self.processImgForKernelPrediction(noisy_img)
-        def psnr(y_true, y_pred):
-            weights = self.processWeightsForKernelPrediction(y_pred)
-            prediction = weighted_average.weighted_average(noisy_img, weights)
-
-            y_true = tf.divide(y_true, tf.reduce_max(y_true))
-            prediction = tf.divide(prediction, tf.reduce_max(prediction))
-
-            psnr_val = tf.image.psnr(y_true, prediction, max_val=1.0)
-            
-            # Sometimes the psnr value returns nan or inf - in this case, we
-            # disregard the value and instead calculate the mean across non zero
-            # values (we set nans and inf to zero in the following two lines)
-            #psnr_val = tf.where(tf.is_nan(psnr_val), tf.zeros_like(psnr_val), psnr_val)
-            psnr_val = tf.where(tf.is_inf(psnr_val), tf.zeros_like(psnr_val), psnr_val)
-
-            # Count how many non zeros we have (corresponding to how many wer
-            # not nan or inf
-            non_zeros = tf.count_nonzero(psnr_val)
-
-            # Sum up the batch
-            psnr_batch_sum = tf.reduce_sum(psnr_val, axis=0)
-            
-            # Divide the batch sum by the number of non zero (nan or inf)
-            # elements
-            psnr_val = tf.divide(psnr_batch_sum, tf.cast(non_zeros, tf.float32))
-
-            return psnr_val
-        return psnr
-
     def psnr(self, y_true, y_pred):
         return tf.image.psnr(y_true, y_pred, max_val=1.0)
-
-    # Perform kernel prediction and calculate SSIM cost
-    def kernelPredictSSIM(self, noisy_img):
-        print(" \n\n ==== USING SSIM LOSS ==== \n\n")
-        noisy_img = self.processImgForKernelPrediction(noisy_img)
-        def loss(y_true, y_pred):
-            weights = self.processWeightsForKernelPrediction(y_pred)
-            prediction = weighted_average.weighted_average(noisy_img, weights)
-            ssim_loss = tf.image.ssim(y_true, prediction, mav_val=1.0)
-            ssim_loss = tf.reduce_mean(ssim_loss)
-            return ssim_loss
-        return loss
-
-
-    # Perform kernel prediction and calculate mean absolute value cost
-    def kernelPredictMAE(self, noisy_img):
-        print(" \n\n ==== USING MAE LOSS ==== \n\n")
-        noisy_img = self.processImgForKernelPrediction(noisy_img)
-        def loss(y_true, y_pred):
-            weights = self.processWeightsForKernelPrediction(y_pred)
-            prediction = weighted_average.weighted_average(noisy_img, weights)
-
-            mae_loss = keras.losses.mean_absolute_error(y_true, prediction)
-            # Ensure nans are 0
-            mae_loss = tf.where(tf.is_nan(mae_loss), tf.zeros_like(mae_loss), mae_loss)
-            mae_loss = tf.reduce_mean(mae_loss)
-            mae_loss = tf.multiply(mae_loss, 100)
-
-            return mae_loss
-        return loss
-
-    # Perform kernel prediction and calculate feature cost
-    def kernelPredictVGG(self, noisy_img):
-        print(" ==== USING FEATURE LOSS (%s) ==== " % self.vgg_mode)
-        noisy_img = self.processImgForKernelPrediction(noisy_img)
-        def loss(y_true, y_pred):
-            weights = self.processWeightsForKernelPrediction(y_pred)
-            prediction = weighted_average.weighted_average(noisy_img, weights)
-            feature_loss = self.VGG19FeatureLoss(y_true, prediction)
-            return feature_loss
-        return loss
-
-    def kernelPredictCombination(self, noisy_img):
-        print(" ==== USING COMBINATION LOSS ==== ")
-        noisy_img = self.processImgForKernelPrediction(noisy_img)
-        def loss(y_true, y_pred):
-            weights = self.processWeightsForKernelPrediction(y_pred)
-            prediction = weighted_average.weighted_average(noisy_img, weights)
-            feature_loss = self.VGG19FeatureLoss(y_true, prediction)
-
-            mae_loss = keras.losses.mean_absolute_error(y_true, prediction)
-            # Ensure nans are 0
-            mae_loss = tf.where(tf.is_nan(mae_loss), tf.zeros_like(mae_loss), mae_loss)
-            mae_loss = tf.reduce_mean(mae_loss)
-            # Rescale to a similar value to features
-            mae_loss = tf.multiply(mae_loss, 100)
-
-            # Apply weighting 
-            mae_loss = tf.multiply(mae_loss, 0.5)
-            
-            # Calculate final loss
-            final_loss = tf.add(feature_loss, mae_loss)
-            
-            # Scale down to nicer values
-            final_loss = tf.multiply(final_loss, 0.5)
-
-            return final_loss
-        return loss
-
-    # Compares the features from VGG19 of the prediction and ground truth
-    def VGG19FeatureLoss(self, y_true, y_pred):
-
-        features_pred = self.vgg(y_pred)
-        features_true = self.vgg(y_true)
-
-        feature_loss = keras.losses.mean_squared_error(features_pred, features_true)
-        feature_loss = tf.reduce_mean(feature_loss)
-
-        return feature_loss
 
     def dropoutLayer(self, rate):
         self.model.add(keras.layers.Dropout(rate))
 
-    def buildNetwork(self):
-        conv_input = keras.layers.Input(
-            shape=(self.patch_height, self.patch_width, self.input_channels)
-        )
-        
-        x = self.returnConvLayer(conv_input)
-        for _ in range(self.num_layers):
-            x = self.returnConvLayer(x)
-        pred = self.returnFinalConvLayer(x)
+    def kpcnPSNR(self, noisy_img):
+        """Apply the kernel and calculate the psnr value between it and the ground
+        truth. If we have albedo divide on, this is calculated between the albedo
+        divided reference image and the albedo divided prediction. If not, it is
+        calculated between normal images."""
+        def psnr(y_true, y_pred):
+            prediction = train_util.applyKernel(noisy_img, y_pred, self.kpcn_size)
 
-        self.model = keras.models.Model(inputs=conv_input, outputs=pred)
+            # Normalise the images to ensure we don't get NaN
+            y_true = y_true / K.max(y_true)
+            prediction = prediction / K.max(prediction)
+
+            psnr_val = tf.image.psnr(y_true, prediction, max_val=1.0)
+            psnr_val = train_util.meanWithoutNanOrInf(psnr_val)
+            
+            return psnr_val
+        return psnr
+
+
+    def buildNetwork(self):
+
+        def convLayer(prev_layer, num_filters):
+            new_layer = keras.layers.Conv2D(
+                filters=num_filters,
+                kernel_size=self.kernel_size,
+                use_bias=True,
+                strides=[1, 1],
+                padding=self.padding_type,
+                kernel_initializer=self.kernel_initialiser, # Xavier uniform
+            )(prev_layer)
+            
+            
+            return new_layer
+
+        ###########################################################
+
+        noisy_img = keras.layers.Input(shape=config.DENOISER_INPUT_SHAPE)
+        
+        x = convLayer(noisy_img, self.num_filters)
+        x = self.activation(x)
+        for _ in range(self.num_layers):
+            x = convLayer(x, self.num_filters)
+            x = self.activation(x)
+            #x = keras.layers.Dropout(0.2)(x)
+            if self.bn:
+                x = keras.layers.BatchNormalization()(x)
+
+        if self.kernel_predict:
+            pred = convLayer(x, pow(self.kpcn_size, 2))
+        else:
+            pred = convLayer(x, 3)
+
+        self.model = keras.models.Model(inputs=noisy_img, outputs=pred)
 
         if self.kernel_predict:
             # Use the psnr metric
-            metrics=[self.kernelPredictPSNR(conv_input)]
+            metrics=[self.kpcnPSNR(noisy_img)]
 
             # Mean absolute error
             if self.loss == "mae":
-                loss = self.kernelPredictMAE(conv_input)
+                loss = metrics_module.kpcnMAE(noisy_img, self.kpcn_size)
+            elif self.loss == "mse":
+                loss = metrics_module.kpcnMSE(noisy_img, self.kpcn_size)
             # Feature loss with block2conv2
             elif self.loss == "vgg22":
-                self.vgg_mode = 22
-                loss = self.kernelPredictVGG(conv_input)
-            # Feature loss with block5conv4
-            elif self.loss == "vgg54":
-                self.vgg_mode = 54
-                loss = self.kernelPredictVGG(conv_input)
-            elif self.loss == "combination":
-                self.vgg_mode = 22
-                loss = self.kernelPredictCombination(conv_input)
+                loss = metrics_module.kpcnVGG(noisy_img, self.kpcn_size, self.vgg)
+            elif self.loss == "ssim":
+                loss = metrics_module.kpcnSSIM(noisy_img, self.kpcn_size)
         else:
             loss = "mean_absolute_error"
-            metrics = [self.psnr]
+            #metrics = [self.psnr]
 
         self.model.compile(
             optimizer=self.adam,
