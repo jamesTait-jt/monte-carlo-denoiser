@@ -289,7 +289,7 @@ class Denoiser():
             x = self.activation(x)
             #x = keras.layers.Dropout(0.2)(x)
             if self.bn:
-                x = keras.layers.BatchNormalization(momentum=0.8)(x)
+                x = keras.layers.BatchNormalization()(x)
 
         if self.kernel_predict:
             pred = convLayer(x, pow(self.kpcn_size, 2))

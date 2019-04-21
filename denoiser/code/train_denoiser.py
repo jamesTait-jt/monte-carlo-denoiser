@@ -100,6 +100,8 @@ def mae_albdiv_bn(train_data, test_data):
     denoiser.buildNetwork()
     denoiser.train()
 
+# =============== VGG ================ #
+
 def vgg(train_data, test_data):
     """Train the vgg denoiser with no albedo divide and no batch norm. Use all
     features"""
@@ -194,51 +196,9 @@ def vgg_albdiv_bn(train_data, test_data):
     denoiser.buildNetwork()
     denoiser.train()
 
-def main():
-
-    patches = tungsten_data.getSampledPatches()
-
-    train_data = patches["train"]
-    test_data = patches["test"]
-
-    # ==== NO ALBDIV, NO BATCHNORM, ALL FEATURES ==== #
-    #mae(train_data, test_data)
-    vgg(train_data, test_data)
-
-    # === NO ALBDIV, BATCHNORM ON, ALL FEATURES ==== #
-    #mae_bn(train_data, test_data)
-    vgg_bn(train_data, test_data)
-
-    # === ALBDIV ON, NO BATCHNORM, ALL FEATURES ==== #
-    #mae_albdiv(train_data, test_data)
-    #vgg_albdiv(train_data, test_data)
-
-    # === ALBDIV ON, BATCHNORM ON, ALL FEATURES ==== #
-    #mae_albdiv_bn(train_data, test_data)
-    #vgg_albdiv_bn(train_data, test_data)
-
-
-    """
-    denoiser = Denoiser(
-        train_data,
-        test_data,
-        adam_lr=1e-5,
-        num_epochs=100000, # Stupid number of epochs, early stopping will prevent reaching this
-        early_stopping=True,
-        kernel_predict=True,
-        feature_list=feature_list,
-        num_layers=7,
-        batch_size=64,
-        loss="ssim",
-        model_dir="../experiments/models/ssim",
-        log_dir="../experiments/logs/ssim"
-    )
-    #denoiser.buildNetwork()
-    #denoiser.train()
-    del denoiser
-
-
-    # WGAN-GP - NO ALBDIV
+# =============== VGG ================ #
+def wgan(train_data, test_data):
+    config.ALBEDO_DIVIDE = False
     gan = GAN(
         train_data, 
         test_data, 
@@ -259,67 +219,10 @@ def main():
         log_dir="../experiments/logs/wgan-gp",
     )
     gan.trainWGAN_GP()
+    return
 
-    # SET ALBEDO DIVIDE ON
+def wgan_albdiv(train_data, test_data):
     config.ALBEDO_DIVIDE = True
-
-    # MAE - ALBDIV
-    denoiser = Denoiser(
-        train_data,
-        test_data,
-        adam_lr=1e-4,
-        num_epochs=100000, # Stupid number of epochs, early stopping will prevent reaching this
-        early_stopping=True,
-        kernel_predict=True,
-        feature_list=feature_list,
-        num_layers=7,
-        batch_size=64,
-        loss="mae",
-        model_dir="../experiments/models/mae-albdiv",
-        log_dir="../experiments/logs/mae-albdiv"
-    )
-    denoiser.buildNetwork()
-    denoiser.train()
-    del denoiser
-
-    denoiser = Denoiser(
-        train_data,
-        test_data,
-        adam_lr=1e-5,
-        num_epochs=100000, # Stupid number of epochs, early stopping will prevent reaching this
-        early_stopping=True,
-        kernel_predict=True,
-        feature_list=feature_list,
-        num_layers=7,
-        batch_size=64,
-        loss="ssim",
-        model_dir="../experiments/models/ssim",
-        log_dir="../experiments/logs/ssim"
-    )
-    #denoiser.buildNetwork()
-    #denoiser.train()
-    del denoiser
-
-    # VGG - ALBDIV
-    denoiser = Denoiser(
-        train_data,
-        test_data,
-        adam_lr=1e-3,
-        num_epochs=100000,
-        early_stopping=True,
-        kernel_predict=True,
-        feature_list=feature_list,
-        num_layers=7,
-        batch_size=64,
-        loss="vgg22",
-        model_dir="../experiments/models/vgg-albdiv",
-        log_dir="../experiments/logs/vgg-albdiv",
-    )
-    denoiser.buildNetwork()
-    denoiser.train()
-    del denoiser
-
-    # WGAN-GP - ALBDIV
     gan = GAN(
         train_data, 
         test_data, 
@@ -336,11 +239,42 @@ def main():
         c_lr=1e-4,
         c_itr=5,
         g_bn=True,
-        model_dir="../experiments/models/wgan-gp-albdiv",
-        log_dir="../experiments/logs/wgan-gp-albdiv",
+        model_dir="../experiments/models/wgan-gp_albdiv",
+        log_dir="../experiments/logs/wgan-gp_albdiv",
     )
     gan.trainWGAN_GP()
-    """
+    return 
+
+
+
+def main():
+
+    patches = tungsten_data.getSampledPatches()
+
+    train_data = patches["train"]
+    test_data = patches["test"]
+
+    # ==== NO ALBDIV, NO BATCHNORM, ALL FEATURES ==== #
+    #mae(train_data, test_data)
+    #vgg(train_data, test_data)
+
+    # === NO ALBDIV, BATCHNORM ON, ALL FEATURES ==== #
+    #mae_bn(train_data, test_data)
+    #vgg_bn(train_data, test_data)
+
+    # === ALBDIV ON, NO BATCHNORM, ALL FEATURES ==== #
+    #mae_albdiv(train_data, test_data)
+    #vgg_albdiv(train_data, test_data)
+
+    # === ALBDIV ON, BATCHNORM ON, ALL FEATURES ==== #
+    #mae_albdiv_bn(train_data, test_data)
+    #vgg_albdiv_bn(train_data, test_data)
+
+
+    # === WGAN === #
+    wgan(train_data, test_data)
+    #wgan_albdiv(train_data, test_data)
+
 
 if __name__ == "__main__":
     main()
