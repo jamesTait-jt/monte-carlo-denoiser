@@ -272,8 +272,8 @@ def main():
 
 
     # === WGAN === #
-    wgan(train_data, test_data)
-    #wgan_albdiv(train_data, test_data)
+    #wgan(train_data, test_data)
+    wgan_albdiv(train_data, test_data)
 
 
 if __name__ == "__main__":
