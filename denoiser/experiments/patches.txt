@@ -3,3 +3,17 @@
 625,545 (rug shadow)
 456,358 (sink)
 1208,657 (chest shadow)
+
+# ---- ALBEDODIV ---- #
+829,564 (bedsheet detail)
+122,364 (vase)
+884,627 (floor)
+757,398 (headboard)
+
+# ---- WGANGP comparison ---- #
+ == living room ==
+813,657 (livingroom carpet and foot)
+
+ == bathroom ==
+952,457
+
