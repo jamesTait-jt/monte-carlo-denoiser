@@ -92,6 +92,8 @@ def buildCritic():
     x = convBlock(x, 512, strides=[2, 2])
     x = keras.layers.Dropout(0.4)(x)
 
+    #x = keras.layers.Dense(1024)(x)
+    #x = keras.layers.Dropout(0.5)(x)
     x = keras.layers.LeakyReLU(alpha=0.2)(x)
     x = keras.layers.Flatten()(x)
     x = keras.layers.Dense(1)(x)
