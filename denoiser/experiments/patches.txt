@@ -1,0 +1,5 @@
+# ---- VGG vs MAE ---- #
+614,371 (tap)
+625,545 (rug shadow)
+456,358 (sink)
+1208,657 (chest shadow)
