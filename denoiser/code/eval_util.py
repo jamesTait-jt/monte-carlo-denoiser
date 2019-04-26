@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import tensorflow as tf
+import keras
 from keras.preprocessing.image import array_to_img
 
 
@@ -39,6 +40,18 @@ def getModelInput(images, index, feature_list):
                 test_in.append(np.array(images["test"]["noisy"][key][index]))
 
     return np.concatenate((test_in), 2), test_in[0]
+
+def getPatchesAsInput(patches):
+    feature_list = ["normal", "depth", "albedo"]
+    num_patches = len(patches["test"]["noisy"]["diffuse"])
+    model_input = []
+    noisy_imgs = []
+    for i in range(num_patches):
+        inpt = getModelInput(patches, i, feature_list)
+        model_input.append(inpt[0])
+        noisy_imgs.append(inpt[1])
+    return np.array(model_input), np.array(noisy_imgs)
+
 
 # Apply the kernel of weights to an image
 def applyKernel(noisy_img, weights):
@@ -141,3 +154,56 @@ def saveBuffers(images, save_dir, img_index):
         test_images["noisy"]["normal"][img_index],
         save_dir + "noisy_normal.png"
     )
+
+def loadModels(model_paths):
+    models = []
+    for i in range(len(model_paths)):
+        print("Loading model {0}/{1}".format(i + 1, len(model_paths)))
+        models.append(keras.models.load_model(model_paths[i], compile=False))
+    return models
+
+
+def getModelForNewInput(model, buffers_in):
+    """Changes the input layer of the model to work for our new input shape"""
+    
+    # Pop the input layer off so we can make a new input layer that is the shape of
+    # the full image (not patches)
+    model.layers.pop(0)
+
+    # Defining new model shape
+    new_input = keras.layers.Input(buffers_in.shape)
+    new_output = model(new_input)
+    new_model = keras.models.Model(new_input, new_output)
+
+    return new_model
+
+def psnr(img1, img2, max_val):
+    mse = np.mean((img1 - img2) ** 2)
+    if mse == 0:
+        return 100
+    return 20 * math.log10(max_val / math.sqrt(mse))
+
+def denoiseFullTestImg(model, images, index):
+    """Takes a model, a dict of full images and the index of a test image,
+    denoises and returns the full image."""
+    feature_list = ["normal", "albedo", "depth"]
+    buffers_in, noisy_img = getModelInput(images, index, feature_list)
+    model = getModelForNewInput(model, buffers_in)
+
+    print("Making prediction...")
+    buffers_in = np.expand_dims(buffers_in, 0)
+    noisy_img = np.expand_dims(noisy_img, 0)
+    weights = model.predict(buffers_in)
+    print("Done!\n")
+
+    print("Applying weights...")
+    pred = applyKernel(noisy_img, weights)
+    print("Done!\n")
+
+    if config.ALBEDO_DIVIDE:
+        pred = albedoMultiply(images, pred, index)
+
+    pred = pred.clip(0, 1)[0]
+    pred = array_to_img(pred)
+    return pred
+
